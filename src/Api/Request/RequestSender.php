@@ -34,7 +34,7 @@ final class RequestSender implements RequestSenderInterface
     private function getHeaders(): array
     {
         $token = $this->refreshTokenManager->getAccessToken($this->key);
-        $accessToken = $token->getRefreshToken();
+        $accessToken = $token->getAccessToken();
 
         $headers = [
             self::HEADER_KEY_API_KEY => $this->key,

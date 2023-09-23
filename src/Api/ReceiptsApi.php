@@ -15,9 +15,9 @@ final class ReceiptsApi extends AbstractApi
 
     private ReceiptsTransformer $receiptsTransformer;
 
-    public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenKeyValueStore, KeyValueStoreInterface $refreshTokenKeyValueStore)
+    public function __construct(int $shopId, string $key, KeyValueStoreInterface $refreshTokenKeyValueStore, ?KeyValueStoreInterface $accessTokenKeyValueStore = null)
     {
-        parent::__construct($shopId, $key, $accessTokenKeyValueStore, $refreshTokenKeyValueStore);
+        parent::__construct($shopId, $key, $refreshTokenKeyValueStore, $accessTokenKeyValueStore);
         $this->receiptsTransformer = new ReceiptsTransformer();
     }
 
