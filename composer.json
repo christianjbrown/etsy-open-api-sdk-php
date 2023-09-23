@@ -1,0 +1,34 @@
+{
+    "name": "christianjbrown/etsy-api",
+    "require": {
+        "php": "^8.2",
+        "christianjbrown/user-friendly-exception": "dev-main",
+        "christianjbrown/json-api-client": "dev-main",
+        "psr/http-client": "^1.0",
+        "christianjbrown/oauth2-client": "dev-main",
+        "christianjbrown/key-value-store": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "ChristianBrown\\Etsy\\": "src/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "github",
+            "url": "git@github.com:christianjbrown/user-friendly-exception.git"
+        },
+        {
+            "type": "github",
+            "url": "git@github.com:christianjbrown/json-api-client.git"
+        },
+        {
+            "type": "github",
+            "url": "git@github.com:christianjbrown/oauth2-client.git"
+        },
+        {
+            "type": "github",
+            "url": "git@github.com:christianjbrown/key-value-store.git"
+        }
+    ]
+}
