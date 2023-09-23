@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\Etsy\Api\Request\EtsyApiRequestSender;
 use ChristianBrown\Etsy\Api\Request\RequestSender;
 use ChristianBrown\Etsy\Transformer\ResultSetTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
@@ -18,9 +17,9 @@ abstract class AbstractApi
 
     protected int $shopId;
 
-    public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenKeyValueStore, KeyValueStoreInterface $refreshTokenKeyValueStore)
+    public function __construct(int $shopId, string $key, KeyValueStoreInterface $refreshTokenKeyValueStore, ?KeyValueStoreInterface $accessTokenKeyValueStore)
     {
-        $this->requestSender = new RequestSender($key, $accessTokenKeyValueStore, $refreshTokenKeyValueStore);
+        $this->requestSender = new RequestSender($key, $refreshTokenKeyValueStore, $accessTokenKeyValueStore);
         $this->shopId = $shopId;
         $this->resultSetTransformer = new ResultSetTransformer();
     }
