@@ -8,11 +8,8 @@ use ChristianBrown\Etsy\Model\ResultSet;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 
-final class ReceiptsApi extends AbstractApi
+final class ReceiptsApi extends AbstractApi implements ReceiptsApiInterface
 {
-    private const DEFAULT_LIMIT = 100;
-    private const URL = 'https://openapi.etsy.com/v3/application/shops/%d/receipts';
-
     private ReceiptsTransformer $receiptsTransformer;
 
     public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenKeyValueStore, KeyValueStoreInterface $refreshTokenKeyValueStore)

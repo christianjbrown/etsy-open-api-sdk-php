@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Model;
 
-final class Receipt implements ModelInterface
+final class Receipt implements ReceiptInterface
 {
     public array $transactions;
 
