@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Transformer;
 
 use ChristianBrown\Etsy\Model\ResultSet;
+use ChristianBrown\Etsy\Model\ResultSetInterface;
 use ChristianBrown\UserFriendlyException\UserFriendlyException;
 
 final class ResultSetTransformer implements ResultSetTransformerInterface
 {
-    public function transform(array $data, DatasTransformerInterface $datasTransformer): ResultSet
+    public function transform(array $data, DatasTransformerInterface $datasTransformer): ResultSetInterface
     {
         if (!isset($data[self::KEY_COUNT]) || !is_numeric($data[self::KEY_COUNT])) {
             throw new UserFriendlyException('Etsy result count is unexpected');
