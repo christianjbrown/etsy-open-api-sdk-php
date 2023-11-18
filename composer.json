@@ -8,10 +8,27 @@
         "christianjbrown/oauth2-client": "dev-main",
         "christianjbrown/key-value-store": "dev-main"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0@dev",
+        "christianjbrown/php-cs-fixer-wrapper": "dev-main"
+    },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "ChristianBrown\\Etsy\\": "src/"
         }
+    },
+    "scripts": {
+        "test": [
+            "./vendor/bin/phpunit && open ./.phpunit.cache/code-coverage-html/index.html"
+        ],
+        "fix": [
+            "./vendor/bin/php-cs-fixer fix ./src ./tests -vvv --config=vendor/christianjbrown/php-cs-fixer-wrapper/rule-sets/risky.php"
+        ],
+        "fix-test": [
+            "@fix",
+            "@test"
+        ]
     },
     "repositories": [
         {
@@ -29,6 +46,10 @@
         {
             "type": "github",
             "url": "git@github.com:christianjbrown/key-value-store.git"
+        },
+        {
+            "type": "github",
+            "url": "git@github.com:christianjbrown/php-cs-fixer-wrapper.git"
         }
     ]
 }

@@ -6,11 +6,8 @@ namespace ChristianBrown\Etsy\Transformer;
 
 use ChristianBrown\Etsy\Model\Transaction;
 
-final class TransactionTransformer implements DataTransformerInterface
+final class TransactionTransformer implements TransactionTransformerInterface
 {
-    private const DATA_KEY_LISTING_ID = 'listing_id';
-    private const DATA_KEY_QUANTITY = 'quantity';
-
     public function transform(array $data): Transaction
     {
         $transaction = new Transaction();

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\Etsy\Api\Request\EtsyApiRequestSender;
 use ChristianBrown\Etsy\Api\Request\RequestSender;
 use ChristianBrown\Etsy\Transformer\ResultSetTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;

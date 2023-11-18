@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Transformer;
 
-final class ReceiptsTransformer implements DatasTransformerInterface
+final class ReceiptsTransformer implements ReceiptsTransformerInterface
 {
     private ReceiptTransformer $receiptTransformer;
 

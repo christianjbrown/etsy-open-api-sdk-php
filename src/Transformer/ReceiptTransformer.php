@@ -6,10 +6,8 @@ namespace ChristianBrown\Etsy\Transformer;
 
 use ChristianBrown\Etsy\Model\Receipt;
 
-final class ReceiptTransformer implements DataTransformerInterface
+final class ReceiptTransformer implements ReceiptTransformerInterface
 {
-    private const DATA_KEY_TRANSACTIONS = 'transactions';
-
     private TransactionsTransformer $transactionsTransformer;
 
     public function __construct()
