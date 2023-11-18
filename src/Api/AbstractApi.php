@@ -17,9 +17,9 @@ abstract class AbstractApi
 
     protected int $shopId;
 
-    public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenKeyValueStore, KeyValueStoreInterface $refreshTokenKeyValueStore)
+    public function __construct(int $shopId, string $key, KeyValueStoreInterface $refreshTokenKeyValueStore, ?KeyValueStoreInterface $accessTokenKeyValueStore)
     {
-        $this->requestSender = new RequestSender($key, $accessTokenKeyValueStore, $refreshTokenKeyValueStore);
+        $this->requestSender = new RequestSender($key, $refreshTokenKeyValueStore, $accessTokenKeyValueStore);
         $this->shopId = $shopId;
         $this->resultSetTransformer = new ResultSetTransformer();
     }
