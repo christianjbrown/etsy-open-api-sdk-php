@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\Etsy\Model\ResultSet;
+use ChristianBrown\Etsy\Model\ResultSetInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 
@@ -18,7 +18,7 @@ final class ReceiptsApi extends AbstractApi implements ReceiptsApiInterface
         $this->receiptsTransformer = new ReceiptsTransformer();
     }
 
-    public function get(int $offset = 0, int $limit = self::DEFAULT_LIMIT): ResultSet
+    public function get(int $offset = 0, int $limit = self::DEFAULT_LIMIT): ResultSetInterface
     {
         $url = sprintf(self::URL, $this->shopId);
         $queryStrings = [
