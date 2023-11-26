@@ -6,11 +6,11 @@ namespace ChristianBrown\Etsy\Transformer;
 
 final class TransactionsTransformer implements TransactionsTransformerInterface
 {
-    private TransactionTransformer $transactionTransformer;
+    private TransactionTransformerInterface $transactionTransformer;
 
-    public function __construct()
+    public function __construct(TransactionTransformerInterface $transactionTransformer)
     {
-        $this->transactionTransformer = new TransactionTransformer();
+        $this->transactionTransformer = $transactionTransformer;
     }
 
     public function transform(array $data): array

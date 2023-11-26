@@ -4,7 +4,7 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="ChristianBrown\Etsy\" />
-      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" packagePrefix="ChristianBrown\Etsy\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/christianjbrown/json-api-client" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/christianjbrown/key-value-store" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/christianjbrown/oauth2-client" />

@@ -6,7 +6,17 @@ namespace ChristianBrown\Etsy\Model;
 
 final class Receipt implements ReceiptInterface
 {
-    public array $transactions;
+    private ?array $transactions = null;
 
-    // @todo Lots more fields to transform if we need them..
+    public function getTransactions(): ?array
+    {
+        return $this->transactions;
+    }
+
+    public function setTransactions(?array $transactions): ReceiptInterface
+    {
+        $this->transactions = $transactions;
+
+        return $this;
+    }
 }

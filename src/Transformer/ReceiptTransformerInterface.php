@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Transformer;
 
-use ChristianBrown\Etsy\Model\Receipt;
+use ChristianBrown\Etsy\Model\ReceiptInterface;
 
-interface ReceiptTransformerInterface extends DataTransformerInterface
+interface ReceiptTransformerInterface extends ObjectTransformerInterface
 {
     public const DATA_KEY_TRANSACTIONS = 'transactions';
 
-    public function transform(array $data): Receipt;
+    public function transform(array $data): ReceiptInterface;
 }

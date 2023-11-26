@@ -6,11 +6,11 @@ namespace ChristianBrown\Etsy\Transformer;
 
 final class ReceiptsTransformer implements ReceiptsTransformerInterface
 {
-    private ReceiptTransformer $receiptTransformer;
+    private ReceiptTransformerInterface $receiptTransformer;
 
-    public function __construct()
+    public function __construct(ReceiptTransformerInterface $receiptTransformer)
     {
-        $this->receiptTransformer = new ReceiptTransformer();
+        $this->receiptTransformer = $receiptTransformer;
     }
 
     public function transform(array $data): array

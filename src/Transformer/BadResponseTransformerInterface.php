@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ChristianBrown\Etsy\Api\Request;
+namespace ChristianBrown\Etsy\Transformer;
 
 use ChristianBrown\JsonApiClient\BadResponseTransformerInterface as BaseBadResponseTransformerInterface;
 
