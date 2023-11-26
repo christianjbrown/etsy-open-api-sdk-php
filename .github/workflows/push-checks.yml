@@ -14,7 +14,9 @@ jobs:
         uses: "php-actions/composer@v6"
 
       - name: "Install dependencies"
-        run: 'COMPOSER_AUTH={"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}} composer update'
+        run: 'composer update'
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
 
       - name: "Run PHPUnit tests"
         run: "composer test"
