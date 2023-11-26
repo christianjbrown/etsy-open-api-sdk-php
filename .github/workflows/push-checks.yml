@@ -1,9 +1,8 @@
-name: "On-push checks"
-
 on: ["push"]
 
 jobs:
-  run-tests:
+  on-push-checks:
+    name: "On-push checks"
     runs-on: "ubuntu-20.04"
 
     steps:
