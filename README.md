@@ -25,7 +25,7 @@ $keyString = getenv('ETSY_KEY_STRING');
 // You will need to generate the first refresh token manually, and then store it in the key-value store.
 $refreshTokenStore = new DatabaseKeyValueStore($entityManager, RefreshTokens::class, 'etsy-refresh-token');
 
-$api = new Api($shopId,$keyString, $refreshTokenStore);
+$api = new Api($shopId, $keyString, $refreshTokenStore);
 $receiptsApi = $api->getReceiptsApi();
 
 $resultSet = $receiptsApi->getResultSet();
