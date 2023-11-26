@@ -1,5 +1,5 @@
 {
-    "name": "christianjbrown/etsy-api",
+    "name": "christianjbrown/etsy-open-api-sdk-php",
     "require": {
         "php": "^8.2",
         "christianjbrown/user-friendly-exception": "dev-main",
