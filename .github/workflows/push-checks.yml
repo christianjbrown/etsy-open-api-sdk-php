@@ -1,0 +1,20 @@
+name: On-push checks
+
+on: [push]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: "Checkout code"
+        uses: "actions/checkout@v4"
+
+      - name: "Install composer"
+        uses: "php-actions/composer@v6"
+
+      - name: "Install dependencies"
+        run: "composer update"
+
+      - name: "Run PHPUnit tests"
+        run: "composer test"
