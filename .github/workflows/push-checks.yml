@@ -1,10 +1,10 @@
-name: On-push checks
+name: "On-push checks"
 
-on: [push]
+on: ["push"]
 
 jobs:
   run-tests:
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-20.04"
 
     steps:
       - name: "Checkout code"
@@ -14,7 +14,7 @@ jobs:
         uses: "php-actions/composer@v6"
 
       - name: "Install dependencies"
-        run: "composer update"
+        run: 'COMPOSER_AUTH={"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}} composer update'
 
       - name: "Run PHPUnit tests"
         run: "composer test"
