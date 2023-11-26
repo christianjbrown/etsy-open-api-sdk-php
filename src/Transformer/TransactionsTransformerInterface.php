@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Transformer;
 
-interface TransactionsTransformerInterface extends DatasTransformerInterface
+interface TransactionsTransformerInterface extends ObjectsTransformerInterface
 {
 }

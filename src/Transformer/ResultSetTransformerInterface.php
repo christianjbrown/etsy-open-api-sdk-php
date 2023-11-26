@@ -11,5 +11,5 @@ interface ResultSetTransformerInterface
     public const KEY_COUNT = 'count';
     public const KEY_RESULTS = 'results';
 
-    public function transform(array $data, DatasTransformerInterface $datasTransformer): ResultSetInterface;
+    public function transform(array $data, ObjectsTransformerInterface $datasTransformer): ResultSetInterface;
 }

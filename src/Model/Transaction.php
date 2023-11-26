@@ -6,8 +6,30 @@ namespace ChristianBrown\Etsy\Model;
 
 final class Transaction implements TransactionInterface
 {
-    public int $listingId;
-    public int $quantity;
+    private ?int $listingId = null;
+    private ?int $quantity = null;
 
-    // @todo Lots more fields to transform if we need them..
+    public function getListingId(): ?int
+    {
+        return $this->listingId;
+    }
+
+    public function getQuantity(): ?int
+    {
+        return $this->quantity;
+    }
+
+    public function setListingId(?int $value): TransactionInterface
+    {
+        $this->listingId = $value;
+
+        return $this;
+    }
+
+    public function setQuantity(?int $value): TransactionInterface
+    {
+        $this->quantity = $value;
+
+        return $this;
+    }
 }

@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Transformer;
 
 use ChristianBrown\Etsy\Model\Receipt;
+use ChristianBrown\Etsy\Model\ReceiptInterface;
 
 final class ReceiptTransformer implements ReceiptTransformerInterface
 {
-    private TransactionsTransformer $transactionsTransformer;
+    private TransactionsTransformerInterface $transactionsTransformer;
 
-    public function __construct()
+    public function __construct(TransactionsTransformerInterface $transactionsTransformer)
     {
-        $this->transactionsTransformer = new TransactionsTransformer();
+        $this->transactionsTransformer = $transactionsTransformer;
     }
 
-    public function transform(array $data): Receipt
+    public function transform(array $data): ReceiptInterface
     {
         $receipt = new Receipt();
         if (isset($data[self::DATA_KEY_TRANSACTIONS]) && is_array($data[self::DATA_KEY_TRANSACTIONS])) {
-            $receipt->transactions = $this->transactionsTransformer->transform($data[self::DATA_KEY_TRANSACTIONS]);
+            $transactions = $this->transactionsTransformer->transform($data[self::DATA_KEY_TRANSACTIONS]);
+            $receipt->setTransactions($transactions);
         }
-
-        // @todo Lots more fields to transform if we need them..
 
         return $receipt;
     }

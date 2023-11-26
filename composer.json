@@ -15,7 +15,8 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "ChristianBrown\\Etsy\\": "src/"
+            "ChristianBrown\\Etsy\\": "src/",
+            "ChristianBrown\\Etsy\\Tests\\": "tests/"
         }
     },
     "scripts": {
