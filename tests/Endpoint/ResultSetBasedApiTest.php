@@ -43,6 +43,5 @@ final class ResultSetBasedApiTest extends TestCase
         $actual = $api->fetchResultSet('test-url', $objectsTransformer, 3, 75, ['test-key' => 'test-value']);
 
         self::assertSame($resultSet, $actual);
-
     }
 }
