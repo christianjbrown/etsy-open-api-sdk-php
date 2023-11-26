@@ -12,9 +12,10 @@ jobs:
 
       - name: "Install dependencies"
         env:
-          XDEBUG_MODE: "coverage"
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
         run: 'composer update'
 
       - name: "Run PHPUnit tests"
+        env:
+          XDEBUG_MODE: "coverage"
         run: "./bin/phpunit"
