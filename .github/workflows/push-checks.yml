@@ -1,4 +1,15 @@
-on: ["push"]
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    types: ["opened", "synchronize"]
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to run checks on"
+        required: true
+        default: "main"
 
 jobs:
   on-push-checks:
