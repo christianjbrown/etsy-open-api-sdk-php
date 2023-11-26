@@ -12,6 +12,7 @@ jobs:
 
       - name: "Install dependencies"
         env:
+          XDEBUG_MODE: "coverage"
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
         run: 'composer update'
 
