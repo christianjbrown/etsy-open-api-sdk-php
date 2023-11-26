@@ -38,31 +38,31 @@
     "repositories": [
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/user-friendly-exception.git"
+            "url": "https://github.com/christianjbrown/git-php-wrapper.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/json-api-client.git"
+            "url": "https://github.com/christianjbrown/json-api-client.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/oauth2-client.git"
+            "url": "https://github.com/christianjbrown/key-value-store.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/key-value-store.git"
+            "url": "https://github.com/christianjbrown/oauth2-client.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/php-cs-fixer-wrapper.git"
+            "url": "https://github.com/christianjbrown/php-cs-fixer-wrapper.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/phpcs-wrapper.git"
+            "url": "https://github.com/christianjbrown/phpcs-wrapper.git"
         },
         {
             "type": "github",
-            "url": "git@github.com:christianjbrown/git-php-wrapper.git"
+            "url": "https://github.com/christianjbrown/user-friendly-exception.git"
         }
     ]
 }
