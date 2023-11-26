@@ -1,6 +1,6 @@
 # Etsy Open API SDK
 
-This is a simple PHP library for Etsy's APIs.
+This is a simple PHP library for [Etsy's Open API](https://developers.etsy.com/).
 
 ## Prerequisites
 
@@ -8,8 +8,10 @@ You will need [PHP](https://www.php.net/) 8.2 (or higher up to 9.0) and [Compose
 
 ## Installation
 
+Using composer, run:
+
 ```bash
-composer require christianjbrown/etsy-api
+composer require christianjbrown/etsy-open-api-sdk-php
 ```
 
 ## Usage
@@ -21,8 +23,9 @@ use ChristianBrown\KeyValueStore\DatabaseKeyValueStore;
 $shopId = getenv('ETSY_SHOP_ID');
 $keyString = getenv('ETSY_KEY_STRING');
 
-// Replace with your own key-value token value store, see christianbrown/key-value-store for examples.
-// You will need to generate the first refresh token manually, and then store it in the key-value store.
+// Replace with your own key-value token value store,
+// see christianbrown/key-value-store for examples.
+// Note: You will need to generate the first refresh token manually, and then store it in the key-value store.
 $refreshTokenStore = new DatabaseKeyValueStore($entityManager, RefreshTokens::class, 'etsy-refresh-token');
 
 $api = new Api($shopId, $keyString, $refreshTokenStore);
