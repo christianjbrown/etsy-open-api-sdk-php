@@ -1,4 +1,4 @@
-# eBay Shopping API
+# Etsy Open API SDK
 
 This is a simple PHP library for Etsy's APIs.
 
