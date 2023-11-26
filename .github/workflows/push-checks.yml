@@ -13,10 +13,15 @@ jobs:
       - name: "Install composer"
         uses: "php-actions/composer@v6"
 
+      - name: "Set and use MY_VAR"
+        env:
+          MY_VAR: 'test!!'
+        run: 'echo "Value of MY_VAR is $MY_VAR"'
+
       - name: "Install dependencies"
-        run: 'composer update'
         env:
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
+        run: 'composer update'
 
       - name: "Run PHPUnit tests"
         run: "composer test"
