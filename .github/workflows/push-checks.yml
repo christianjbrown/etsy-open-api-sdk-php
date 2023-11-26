@@ -15,6 +15,9 @@ jobs:
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
         run: 'composer update'
 
+      - name: "Run PHPCS checks"
+        run: "composer check-style"
+
       - name: "Run PHPUnit tests"
         env:
           XDEBUG_MODE: "coverage"
