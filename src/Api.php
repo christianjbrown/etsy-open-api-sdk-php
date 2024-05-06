@@ -8,19 +8,19 @@ use ChristianBrown\Etsy\Endpoint\ReceiptsApi;
 use ChristianBrown\Etsy\Endpoint\ReceiptsApiInterface;
 use ChristianBrown\Etsy\Endpoint\ResultSetBasedApi;
 use ChristianBrown\Etsy\Request\ApiConnector;
-use ChristianBrown\Etsy\Request\ApiConnectorInterface;
 use ChristianBrown\Etsy\Request\AuthenticationManager;
 use ChristianBrown\Etsy\Request\AuthenticationManagerInterface;
-use ChristianBrown\Etsy\Transformer\BadResponseTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\ResultSetTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
-use ChristianBrown\JsonApiClient\RequestSender;
+use ChristianBrown\JsonApiClient\JsonApiRequestSender;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
-use ChristianBrown\Oauth2Client\RefreshTokenManager;
+use ChristianBrown\OAuth2Client\RefreshTokenManager;
+use ChristianBrown\OAuth2Client\Transformer\TokenTransformer;
+use GuzzleHttp\Client;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -28,6 +28,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class Api implements ApiInterface
 {
+    private KeyValueStoreInterface $accessTokenStore;
     private ContainerInterface $container;
     private string $key;
     private KeyValueStoreInterface $refreshTokenStore;
@@ -37,8 +38,9 @@ final class Api implements ApiInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function __construct(int $shopId, string $key, KeyValueStoreInterface $refreshTokenStore)
+    public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
     {
+        $this->accessTokenStore = $accessTokenStore;
         $this->refreshTokenStore = $refreshTokenStore;
         $this->shopId = $shopId;
         $this->key = $key;
@@ -61,17 +63,30 @@ final class Api implements ApiInterface
      */
     private function init(): void
     {
+        $this->container->set('etsy.request.access_token_store', $this->accessTokenStore);
         $this->container->set('etsy.request.refresh_token_store', $this->refreshTokenStore);
 
         $this->container->register('etsy.request.access_token_store', MemoryKeyValueStore::class);
 
+        $this->container->register('guzzle_http.client', Client::class);
+
+        $this->container->register('christianbrown.json_api_client.json_api_request_sender', JsonApiRequestSender::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition('guzzle_http.client'),
+                ]
+            );
+
+        $this->container->register('christianbrown.oauth2_client.token_transformer', TokenTransformer::class);
+
         $this->container->register('etsy.request.refresh_token_manager', RefreshTokenManager::class)
             ->setArguments(
                 [
-                    AuthenticationManagerInterface::URL_OAUTH_TOKEN_API,
-                    ApiConnectorInterface::FRIENDLY_NAME,
+                    $this->container->getDefinition('christianbrown.json_api_client.json_api_request_sender'),
+                    $this->container->get('etsy.request.access_token_store'),
                     $this->container->get('etsy.request.refresh_token_store'),
-                    $this->container->getDefinition('etsy.request.access_token_store'),
+                    $this->container->getDefinition('christianbrown.oauth2_client.token_transformer'),
+                    AuthenticationManagerInterface::URL_OAUTH_TOKEN_API,
                 ]
             );
 
@@ -83,20 +98,11 @@ final class Api implements ApiInterface
                 ]
             );
 
-        $this->container->register('etsy.request.bad_response_transformer', BadResponseTransformer::class);
-
-        $this->container->register('etsy.request.request_sender', RequestSender::class)
-            ->setArguments(
-                [
-                    $this->container->getDefinition('etsy.request.bad_response_transformer'),
-                ]
-            );
-
         $this->container->register('etsy.request.api_connector', ApiConnector::class)
             ->setArguments(
                 [
                     $this->container->getDefinition('etsy.request.authentication_manager'),
-                    $this->container->getDefinition('etsy.request.request_sender'),
+                    $this->container->getDefinition('christianbrown.json_api_client.json_api_request_sender'),
                 ]
             );
 

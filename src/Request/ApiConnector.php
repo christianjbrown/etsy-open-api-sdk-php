@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Request;
 
-use ChristianBrown\JsonApiClient\RequestSenderInterface;
+use ChristianBrown\JsonApiClient\JsonApiRequestSenderInterface;
 
 final class ApiConnector implements ApiConnectorInterface
 {
     private AuthenticationManagerInterface $authenticationManager;
-    private RequestSenderInterface $requestSender;
+    private JsonApiRequestSenderInterface $jsonApiRequestSender;
 
-    public function __construct(AuthenticationManagerInterface $authenticationManager, RequestSenderInterface $requestSender)
+    public function __construct(AuthenticationManagerInterface $authenticationManager, JsonApiRequestSenderInterface $jsonApiRequestSender)
     {
         $this->authenticationManager = $authenticationManager;
-        $this->requestSender = $requestSender;
+        $this->jsonApiRequestSender = $jsonApiRequestSender;
     }
 
     public function get(string $url, array $queryStrings = []): array
     {
         $headers = $this->authenticationManager->getAuthHeaders();
-        $data = $this->requestSender->get(self::FRIENDLY_NAME, $url, $queryStrings, $headers);
+        $data = $this->jsonApiRequestSender->get($url, $queryStrings, $headers);
 
         return $data;
     }
