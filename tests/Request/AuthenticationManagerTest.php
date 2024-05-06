@@ -6,8 +6,8 @@ namespace ChristianBrown\Etsy\Tests\Request;
 
 use ChristianBrown\Etsy\Request\AuthenticationManager;
 use ChristianBrown\Etsy\Request\AuthenticationManagerInterface;
-use ChristianBrown\Oauth2Client\Model\TokenInterface;
-use ChristianBrown\Oauth2Client\RefreshTokenManagerInterface;
+use ChristianBrown\OAuth2Client\Model\TokenInterface;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\MockObject\Exception;

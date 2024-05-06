@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Request;
 
-use ChristianBrown\Oauth2Client\RefreshTokenManagerInterface;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerInterface;
 
 use function sprintf;
 

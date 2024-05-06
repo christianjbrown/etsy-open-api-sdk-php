@@ -39,8 +39,9 @@ final class ApiTest extends TestCase
      */
     public function testGetReceiptsApi(): void
     {
+        $accessTokenStore = $this->createMock(KeyValueStoreInterface::class);
         $refreshTokenStore = $this->createMock(KeyValueStoreInterface::class);
-        $api = new Api(123, 'test-key', $refreshTokenStore);
+        $api = new Api(123, 'test-key', $accessTokenStore, $refreshTokenStore);
         $receiptsApi = $api->getReceiptsApi();
         self::assertInstanceOf(ReceiptsApiInterface::class, $receiptsApi);
     }

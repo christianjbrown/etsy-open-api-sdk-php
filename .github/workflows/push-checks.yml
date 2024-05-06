@@ -1,9 +1,8 @@
+name: "On-push checks"
 on:
-#  push:
-#    branches: ['main']
   pull_request:
     types: ["opened", "synchronize"]
-    branches: ['main']
+    branches: ["main"]
   workflow_dispatch:
     inputs:
       branch:
@@ -23,7 +22,7 @@ jobs:
       - name: "Install dependencies"
         env:
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.COMPOSER_GITHUB_TOKEN }}"}}'
-        run: 'composer update'
+        run: "composer update"
 
       - name: "Run PHPCS checks"
         run: "composer check-style"
