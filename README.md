@@ -9,7 +9,7 @@ This is a simple SDK for [Etsy's Open API](https://developers.etsy.com/) in PHP.
 You will need:
 
 * An Etsy account, be approved to use Etsy Open API
-* An applicationn being written for [PHP](https://www.php.net/) 8.2 (or higher up to 9.0)
+* An application being written for [PHP](https://www.php.net/) 8.2 (or higher up to 9.0)
 * [Composer](https://getcomposer.org/)
 
 
@@ -19,7 +19,7 @@ You will need:
 Using composer, run:
 
 ```bash
-composer require christianjbrown/etsy-open-api-sdk-php
+composer require christianjbrown/php-etsy-open-api-sdk
 ```
 
 
@@ -37,9 +37,10 @@ $keyString = getenv('ETSY_KEY_STRING');
 // see christianbrown/key-value-store for examples.
 // Note: You will need to generate the first refresh token manually,
 // and then store it in the key-value store.
+$accessTokenStore = new MemoryKeyValueStore();
 $refreshTokenStore = new DatabaseKeyValueStore($entityManager, RefreshTokens::class, 'etsy-refresh-token');
 
-$api = new Api($shopId, $keyString, $refreshTokenStore);
+$api = new Api($shopId, $keyString, $accessTokenStore, $refreshTokenStore);
 $receiptsApi = $api->getReceiptsApi();
 
 $resultSet = $receiptsApi->getResultSet();
@@ -47,22 +48,20 @@ $receipts = $resultSet->getResults();
 ```
 
 
-
 ## Dependencies
 
 This library uses:
-* [christianjbrown/json-api-client](https://github.com/christianjbrown/json-api-client) for making HTTP requests
-* [christianjbrown/key-value-store](https://github.com/christianjbrown/key-value-store) for storing refresh tokens
-* [christianjbrown/oauth2-client](https://github.com/christianjbrown/oauth2-client) for getting access tokens
-* [christianjbrown/user-friendly-exception](https://github.com/christianjbrown/user-friendly-exception) for raising user-friendly exceptions
+* [christianjbrown/php-json-api-client-lib](https://github.com/christianjbrown/php-json-api-client-lib) for making HTTP requests
+* [christianjbrown/php-key-value-store-lib](https://github.com/christianjbrown/php-key-value-store-lib) for storing refresh tokens
+* [christianjbrown/php-oauth2-client-lib](https://github.com/christianjbrown/php-oauth2-client-lib) for getting access tokens
+* [christianjbrown/php-user-friendly-exception-lib](https://github.com/christianjbrown/php-user-friendly-exception-lib) for raising user-friendly exceptions
 * [psr/http-client](https://github.com/php-fig/http-client) for HTTP client interfaces
 * [symfony/dependency-injection](https://github.com/symfony/dependency-injection) for dependency injection
 
 
 During development, it also uses:
 
-* [christianjbrown/phpcs-wrapper](https://github.com/christianjbrown/phpcs-wrapper) for checking code style via `composer check-style`
-* [christianjbrown/php-cs-fixer-wrapper](https://github.com/christianjbrown/php-cs-fixer-wrapper) for code style cleanup via `composer fix-style`
+* [christianjbrown/christianjbrown/php-code-quality-scripts](https://github.com/christianjbrown/christianjbrown/php-code-quality-scripts) for fixing and checking code style via `composer fix-style` and `composer check-style`
 * [phpunit/phpunit](https://github.com/sebastianbergmann/phpunit) for unit testing via `composer test`
 
 
