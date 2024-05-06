@@ -19,7 +19,7 @@ use ChristianBrown\JsonApiClient\JsonApiRequestSender;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
 use ChristianBrown\OAuth2Client\RefreshTokenManager;
-use ChristianBrown\OAuth2Client\Transformer\TokenTransformer;
+use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
 use GuzzleHttp\Client;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -77,7 +77,7 @@ final class Api implements ApiInterface
                 ]
             );
 
-        $this->container->register('christianbrown.oauth2_client.token_transformer', TokenTransformer::class);
+        $this->container->register('christianbrown.oauth2_client.access_token_transformer', AccessTokenTransformer::class);
 
         $this->container->register('etsy.request.refresh_token_manager', RefreshTokenManager::class)
             ->setArguments(
@@ -85,7 +85,7 @@ final class Api implements ApiInterface
                     $this->container->getDefinition('christianbrown.json_api_client.json_api_request_sender'),
                     $this->container->get('etsy.request.access_token_store'),
                     $this->container->get('etsy.request.refresh_token_store'),
-                    $this->container->getDefinition('christianbrown.oauth2_client.token_transformer'),
+                    $this->container->getDefinition('christianbrown.oauth2_client.access_token_transformer'),
                     AuthenticationManagerInterface::URL_OAUTH_TOKEN_API,
                 ]
             );

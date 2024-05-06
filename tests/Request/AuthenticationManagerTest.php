@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Tests\Request;
 
 use ChristianBrown\Etsy\Request\AuthenticationManager;
 use ChristianBrown\Etsy\Request\AuthenticationManagerInterface;
-use ChristianBrown\OAuth2Client\Model\TokenInterface;
+use ChristianBrown\OAuth2Client\Model\AccessTokenInterface;
 use ChristianBrown\OAuth2Client\RefreshTokenManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -25,14 +25,14 @@ final class AuthenticationManagerTest extends TestCase
     #[TestWith([false])]
     public function test(bool $forceNew): void
     {
-        $token = $this->createMock(TokenInterface::class);
-        $token->method('getAccessToken')
+        $accessToken = $this->createMock(AccessTokenInterface::class);
+        $accessToken->method('getAccessToken')
             ->willReturn('test-access-token');
 
         $refreshTokenManager = $this->createMock(RefreshTokenManagerInterface::class);
         $refreshTokenManager->method('getAccessToken')
             ->with('test-key', $forceNew)
-            ->willReturn($token);
+            ->willReturn($accessToken);
 
         $expected = [
             AuthenticationManagerInterface::HEADER_KEY_API_KEY => 'test-key',
