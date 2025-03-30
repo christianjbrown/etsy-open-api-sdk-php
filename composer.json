@@ -22,38 +22,16 @@
         }
     },
     "scripts": {
-        "test": [
-            "clear && XDEBUG_MODE=coverage ./bin/phpunit -d memory_limit=512M && open ./.phpunit.cache/code-coverage-html/index.html"
-        ],
-        "check-style": [
-            "clear && ./bin/php-cs ./src ./tests"
-        ],
-        "check-style-diff": [
-            "clear && ./bin/php-cs-diff"
-        ],
-        "fix-style": [
-            "clear && ./bin/php-cs-fix ./src ./tests"
-        ],
-        "fix-style-diff": [
-            "clear && ./bin/php-cs-fix-diff"
-        ]
+        "check-style": ["clear && ./bin/php-cs ./src ./tests"],
+        "check-style-diff": ["clear && ./bin/php-cs-diff"],
+        "fix-style": ["clear && ./bin/php-cs-fix ./src ./tests"],
+        "fix-style-diff": ["clear && ./bin/php-cs-fix-diff"],
+        "test": ["clear && XDEBUG_MODE=coverage ./bin/phpunit -d memory_limit=512M && open ./.phpunit.cache/code-coverage-html/index.html"]
     },
     "repositories": [
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/php-code-quality-scripts.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/php-json-api-client-lib.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/php-key-value-store-lib.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/php-oauth2-client-lib.git"
-        }
+        {"type": "github", "url": "git@github.com:christianjbrown/php-code-quality-scripts.git"},
+        {"type": "github", "url": "git@github.com:christianjbrown/php-json-api-client-lib.git"},
+        {"type": "github", "url": "git@github.com:christianjbrown/php-key-value-store-lib.git"},
+        {"type": "github", "url": "git@github.com:christianjbrown/php-oauth2-client-lib.git"}
     ]
 }
