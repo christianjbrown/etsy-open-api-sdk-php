@@ -8,9 +8,6 @@ use ChristianBrown\Etsy\Model\ResultSet;
 use ChristianBrown\Etsy\Model\ResultSetInterface;
 use InvalidArgumentException;
 
-use function is_numeric;
-use function sprintf;
-
 final class ResultSetTransformer implements ResultSetTransformerInterface
 {
     public function transform(array $data, ObjectsTransformerInterface $datasTransformer): ResultSetInterface

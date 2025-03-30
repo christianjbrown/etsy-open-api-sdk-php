@@ -6,8 +6,6 @@ namespace ChristianBrown\Etsy\Request;
 
 use ChristianBrown\OAuth2Client\RefreshTokenManagerInterface;
 
-use function sprintf;
-
 final class AuthenticationManager implements AuthenticationManagerInterface
 {
     private string $key;
