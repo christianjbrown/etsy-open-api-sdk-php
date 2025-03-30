@@ -9,7 +9,7 @@ This is a simple SDK for [Etsy's Open API](https://developers.etsy.com/) in PHP.
 You will need:
 
 * An Etsy account, be approved to use Etsy Open API
-* An application being written for [PHP](https://www.php.net/) 8.2 (or higher up to 9.0)
+* An application being written for [PHP](https://www.php.net/) 8.3 (or higher up to 9.0)
 * [Composer](https://getcomposer.org/)
 
 
@@ -75,7 +75,7 @@ Before creating a pull request, ensure that you have
 
 ## License
 
-Copyright © 2023 Christian Brown
+Copyright © 2023-2025 Christian Brown
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

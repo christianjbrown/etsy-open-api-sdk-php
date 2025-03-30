@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Request;
 
 interface ApiConnectorInterface
 {
-    public const FRIENDLY_NAME = 'Etsy\'s API';
+    public const string FRIENDLY_NAME = 'Etsy\'s API';
 
     public function get(string $url, array $queryStrings = []): array;
 }
