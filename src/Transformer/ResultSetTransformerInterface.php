@@ -8,8 +8,8 @@ use ChristianBrown\Etsy\Model\ResultSetInterface;
 
 interface ResultSetTransformerInterface
 {
-    public const KEY_COUNT = 'count';
-    public const KEY_RESULTS = 'results';
+    public const string KEY_COUNT = 'count';
+    public const string KEY_RESULTS = 'results';
 
     public function transform(array $data, ObjectsTransformerInterface $datasTransformer): ResultSetInterface;
 }

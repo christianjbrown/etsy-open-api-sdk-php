@@ -8,7 +8,7 @@ use ChristianBrown\Etsy\Model\ReceiptInterface;
 
 interface ReceiptTransformerInterface extends ObjectTransformerInterface
 {
-    public const DATA_KEY_TRANSACTIONS = 'transactions';
+    public const string DATA_KEY_TRANSACTIONS = 'transactions';
 
     public function transform(array $data): ReceiptInterface;
 }
