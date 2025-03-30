@@ -8,9 +8,6 @@ use ChristianBrown\Etsy\Model\Transaction;
 use ChristianBrown\Etsy\Model\TransactionInterface;
 use InvalidArgumentException;
 
-use function is_numeric;
-use function sprintf;
-
 final class TransactionTransformer implements TransactionTransformerInterface
 {
     public function transform(array $data): TransactionInterface
