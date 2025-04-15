@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy;
 
+use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiRequestSender;
 use ChristianBrown\Etsy\Endpoint\ReceiptsApi;
 use ChristianBrown\Etsy\Endpoint\ReceiptsApiInterface;
 use ChristianBrown\Etsy\Endpoint\ResultSetBasedApi;
@@ -15,7 +17,6 @@ use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\ResultSetTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
-use ChristianBrown\JsonApiClient\JsonApiRequestSender;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
 use ChristianBrown\OAuth2Client\RefreshTokenManager;
@@ -70,10 +71,13 @@ final class Api implements ApiInterface
 
         $this->container->register('guzzle_http.client', Client::class);
 
-        $this->container->register('christianbrown.json_api_client.json_api_request_sender', JsonApiRequestSender::class)
-            ->setArguments(
+        $this->container->register('christianbrown.api_client.api_client', ApiClient::class);
+
+        $this->container->register('christianbrown.api_client.api_request_sender.json', ApiRequestSender::class)
+            ->setFactory(
                 [
-                    $this->container->getDefinition('guzzle_http.client'),
+                    $this->container->getDefinition('christianbrown.api_client.api_client'),
+                    'getApiRequestSenderForJson',
                 ]
             );
 
@@ -82,7 +86,7 @@ final class Api implements ApiInterface
         $this->container->register('etsy.request.refresh_token_manager', RefreshTokenManager::class)
             ->setArguments(
                 [
-                    $this->container->getDefinition('christianbrown.json_api_client.json_api_request_sender'),
+                    $this->container->getDefinition('christianbrown.api_client.api_request_sender.json'),
                     $this->container->get('etsy.request.access_token_store'),
                     $this->container->get('etsy.request.refresh_token_store'),
                     $this->container->getDefinition('christianbrown.oauth2_client.access_token_transformer'),
@@ -102,7 +106,7 @@ final class Api implements ApiInterface
             ->setArguments(
                 [
                     $this->container->getDefinition('etsy.request.authentication_manager'),
-                    $this->container->getDefinition('christianbrown.json_api_client.json_api_request_sender'),
+                    $this->container->getDefinition('christianbrown.api_client.api_request_sender.json'),
                 ]
             );
 
