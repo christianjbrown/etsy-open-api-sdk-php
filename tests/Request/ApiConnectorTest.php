@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests\Request;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\ExceptionInterface;
+use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Request\ApiConnector;
 use ChristianBrown\Etsy\Request\AuthenticationManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -25,7 +25,7 @@ final class ApiConnectorTest extends TestCase
         $authenticationManager->method('getAuthHeaders')
             ->willReturn(['test-auth-headers']);
 
-        $apiRequestSender = $this->createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender = $this->createMock(JsonApiRequestSenderInterface::class);
         $apiRequestSender->method('get')
             ->with('test-url', ['test-key' => 'test-value'], ['test-auth-headers'])
             ->willReturn(['test-response']);

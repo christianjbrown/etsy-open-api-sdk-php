@@ -73,11 +73,11 @@ final class Api implements ApiInterface
 
         $this->container->register('christianbrown.api_client.api_client', ApiClient::class);
 
-        $this->container->register('christianbrown.api_client.api_request_sender.json', ApiRequestSender::class)
+        $this->container->register('christianbrown.api_client.json_api_request_sender', ApiRequestSender::class)
             ->setFactory(
                 [
                     $this->container->getDefinition('christianbrown.api_client.api_client'),
-                    'getApiRequestSenderForJson',
+                    'getJsonApiRequestSender',
                 ]
             );
 
@@ -86,7 +86,7 @@ final class Api implements ApiInterface
         $this->container->register('etsy.request.refresh_token_manager', RefreshTokenManager::class)
             ->setArguments(
                 [
-                    $this->container->getDefinition('christianbrown.api_client.api_request_sender.json'),
+                    $this->container->getDefinition('christianbrown.api_client.json_api_request_sender'),
                     $this->container->get('etsy.request.access_token_store'),
                     $this->container->get('etsy.request.refresh_token_store'),
                     $this->container->getDefinition('christianbrown.oauth2_client.access_token_transformer'),
@@ -106,7 +106,7 @@ final class Api implements ApiInterface
             ->setArguments(
                 [
                     $this->container->getDefinition('etsy.request.authentication_manager'),
-                    $this->container->getDefinition('christianbrown.api_client.api_request_sender.json'),
+                    $this->container->getDefinition('christianbrown.api_client.json_api_request_sender'),
                 ]
             );
 
