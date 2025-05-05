@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Request;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\ExceptionInterface;
+use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 
 final class ApiConnector implements ApiConnectorInterface
 {
-    private ApiRequestSenderInterface $apiRequestSender;
+    private JsonApiRequestSenderInterface $apiRequestSender;
     private AuthenticationManagerInterface $authenticationManager;
 
-    public function __construct(AuthenticationManagerInterface $authenticationManager, ApiRequestSenderInterface $apiRequestSender)
+    public function __construct(AuthenticationManagerInterface $authenticationManager, JsonApiRequestSenderInterface $apiRequestSender)
     {
         $this->authenticationManager = $authenticationManager;
         $this->apiRequestSender = $apiRequestSender;

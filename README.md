@@ -47,24 +47,6 @@ $resultSet = $receiptsApi->getResultSet();
 $receipts = $resultSet->getResults();
 ```
 
-
-## Dependencies
-
-This library uses:
-* [christianjbrown/php-json-api-client-lib](https://github.com/christianjbrown/php-json-api-client-lib) for making HTTP requests
-* [christianjbrown/php-key-value-store-lib](https://github.com/christianjbrown/php-key-value-store-lib) for storing refresh tokens
-* [christianjbrown/php-oauth2-client-lib](https://github.com/christianjbrown/php-oauth2-client-lib) for getting access tokens
-* [christianjbrown/php-user-friendly-exception-lib](https://github.com/christianjbrown/php-user-friendly-exception-lib) for raising user-friendly exceptions
-* [psr/http-client](https://github.com/php-fig/http-client) for HTTP client interfaces
-* [symfony/dependency-injection](https://github.com/symfony/dependency-injection) for dependency injection
-
-
-During development, it also uses:
-
-* [christianjbrown/christianjbrown/php-code-quality-scripts](https://github.com/christianjbrown/christianjbrown/php-code-quality-scripts) for fixing and checking code style via `composer fix-style` and `composer check-style`
-* [phpunit/phpunit](https://github.com/sebastianbergmann/phpunit) for unit testing via `composer test`
-
-
 ## Contributing
 
 Before creating a pull request, ensure that you have
