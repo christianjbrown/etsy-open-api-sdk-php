@@ -1,66 +1,187 @@
-# Etsy Open API SDK
+# Etsy Open API v3 Client
 
-This is a simple SDK for [Etsy's Open API](https://developers.etsy.com/) in PHP.
+[![CI](https://github.com/christianjbrown/php-etsy-open-api-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/php-etsy-open-api-sdk/actions/workflows/ci.yml)
 
+A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It reads your shop's data — receipts, listings, transactions, and more — returning plain, typed model objects rather than raw arrays.
 
+The client is **read-only** (it wraps the API's `GET` endpoints only; creating and updating data is not supported yet) and currently supports:
 
-## Prerequisites
+- **Reading shop receipts** — a page of the shop's receipts (`getMultiple`) or a single receipt by id (`getOneById`). Each receipt carries the full order: buyer and address fields, the money totals (grandtotal, subtotal, shipping, tax, VAT, discount, gift wrap), and its nested transactions, refunds, and shipments.
 
-You will need:
+### Supported endpoints
 
-* An Etsy account, be approved to use Etsy Open API
-* An application being written for [PHP](https://www.php.net/) 8.3 (or higher up to 9.0)
-* [Composer](https://getcomposer.org/)
+| Resource | Client | Endpoint(s) | Returns |
+| --- | --- | --- | --- |
+| Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
 
+_This table grows as more of the read API is covered._
 
+## :heavy_check_mark: Prerequisites
 
-## Installation
+- [Git](https://git-scm.com/)
+- [PHP](https://www.php.net/) 8.5 or higher (8.x)
+- [Composer](https://getcomposer.org/)
 
-Using composer, run:
+:bulb: If you're on MacOS and have [Homebrew](https://brew.sh/), PHP and Composer will install with `brew install composer`.
+
+## :building_construction: Installation
+
+For your composer-enabled project:
 
 ```bash
 composer require christianjbrown/php-etsy-open-api-sdk
 ```
 
+## :computer: Usage
 
+Etsy's Open API v3 authenticates every request with two pieces: your app's **keystring** (sent as the `x-api-key` header) and an **OAuth 2.0 access token** (sent as `Authorization: Bearer …`). Access tokens are short-lived, so this client refreshes them for you using a long-lived **refresh token** and the OAuth2 `refresh_token` grant.
 
-## Usage
+You supply four things to the `Etsy` entry point:
+
+- your numeric **shop id**,
+- your app **keystring** (which Etsy also uses as the OAuth `client_id`),
+- a **`KeyValueStoreInterface`** to hold the current access token (an in-memory store is fine — it's re-fetched as needed),
+- a **`KeyValueStoreInterface`** holding your refresh token. This one must **persist** (a database, secret store, etc.), because Etsy rotates the refresh token on every refresh and the client writes the new value back. Seed it once with a refresh token obtained from Etsy's [OAuth authorization flow](https://developers.etsy.com/documentation/essentials/authentication).
 
 ```php
-use ChristianBrown\Etsy\Api;
-use ChristianBrown\KeyValueStore\DatabaseKeyValueStore;
+use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
 
-$shopId = getenv('ETSY_SHOP_ID');
-$keyString = getenv('ETSY_KEY_STRING');
-
-// Replace with your own key-value token value store,
-// see christianbrown/key-value-store for examples.
-// Note: You will need to generate the first refresh token manually,
-// and then store it in the key-value store.
+// Access token: transient, an in-memory store is fine.
 $accessTokenStore = new MemoryKeyValueStore();
-$refreshTokenStore = new DatabaseKeyValueStore($entityManager, RefreshTokens::class, 'etsy-refresh-token');
 
-$api = new Api($shopId, $keyString, $accessTokenStore, $refreshTokenStore);
-$receiptsApi = $api->getReceiptsApi();
+// Refresh token: must persist and already hold a valid refresh token.
+// Any KeyValueStoreInterface works (DatabaseKeyValueStore, FirestoreKeyValueStore, …).
+$refreshTokenStore = new MemoryKeyValueStore();
+$refreshTokenStore->setValue('your-seed-refresh-token');
 
-$resultSet = $receiptsApi->getResultSet();
-$receipts = $resultSet->getResults();
+$etsy = new Etsy(
+    12345678,                 // your shop id
+    'your-app-keystring',     // x-api-key + OAuth client_id
+    $accessTokenStore,
+    $refreshTokenStore
+);
+
+$shopReceiptApi = $etsy->getShopReceiptApi();  // ShopReceiptApiInterface
 ```
 
-## Contributing
+Reading receipts then looks like this:
 
-Before creating a pull request, ensure that you have
+```php
+$receipts = $shopReceiptApi->getMultiple(limit: 25, offset: 0);   // ReceiptInterface[]
+foreach ($receipts as $receipt) {
+    printf("Receipt #%d — %s\n", $receipt->getReceiptId(), $receipt->getName() ?? 'unknown buyer');
 
-1. Fixed your code style with `composer fix-style`, and checked style with `composer check-style`.
-2. Checked test coverage with `composer test`. 100% line, branch, function and method coverage is required. 100% path coverage is encouraged.
+    $grandtotal = $receipt->getGrandtotal();
+    if ($grandtotal !== null) {
+        printf("  Total: %d %s (÷%d)\n", $grandtotal->getAmount(), $grandtotal->getCurrencyCode(), $grandtotal->getDivisor());
+    }
 
+    foreach ($receipt->getTransactions() as $transaction) {
+        printf("  %d × listing %d\n", $transaction->getQuantity() ?? 0, $transaction->getListingId() ?? 0);
+    }
+}
 
-## License
+$receipt = $shopReceiptApi->getOneById(1234567890);   // ReceiptInterface
+echo $receipt->getStatus() ?? 'unknown', "\n";
+```
 
-Copyright © 2023-2025 Christian Brown
+## :rotating_light: Error handling
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Everything this library throws implements `ChristianBrown\Etsy\Exception\ExceptionInterface`, so a single `catch` covers it all:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+```php
+use ChristianBrown\Etsy\Exception\ExceptionInterface;
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+try {
+    $receipts = $shopReceiptApi->getMultiple();
+} catch (ExceptionInterface $exception) {
+    // Anything this library throws lands here.
+}
+```
+
+There are two concrete types:
+
+- **`UnexpectedResponseException`** (extends `RuntimeException`) — the Etsy API returned a body the client or a transformer couldn't parse (a missing/mis-typed field, an empty response).
+- **`MissingInputException`** (extends `InvalidArgumentException`) — bad caller input.
+
+Both live in `src/Exception/`. Request-level failures (network errors, non-2xx responses) surface as `RequestExceptionInterface` from [`christianjbrown/php-api-client-lib`](https://github.com/christianjbrown/php-api-client-lib); token-refresh failures surface as `RequestExceptionInterface` from [`christianjbrown/php-oauth2-client-lib`](https://github.com/christianjbrown/php-oauth2-client-lib). Both are outside this library's exception hierarchy.
+
+Under the hood, `Etsy` wires the clients, their transformer chains, and the OAuth refresh machinery through a [Symfony dependency-injection](https://symfony.com/doc/current/components/dependency_injection.html) container. If you don't want the container, you can build the same chain by hand — as shown below.
+
+<details id="wiring-the-clients">
+<summary><strong>Wiring the clients</strong></summary>
+
+```php
+use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\Etsy\Api\ShopReceiptApi;
+use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
+use ChristianBrown\Etsy\Transformer\MoneyTransformer;
+use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
+use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
+use ChristianBrown\Etsy\Transformer\RefundsTransformer;
+use ChristianBrown\Etsy\Transformer\RefundTransformer;
+use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
+use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
+use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
+use ChristianBrown\Etsy\Transformer\TransactionTransformer;
+use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
+use ChristianBrown\Etsy\Transformer\TransactionVariationTransformer;
+use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
+use ChristianBrown\OAuth2Client\RefreshTokenManager;
+use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
+
+$shopId = 12345678;
+$keystring = 'your-app-keystring';
+
+$accessTokenStore = new MemoryKeyValueStore();
+$refreshTokenStore = new MemoryKeyValueStore();
+$refreshTokenStore->setValue('your-seed-refresh-token');
+
+// Shared JSON request sender (wires Guzzle for you).
+$requestSender = (new ApiClient())->getJsonApiRequestSender();
+
+// OAuth2 refresh machinery → a two-header credential (x-api-key + Bearer token).
+$refreshTokenManager = new RefreshTokenManager(
+    $requestSender,
+    $accessTokenStore,
+    $refreshTokenStore,
+    new AccessTokenTransformer(),
+    'https://api.etsy.com/v3/public/oauth/token'
+);
+$credentials = new Credentials($refreshTokenManager, $keystring);
+
+// Receipt transformer chain. The single Money transformer is shared across every
+// money field; the singular Receipt transformer is wrapped by ReceiptsTransformer
+// for the list endpoint and used directly for getOneById().
+$moneyTransformer = new MoneyTransformer();
+
+$transactionTransformer = new TransactionTransformer(
+    $moneyTransformer,
+    new TransactionVariationsTransformer(new TransactionVariationTransformer()),
+    new ListingPropertyValuesTransformer(new ListingPropertyValueTransformer())
+);
+
+$receiptTransformer = new ReceiptTransformer(
+    $moneyTransformer,
+    new TransactionsTransformer($transactionTransformer),
+    new RefundsTransformer(new RefundTransformer($moneyTransformer)),
+    new ShipmentsTransformer(new ShipmentTransformer())
+);
+
+$shopReceiptApi = new ShopReceiptApi(
+    $requestSender,
+    $receiptTransformer,
+    new ReceiptsTransformer($receiptTransformer),
+    $credentials,
+    $shopId
+);
+```
+
+</details>
+
+## :page_facing_up: License
+
+Released under the [MIT License](LICENSE).
