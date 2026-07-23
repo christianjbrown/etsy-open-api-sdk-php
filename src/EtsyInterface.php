@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy;
 
+use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
@@ -16,6 +17,7 @@ use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ReviewApiInterface;
+use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
@@ -34,6 +36,15 @@ interface EtsyInterface
     public const string OAUTH_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token';
     public const string SERVICE_ACCESS_TOKEN_TRANSFORMER = 'etsy.oauth.access_token_transformer';
     public const string SERVICE_API_CLIENT = 'etsy.api_client';
+    public const string SERVICE_BUYER_TAXONOMY_API = 'etsy.api.buyer_taxonomy_api';
+    public const string SERVICE_BUYER_TAXONOMY_NODE_PROPERTIES_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_node_properties_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_NODE_PROPERTY_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_node_property_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_NODE_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_node_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_NODES_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_nodes_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_PROPERTY_SCALE_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_property_scale_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_PROPERTY_SCALES_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_property_scales_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_PROPERTY_VALUE_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_property_value_transformer';
+    public const string SERVICE_BUYER_TAXONOMY_PROPERTY_VALUES_TRANSFORMER = 'etsy.transformer.buyer_taxonomy_property_values_transformer';
     public const string SERVICE_CREDENTIALS = 'etsy.auth.credentials';
     public const string SERVICE_JSON_API_REQUEST_SENDER = 'etsy.json_api_request_sender';
     public const string SERVICE_LEDGER_ENTRY_API = 'etsy.api.ledger_entry_api';
@@ -88,6 +99,9 @@ interface EtsyInterface
     public const string SERVICE_REVIEW_API = 'etsy.api.review_api';
     public const string SERVICE_REVIEW_TRANSFORMER = 'etsy.transformer.review_transformer';
     public const string SERVICE_REVIEWS_TRANSFORMER = 'etsy.transformer.reviews_transformer';
+    public const string SERVICE_SELLER_TAXONOMY_API = 'etsy.api.seller_taxonomy_api';
+    public const string SERVICE_SELLER_TAXONOMY_NODE_TRANSFORMER = 'etsy.transformer.seller_taxonomy_node_transformer';
+    public const string SERVICE_SELLER_TAXONOMY_NODES_TRANSFORMER = 'etsy.transformer.seller_taxonomy_nodes_transformer';
     public const string SERVICE_SHIPMENT_TRANSFORMER = 'etsy.transformer.shipment_transformer';
     public const string SERVICE_SHIPMENTS_TRANSFORMER = 'etsy.transformer.shipments_transformer';
     public const string SERVICE_SHIPPING_CARRIER_MAIL_CLASS_TRANSFORMER = 'etsy.transformer.shipping_carrier_mail_class_transformer';
@@ -122,6 +136,12 @@ interface EtsyInterface
     public const string SERVICE_SHOP_SHIPPING_PROFILES_TRANSFORMER = 'etsy.transformer.shop_shipping_profiles_transformer';
     public const string SERVICE_SHOP_TRANSFORMER = 'etsy.transformer.shop_transformer';
     public const string SERVICE_SHOPS_TRANSFORMER = 'etsy.transformer.shops_transformer';
+    public const string SERVICE_TAXONOMY_NODE_PROPERTIES_TRANSFORMER = 'etsy.transformer.taxonomy_node_properties_transformer';
+    public const string SERVICE_TAXONOMY_NODE_PROPERTY_TRANSFORMER = 'etsy.transformer.taxonomy_node_property_transformer';
+    public const string SERVICE_TAXONOMY_PROPERTY_SCALE_TRANSFORMER = 'etsy.transformer.taxonomy_property_scale_transformer';
+    public const string SERVICE_TAXONOMY_PROPERTY_SCALES_TRANSFORMER = 'etsy.transformer.taxonomy_property_scales_transformer';
+    public const string SERVICE_TAXONOMY_PROPERTY_VALUE_TRANSFORMER = 'etsy.transformer.taxonomy_property_value_transformer';
+    public const string SERVICE_TAXONOMY_PROPERTY_VALUES_TRANSFORMER = 'etsy.transformer.taxonomy_property_values_transformer';
     public const string SERVICE_TRANSACTION_TRANSFORMER = 'etsy.transformer.transaction_transformer';
     public const string SERVICE_TRANSACTION_VARIATION_TRANSFORMER = 'etsy.transformer.transaction_variation_transformer';
     public const string SERVICE_TRANSACTION_VARIATIONS_TRANSFORMER = 'etsy.transformer.transaction_variations_transformer';
@@ -131,6 +151,8 @@ interface EtsyInterface
     public const string SERVICE_USER_ADDRESSES_TRANSFORMER = 'etsy.transformer.user_addresses_transformer';
     public const string SERVICE_USER_API = 'etsy.api.user_api';
     public const string SERVICE_USER_TRANSFORMER = 'etsy.transformer.user_transformer';
+
+    public function getBuyerTaxonomyApi(): BuyerTaxonomyApiInterface;
 
     public function getLedgerEntryApi(): LedgerEntryApiInterface;
 
@@ -155,6 +177,8 @@ interface EtsyInterface
     public function getPingApi(): PingApiInterface;
 
     public function getReviewApi(): ReviewApiInterface;
+
+    public function getSellerTaxonomyApi(): SellerTaxonomyApiInterface;
 
     public function getShippingProfileApi(): ShippingProfileApiInterface;
 
