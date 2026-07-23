@@ -31,6 +31,7 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Shop production partners | `getShopProductionPartnerApi()` | `GET /shops/{shop_id}/production-partners` | `ShopProductionPartnerInterface[]` |
 | Shop holiday preferences | `getShopHolidayPreferenceApi()` | `GET /shops/{shop_id}/holiday-preferences` | `ShopHolidayPreferenceInterface[]` |
 | Shop readiness state definitions | `getShopReadinessStateDefinitionApi()` | `GET /shops/{shop_id}/readiness-state-definitions`, `GET /shops/{shop_id}/readiness-state-definitions/{readiness_state_definition_id}` | `ShopReadinessStateDefinitionInterface[]` / `ShopReadinessStateDefinitionInterface` |
+| Shipping profiles | `getShippingProfileApi()` | `GET /shops/{shop_id}/shipping-profiles`, `GET /shops/{shop_id}/shipping-profiles/{shipping_profile_id}`, `GET /shops/{shop_id}/shipping-profiles/{shipping_profile_id}/destinations`, `GET /shops/{shop_id}/shipping-profiles/{shipping_profile_id}/upgrades`, `GET /shipping-carriers?origin_country_iso=…` | `ShopShippingProfileInterface[]` / `ShopShippingProfileInterface` / `ShopShippingProfileDestinationInterface[]` / `ShopShippingProfileUpgradeInterface[]` / `ShippingCarrierInterface[]` |
 | Users | `getUserApi()` | `GET /users/{user_id}`, `GET /users/me` | `UserInterface` |
 | User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |
 | Ping | `getPingApi()` | `GET /openapi-ping` | `PingInterface` |
