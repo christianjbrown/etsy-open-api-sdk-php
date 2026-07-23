@@ -30,12 +30,22 @@ use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
+use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
+use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
 use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
+use ChristianBrown\Etsy\Api\ShopProductionPartnerApi;
+use ChristianBrown\Etsy\Api\ShopProductionPartnerApiInterface;
+use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApi;
+use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
+use ChristianBrown\Etsy\Api\ShopReturnPolicyApi;
+use ChristianBrown\Etsy\Api\ShopReturnPolicyApiInterface;
+use ChristianBrown\Etsy\Api\ShopSectionApi;
+use ChristianBrown\Etsy\Api\ShopSectionApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
@@ -80,6 +90,16 @@ use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
+use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformer;
+use ChristianBrown\Etsy\Transformer\ShopProductionPartnersTransformer;
+use ChristianBrown\Etsy\Transformer\ShopProductionPartnerTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformer;
+use ChristianBrown\Etsy\Transformer\ShopSectionsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopSectionTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
@@ -287,12 +307,54 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getShopHolidayPreferenceApi(): ShopHolidayPreferenceApiInterface
+    {
+        /**
+         * @var ShopHolidayPreferenceApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_HOLIDAY_PREFERENCE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getShopListingApi(): ShopListingApiInterface
     {
         /**
          * @var ShopListingApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_SHOP_LISTING_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getShopProductionPartnerApi(): ShopProductionPartnerApiInterface
+    {
+        /**
+         * @var ShopProductionPartnerApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_PRODUCTION_PARTNER_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getShopReadinessStateDefinitionApi(): ShopReadinessStateDefinitionApiInterface
+    {
+        /**
+         * @var ShopReadinessStateDefinitionApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_API);
 
         return $service;
     }
@@ -321,6 +383,34 @@ final class Etsy implements EtsyInterface
          * @var ShopReceiptTransactionApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_SHOP_RECEIPT_TRANSACTION_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getShopReturnPolicyApi(): ShopReturnPolicyApiInterface
+    {
+        /**
+         * @var ShopReturnPolicyApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_RETURN_POLICY_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getShopSectionApi(): ShopSectionApiInterface
+    {
+        /**
+         * @var ShopSectionApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_SECTION_API);
 
         return $service;
     }
@@ -366,6 +456,7 @@ final class Etsy implements EtsyInterface
         $this->registerListingTranslationTransformers();
         $this->registerListingPersonalizationTransformers();
         $this->registerShopTransformers();
+        $this->registerShopConfigurationTransformers();
         $this->registerUserTransformers();
         $this->registerUserAddressTransformers();
         $this->registerPingTransformers();
@@ -547,6 +638,59 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_SECTION_API, ShopSectionApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SECTION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SECTIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_RETURN_POLICY_API, ShopReturnPolicyApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_PRODUCTION_PARTNER_API, ShopProductionPartnerApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_PRODUCTION_PARTNERS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_HOLIDAY_PREFERENCE_API, ShopHolidayPreferenceApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_HOLIDAY_PREFERENCES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_API, ShopReadinessStateDefinitionApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -838,6 +982,49 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerShopConfigurationTransformers(): void
+    {
+        $this->container->register(self::SERVICE_SHOP_SECTION_TRANSFORMER, ShopSectionTransformer::class);
+        $this->container->register(self::SERVICE_SHOP_SECTIONS_TRANSFORMER, ShopSectionsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_SECTION_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_RETURN_POLICY_TRANSFORMER, ShopReturnPolicyTransformer::class);
+        $this->container->register(self::SERVICE_SHOP_RETURN_POLICIES_TRANSFORMER, ShopReturnPoliciesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICY_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_PRODUCTION_PARTNER_TRANSFORMER, ShopProductionPartnerTransformer::class);
+        $this->container->register(self::SERVICE_SHOP_PRODUCTION_PARTNERS_TRANSFORMER, ShopProductionPartnersTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_PRODUCTION_PARTNER_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_HOLIDAY_PREFERENCE_TRANSFORMER, ShopHolidayPreferenceTransformer::class);
+        $this->container->register(self::SERVICE_SHOP_HOLIDAY_PREFERENCES_TRANSFORMER, ShopHolidayPreferencesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_HOLIDAY_PREFERENCE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER, ShopReadinessStateDefinitionTransformer::class);
+        $this->container->register(self::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER, ShopReadinessStateDefinitionsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER),
                 ]
             );
     }
