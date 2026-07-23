@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests;
 
+use ChristianBrown\Etsy\Api\LedgerEntryApi;
+use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
@@ -20,6 +22,8 @@ use ChristianBrown\Etsy\Api\ListingVariationImageApi;
 use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApi;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
+use ChristianBrown\Etsy\Api\PaymentApi;
+use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -28,6 +32,8 @@ use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
+use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
+use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
@@ -47,6 +53,14 @@ use ChristianBrown\Etsy\Transformer\ListingsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
@@ -83,6 +97,9 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShopApi::class)]
 #[UsesClass(ShopListingApi::class)]
 #[UsesClass(ShopReceiptApi::class)]
+#[UsesClass(ShopReceiptTransactionApi::class)]
+#[UsesClass(PaymentApi::class)]
+#[UsesClass(LedgerEntryApi::class)]
 #[UsesClass(UserApi::class)]
 #[UsesClass(UserAddressApi::class)]
 #[UsesClass(Credentials::class)]
@@ -113,11 +130,31 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(TransactionTransformer::class)]
 #[UsesClass(TransactionsTransformer::class)]
 #[UsesClass(TransactionVariationsTransformer::class)]
+#[UsesClass(PaymentTransformer::class)]
+#[UsesClass(PaymentsTransformer::class)]
+#[UsesClass(PaymentAccountLedgerEntryTransformer::class)]
+#[UsesClass(PaymentAccountLedgerEntriesTransformer::class)]
+#[UsesClass(PaymentAdjustmentItemTransformer::class)]
+#[UsesClass(PaymentAdjustmentItemsTransformer::class)]
+#[UsesClass(PaymentAdjustmentTransformer::class)]
+#[UsesClass(PaymentAdjustmentsTransformer::class)]
 #[UsesClass(UserTransformer::class)]
 #[UsesClass(UserAddressTransformer::class)]
 #[UsesClass(UserAddressesTransformer::class)]
 final class EtsyTest extends TestCase
 {
+    public function testGetLedgerEntryApi(): void
+    {
+        self::assertInstanceOf(LedgerEntryApiInterface::class, $this->buildEtsy()->getLedgerEntryApi());
+    }
+
+    public function testGetLedgerEntryApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getLedgerEntryApi(), $etsy->getLedgerEntryApi());
+    }
+
     public function testGetListingFileApi(): void
     {
         self::assertInstanceOf(ListingFileApiInterface::class, $this->buildEtsy()->getListingFileApi());
@@ -214,6 +251,18 @@ final class EtsyTest extends TestCase
         self::assertSame($etsy->getListingVideoApi(), $etsy->getListingVideoApi());
     }
 
+    public function testGetPaymentApi(): void
+    {
+        self::assertInstanceOf(PaymentApiInterface::class, $this->buildEtsy()->getPaymentApi());
+    }
+
+    public function testGetPaymentApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getPaymentApi(), $etsy->getPaymentApi());
+    }
+
     public function testGetPingApi(): void
     {
         self::assertInstanceOf(PingApiInterface::class, $this->buildEtsy()->getPingApi());
@@ -260,6 +309,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getShopReceiptApi(), $etsy->getShopReceiptApi());
+    }
+
+    public function testGetShopReceiptTransactionApi(): void
+    {
+        self::assertInstanceOf(ShopReceiptTransactionApiInterface::class, $this->buildEtsy()->getShopReceiptTransactionApi());
+    }
+
+    public function testGetShopReceiptTransactionApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopReceiptTransactionApi(), $etsy->getShopReceiptTransactionApi());
     }
 
     public function testGetUserAddressApi(): void

@@ -6,6 +6,8 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\Etsy\Api\LedgerEntryApi;
+use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
@@ -22,6 +24,8 @@ use ChristianBrown\Etsy\Api\ListingVariationImageApi;
 use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApi;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
+use ChristianBrown\Etsy\Api\PaymentApi;
+use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -30,6 +34,8 @@ use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
+use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
+use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
@@ -55,6 +61,14 @@ use ChristianBrown\Etsy\Transformer\ListingVariationImageTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideoTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentAdjustmentTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentsTransformer;
+use ChristianBrown\Etsy\Transformer\PaymentTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
@@ -99,6 +113,20 @@ final class Etsy implements EtsyInterface
         $this->refreshTokenStore = $refreshTokenStore;
         $this->container = new ContainerBuilder();
         $this->init();
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getLedgerEntryApi(): LedgerEntryApiInterface
+    {
+        /**
+         * @var LedgerEntryApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LEDGER_ENTRY_API);
+
+        return $service;
     }
 
     /**
@@ -217,6 +245,20 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getPaymentApi(): PaymentApiInterface
+    {
+        /**
+         * @var PaymentApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_PAYMENT_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getPingApi(): PingApiInterface
     {
         /**
@@ -273,6 +315,20 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getShopReceiptTransactionApi(): ShopReceiptTransactionApiInterface
+    {
+        /**
+         * @var ShopReceiptTransactionApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_RECEIPT_TRANSACTION_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getUserAddressApi(): UserAddressApiInterface
     {
         /**
@@ -313,6 +369,9 @@ final class Etsy implements EtsyInterface
         $this->registerUserTransformers();
         $this->registerUserAddressTransformers();
         $this->registerPingTransformers();
+        $this->registerPaymentAdjustmentTransformers();
+        $this->registerPaymentTransformers();
+        $this->registerLedgerTransformers();
         $this->registerApiClients();
     }
 
@@ -460,6 +519,38 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
+
+        $this->container->register(self::SERVICE_SHOP_RECEIPT_TRANSACTION_API, ShopReceiptTransactionApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_TRANSACTION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_TRANSACTIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PAYMENT_API, PaymentApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_PAYMENTS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LEDGER_ENTRY_API, LedgerEntryApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
     }
 
     private function registerCore(): void
@@ -486,6 +577,22 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_REFRESH_TOKEN_MANAGER),
                     $this->key,
+                ]
+            );
+    }
+
+    private function registerLedgerTransformers(): void
+    {
+        $this->container->register(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER, PaymentAccountLedgerEntryTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ADJUSTMENTS_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER, PaymentAccountLedgerEntriesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER),
                 ]
             );
     }
@@ -614,6 +721,47 @@ final class Etsy implements EtsyInterface
     private function registerListingTranslationTransformers(): void
     {
         $this->container->register(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER, ListingTranslationTransformer::class);
+    }
+
+    private function registerPaymentAdjustmentTransformers(): void
+    {
+        $this->container->register(self::SERVICE_PAYMENT_ADJUSTMENT_ITEM_TRANSFORMER, PaymentAdjustmentItemTransformer::class);
+        $this->container->register(self::SERVICE_PAYMENT_ADJUSTMENT_ITEMS_TRANSFORMER, PaymentAdjustmentItemsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ADJUSTMENT_ITEM_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PAYMENT_ADJUSTMENT_TRANSFORMER, PaymentAdjustmentTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ADJUSTMENT_ITEMS_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_PAYMENT_ADJUSTMENTS_TRANSFORMER, PaymentAdjustmentsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ADJUSTMENT_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerPaymentTransformers(): void
+    {
+        $this->container->register(self::SERVICE_PAYMENT_TRANSFORMER, PaymentTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_ADJUSTMENTS_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_PAYMENTS_TRANSFORMER, PaymentsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PAYMENT_TRANSFORMER),
+                ]
+            );
     }
 
     private function registerPingTransformers(): void
