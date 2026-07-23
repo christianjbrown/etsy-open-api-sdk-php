@@ -26,6 +26,8 @@ use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ReviewApi;
+use ChristianBrown\Etsy\Api\ReviewApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -81,6 +83,8 @@ use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
+use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
+use ChristianBrown\Etsy\Transformer\ReviewTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassTransformer;
@@ -126,6 +130,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ListingVariationImageApi::class)]
 #[UsesClass(ListingVideoApi::class)]
 #[UsesClass(PingApi::class)]
+#[UsesClass(ReviewApi::class)]
 #[UsesClass(ShopApi::class)]
 #[UsesClass(ShopHolidayPreferenceApi::class)]
 #[UsesClass(ShopListingApi::class)]
@@ -162,6 +167,8 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ReceiptsTransformer::class)]
 #[UsesClass(RefundTransformer::class)]
 #[UsesClass(RefundsTransformer::class)]
+#[UsesClass(ReviewTransformer::class)]
+#[UsesClass(ReviewsTransformer::class)]
 #[UsesClass(ShipmentsTransformer::class)]
 #[UsesClass(ShopTransformer::class)]
 #[UsesClass(ShopsTransformer::class)]
@@ -331,6 +338,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getPingApi(), $etsy->getPingApi());
+    }
+
+    public function testGetReviewApi(): void
+    {
+        self::assertInstanceOf(ReviewApiInterface::class, $this->buildEtsy()->getReviewApi());
+    }
+
+    public function testGetReviewApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getReviewApi(), $etsy->getReviewApi());
     }
 
     public function testGetShippingProfileApi(): void
