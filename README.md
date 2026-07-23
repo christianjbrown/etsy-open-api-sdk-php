@@ -14,6 +14,13 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | --- | --- | --- | --- |
 | Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
 | Listings | `getShopListingApi()` | `GET /listings/{listing_id}`, `GET /shops/{shop_id}/listings`, `GET /listings/active`, `GET /shops/{shop_id}/listings/active`, `GET /listings/batch`, `GET /shops/{shop_id}/listings/featured`, `GET /shops/{shop_id}/policies/return/{return_policy_id}/listings`, `GET /shops/{shop_id}/receipts/{receipt_id}/listings`, `GET /shops/{shop_id}/shop-sections/listings` | `ListingInterface` / `ListingInterface[]` |
+| Listing files | `getListingFileApi()` | `GET /shops/{shop_id}/listings/{listing_id}/files`, `GET /shops/{shop_id}/listings/{listing_id}/files/{listing_file_id}` | `ListingFileInterface[]` / `ListingFileInterface` |
+| Listing images | `getListingImageApi()` | `GET /listings/{listing_id}/images`, `GET /listings/{listing_id}/images/{listing_image_id}` | `ListingImageInterface[]` / `ListingImageInterface` |
+| Listing videos | `getListingVideoApi()` | `GET /listings/{listing_id}/videos`, `GET /listings/{listing_id}/videos/{video_id}` | `ListingVideoInterface[]` / `ListingVideoInterface` |
+| Listing variation images | `getListingVariationImageApi()` | `GET /shops/{shop_id}/listings/{listing_id}/variation-images` | `ListingVariationImageInterface[]` |
+| Listing properties | `getListingPropertyApi()` | `GET /shops/{shop_id}/listings/{listing_id}/properties`, `GET /listings/{listing_id}/properties/{property_id}` | `ListingPropertyValueInterface[]` / `ListingPropertyValueInterface` |
+| Listing translations | `getListingTranslationApi()` | `GET /shops/{shop_id}/listings/{listing_id}/translations/{language}` | `ListingTranslationInterface` |
+| Listing personalization | `getListingPersonalizationApi()` | `GET /listings/{listing_id}/personalization` | `ListingPersonalizationInterface` |
 | Shops | `getShopApi()` | `GET /shops/{shop_id}`, `GET /users/{user_id}/shops`, `GET /shops?shop_name=…` | `ShopInterface` / `ShopInterface[]` |
 | Users | `getUserApi()` | `GET /users/{user_id}`, `GET /users/me` | `UserInterface` |
 | User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |

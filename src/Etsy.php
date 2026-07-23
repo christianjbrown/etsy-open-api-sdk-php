@@ -6,6 +6,20 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\Etsy\Api\ListingFileApi;
+use ChristianBrown\Etsy\Api\ListingFileApiInterface;
+use ChristianBrown\Etsy\Api\ListingImageApi;
+use ChristianBrown\Etsy\Api\ListingImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
+use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
+use ChristianBrown\Etsy\Api\ListingPropertyApi;
+use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
+use ChristianBrown\Etsy\Api\ListingTranslationApi;
+use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
+use ChristianBrown\Etsy\Api\ListingVariationImageApi;
+use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingVideoApi;
+use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -19,11 +33,25 @@ use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingFileTransformer;
+use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingImageTransformer;
+use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\ListingsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTransformer;
+use ChristianBrown\Etsy\Transformer\ListingTranslationTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVariationImageTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVideoTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
 use ChristianBrown\Etsy\Transformer\PingTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
@@ -64,6 +92,104 @@ final class Etsy implements EtsyInterface
         $this->refreshTokenStore = $refreshTokenStore;
         $this->container = new ContainerBuilder();
         $this->init();
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingFileApi(): ListingFileApiInterface
+    {
+        /**
+         * @var ListingFileApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_FILE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingImageApi(): ListingImageApiInterface
+    {
+        /**
+         * @var ListingImageApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_IMAGE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingPersonalizationApi(): ListingPersonalizationApiInterface
+    {
+        /**
+         * @var ListingPersonalizationApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_PERSONALIZATION_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingPropertyApi(): ListingPropertyApiInterface
+    {
+        /**
+         * @var ListingPropertyApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_PROPERTY_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingTranslationApi(): ListingTranslationApiInterface
+    {
+        /**
+         * @var ListingTranslationApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_TRANSLATION_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingVariationImageApi(): ListingVariationImageApiInterface
+    {
+        /**
+         * @var ListingVariationImageApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_VARIATION_IMAGE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingVideoApi(): ListingVideoApiInterface
+    {
+        /**
+         * @var ListingVideoApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_VIDEO_API);
+
+        return $service;
     }
 
     /**
@@ -158,6 +284,9 @@ final class Etsy implements EtsyInterface
         $this->registerCore();
         $this->registerReceiptTransformers();
         $this->registerListingTransformers();
+        $this->registerListingMediaTransformers();
+        $this->registerListingTranslationTransformers();
+        $this->registerListingPersonalizationTransformers();
         $this->registerShopTransformers();
         $this->registerUserTransformers();
         $this->registerUserAddressTransformers();
@@ -197,6 +326,77 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_LISTINGS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_FILE_API, ListingFileApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_FILE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_FILES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_IMAGE_API, ListingImageApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_IMAGE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_IMAGES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_VIDEO_API, ListingVideoApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_VIDEO_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_VIDEOS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_VARIATION_IMAGE_API, ListingVariationImageApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_VARIATION_IMAGES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_PROPERTY_API, ListingPropertyApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_PROPERTY_VALUE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_PROPERTY_VALUES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_TRANSLATION_API, ListingTranslationApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_PERSONALIZATION_API, ListingPersonalizationApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_PERSONALIZATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
 
@@ -257,6 +457,73 @@ final class Etsy implements EtsyInterface
             );
     }
 
+    private function registerListingMediaTransformers(): void
+    {
+        $this->container->register(self::SERVICE_LISTING_FILE_TRANSFORMER, ListingFileTransformer::class);
+        $this->container->register(self::SERVICE_LISTING_FILES_TRANSFORMER, ListingFilesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_FILE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_IMAGE_TRANSFORMER, ListingImageTransformer::class);
+        $this->container->register(self::SERVICE_LISTING_IMAGES_TRANSFORMER, ListingImagesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_IMAGE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_VIDEO_TRANSFORMER, ListingVideoTransformer::class);
+        $this->container->register(self::SERVICE_LISTING_VIDEOS_TRANSFORMER, ListingVideosTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_VIDEO_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_VARIATION_IMAGE_TRANSFORMER, ListingVariationImageTransformer::class);
+        $this->container->register(self::SERVICE_LISTING_VARIATION_IMAGES_TRANSFORMER, ListingVariationImagesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_VARIATION_IMAGE_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerListingPersonalizationTransformers(): void
+    {
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_TRANSFORMER, PersonalizationQuestionOptionTransformer::class);
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_OPTIONS_TRANSFORMER, PersonalizationQuestionOptionsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_TRANSFORMER, PersonalizationQuestionTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_OPTIONS_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTIONS_TRANSFORMER, PersonalizationQuestionsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_PERSONALIZATION_TRANSFORMER, ListingPersonalizationTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTIONS_TRANSFORMER),
+                ]
+            );
+    }
+
     private function registerListingTransformers(): void
     {
         $this->container->register(self::SERVICE_LISTING_TRANSFORMER, ListingTransformer::class)
@@ -271,6 +538,11 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_LISTING_TRANSFORMER),
                 ]
             );
+    }
+
+    private function registerListingTranslationTransformers(): void
+    {
+        $this->container->register(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER, ListingTranslationTransformer::class);
     }
 
     private function registerPingTransformers(): void
