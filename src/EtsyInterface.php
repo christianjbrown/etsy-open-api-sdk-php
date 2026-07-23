@@ -6,6 +6,7 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
 use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
 use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
@@ -31,6 +32,12 @@ interface EtsyInterface
     public const string SERVICE_LISTING_IMAGE_API = 'etsy.api.listing_image_api';
     public const string SERVICE_LISTING_IMAGE_TRANSFORMER = 'etsy.transformer.listing_image_transformer';
     public const string SERVICE_LISTING_IMAGES_TRANSFORMER = 'etsy.transformer.listing_images_transformer';
+    public const string SERVICE_LISTING_INVENTORY_API = 'etsy.api.listing_inventory_api';
+    public const string SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER = 'etsy.transformer.listing_inventory_product_offering_transformer';
+    public const string SERVICE_LISTING_INVENTORY_PRODUCT_OFFERINGS_TRANSFORMER = 'etsy.transformer.listing_inventory_product_offerings_transformer';
+    public const string SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER = 'etsy.transformer.listing_inventory_product_transformer';
+    public const string SERVICE_LISTING_INVENTORY_PRODUCTS_TRANSFORMER = 'etsy.transformer.listing_inventory_products_transformer';
+    public const string SERVICE_LISTING_INVENTORY_TRANSFORMER = 'etsy.transformer.listing_inventory_transformer';
     public const string SERVICE_LISTING_PERSONALIZATION_API = 'etsy.api.listing_personalization_api';
     public const string SERVICE_LISTING_PERSONALIZATION_TRANSFORMER = 'etsy.transformer.listing_personalization_transformer';
     public const string SERVICE_LISTING_PROPERTY_API = 'etsy.api.listing_property_api';
@@ -78,6 +85,8 @@ interface EtsyInterface
     public function getListingFileApi(): ListingFileApiInterface;
 
     public function getListingImageApi(): ListingImageApiInterface;
+
+    public function getListingInventoryApi(): ListingInventoryApiInterface;
 
     public function getListingPersonalizationApi(): ListingPersonalizationApiInterface;
 

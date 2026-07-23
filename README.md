@@ -19,6 +19,7 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Listing videos | `getListingVideoApi()` | `GET /listings/{listing_id}/videos`, `GET /listings/{listing_id}/videos/{video_id}` | `ListingVideoInterface[]` / `ListingVideoInterface` |
 | Listing variation images | `getListingVariationImageApi()` | `GET /shops/{shop_id}/listings/{listing_id}/variation-images` | `ListingVariationImageInterface[]` |
 | Listing properties | `getListingPropertyApi()` | `GET /shops/{shop_id}/listings/{listing_id}/properties`, `GET /listings/{listing_id}/properties/{property_id}` | `ListingPropertyValueInterface[]` / `ListingPropertyValueInterface` |
+| Listing inventory | `getListingInventoryApi()` | `GET /listings/{listing_id}/inventory`, `GET /listings/{listing_id}/inventory/products/{product_id}`, `GET /listings/{listing_id}/products/{product_id}/offerings/{product_offering_id}` | `ListingInventoryInterface` / `ListingInventoryProductInterface` / `ListingInventoryProductOfferingInterface` |
 | Listing translations | `getListingTranslationApi()` | `GET /shops/{shop_id}/listings/{listing_id}/translations/{language}` | `ListingTranslationInterface` |
 | Listing personalization | `getListingPersonalizationApi()` | `GET /listings/{listing_id}/personalization` | `ListingPersonalizationInterface` |
 | Shops | `getShopApi()` | `GET /shops/{shop_id}`, `GET /users/{user_id}/shops`, `GET /shops?shop_name=…` | `ShopInterface` / `ShopInterface[]` |
