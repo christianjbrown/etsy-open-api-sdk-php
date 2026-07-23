@@ -13,6 +13,9 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Resource | Client | Endpoint(s) | Returns |
 | --- | --- | --- | --- |
 | Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
+| Shop receipt transactions | `getShopReceiptTransactionApi()` | `GET /shops/{shop_id}/transactions/{transaction_id}`, `GET /shops/{shop_id}/receipts/{receipt_id}/transactions`, `GET /shops/{shop_id}/listings/{listing_id}/transactions`, `GET /shops/{shop_id}/transactions` | `TransactionInterface` / `TransactionInterface[]` |
+| Payments | `getPaymentApi()` | `GET /shops/{shop_id}/payments`, `GET /shops/{shop_id}/receipts/{receipt_id}/payments`, `GET /shops/{shop_id}/payment-account/ledger-entries/payments` | `PaymentInterface[]` |
+| Ledger entries | `getLedgerEntryApi()` | `GET /shops/{shop_id}/payment-account/ledger-entries`, `GET /shops/{shop_id}/payment-account/ledger-entries/{ledger_entry_id}` | `PaymentAccountLedgerEntryInterface[]` / `PaymentAccountLedgerEntryInterface` |
 | Listings | `getShopListingApi()` | `GET /listings/{listing_id}`, `GET /shops/{shop_id}/listings`, `GET /listings/active`, `GET /shops/{shop_id}/listings/active`, `GET /listings/batch`, `GET /shops/{shop_id}/listings/featured`, `GET /shops/{shop_id}/policies/return/{return_policy_id}/listings`, `GET /shops/{shop_id}/receipts/{receipt_id}/listings`, `GET /shops/{shop_id}/shop-sections/listings` | `ListingInterface` / `ListingInterface[]` |
 | Listing files | `getListingFileApi()` | `GET /shops/{shop_id}/listings/{listing_id}/files`, `GET /shops/{shop_id}/listings/{listing_id}/files/{listing_file_id}` | `ListingFileInterface[]` / `ListingFileInterface` |
 | Listing images | `getListingImageApi()` | `GET /listings/{listing_id}/images`, `GET /listings/{listing_id}/images/{listing_image_id}` | `ListingImageInterface[]` / `ListingImageInterface` |
