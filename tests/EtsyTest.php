@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests;
 
+use ChristianBrown\Etsy\Api\ListingFileApi;
+use ChristianBrown\Etsy\Api\ListingFileApiInterface;
+use ChristianBrown\Etsy\Api\ListingImageApi;
+use ChristianBrown\Etsy\Api\ListingImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
+use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
+use ChristianBrown\Etsy\Api\ListingPropertyApi;
+use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
+use ChristianBrown\Etsy\Api\ListingTranslationApi;
+use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
+use ChristianBrown\Etsy\Api\ListingVariationImageApi;
+use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingVideoApi;
+use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -18,9 +32,17 @@ use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
+use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
 use ChristianBrown\Etsy\Transformer\PingTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
@@ -42,6 +64,13 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Etsy::class)]
+#[UsesClass(ListingFileApi::class)]
+#[UsesClass(ListingImageApi::class)]
+#[UsesClass(ListingPersonalizationApi::class)]
+#[UsesClass(ListingPropertyApi::class)]
+#[UsesClass(ListingTranslationApi::class)]
+#[UsesClass(ListingVariationImageApi::class)]
+#[UsesClass(ListingVideoApi::class)]
 #[UsesClass(PingApi::class)]
 #[UsesClass(ShopApi::class)]
 #[UsesClass(ShopListingApi::class)]
@@ -49,9 +78,17 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(UserApi::class)]
 #[UsesClass(UserAddressApi::class)]
 #[UsesClass(Credentials::class)]
+#[UsesClass(ListingFilesTransformer::class)]
+#[UsesClass(ListingImagesTransformer::class)]
+#[UsesClass(ListingPersonalizationTransformer::class)]
 #[UsesClass(ListingPropertyValuesTransformer::class)]
 #[UsesClass(ListingTransformer::class)]
 #[UsesClass(ListingsTransformer::class)]
+#[UsesClass(ListingVariationImagesTransformer::class)]
+#[UsesClass(ListingVideosTransformer::class)]
+#[UsesClass(PersonalizationQuestionOptionsTransformer::class)]
+#[UsesClass(PersonalizationQuestionsTransformer::class)]
+#[UsesClass(PersonalizationQuestionTransformer::class)]
 #[UsesClass(PingTransformer::class)]
 #[UsesClass(ReceiptTransformer::class)]
 #[UsesClass(ReceiptsTransformer::class)]
@@ -68,6 +105,90 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(UserAddressesTransformer::class)]
 final class EtsyTest extends TestCase
 {
+    public function testGetListingFileApi(): void
+    {
+        self::assertInstanceOf(ListingFileApiInterface::class, $this->buildEtsy()->getListingFileApi());
+    }
+
+    public function testGetListingFileApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingFileApi(), $etsy->getListingFileApi());
+    }
+
+    public function testGetListingImageApi(): void
+    {
+        self::assertInstanceOf(ListingImageApiInterface::class, $this->buildEtsy()->getListingImageApi());
+    }
+
+    public function testGetListingImageApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingImageApi(), $etsy->getListingImageApi());
+    }
+
+    public function testGetListingPersonalizationApi(): void
+    {
+        self::assertInstanceOf(ListingPersonalizationApiInterface::class, $this->buildEtsy()->getListingPersonalizationApi());
+    }
+
+    public function testGetListingPersonalizationApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingPersonalizationApi(), $etsy->getListingPersonalizationApi());
+    }
+
+    public function testGetListingPropertyApi(): void
+    {
+        self::assertInstanceOf(ListingPropertyApiInterface::class, $this->buildEtsy()->getListingPropertyApi());
+    }
+
+    public function testGetListingPropertyApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingPropertyApi(), $etsy->getListingPropertyApi());
+    }
+
+    public function testGetListingTranslationApi(): void
+    {
+        self::assertInstanceOf(ListingTranslationApiInterface::class, $this->buildEtsy()->getListingTranslationApi());
+    }
+
+    public function testGetListingTranslationApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingTranslationApi(), $etsy->getListingTranslationApi());
+    }
+
+    public function testGetListingVariationImageApi(): void
+    {
+        self::assertInstanceOf(ListingVariationImageApiInterface::class, $this->buildEtsy()->getListingVariationImageApi());
+    }
+
+    public function testGetListingVariationImageApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingVariationImageApi(), $etsy->getListingVariationImageApi());
+    }
+
+    public function testGetListingVideoApi(): void
+    {
+        self::assertInstanceOf(ListingVideoApiInterface::class, $this->buildEtsy()->getListingVideoApi());
+    }
+
+    public function testGetListingVideoApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingVideoApi(), $etsy->getListingVideoApi());
+    }
+
     public function testGetPingApi(): void
     {
         self::assertInstanceOf(PingApiInterface::class, $this->buildEtsy()->getPingApi());
