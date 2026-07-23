@@ -8,6 +8,8 @@ use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
+use ChristianBrown\Etsy\Api\ShopListingApi;
+use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
@@ -17,6 +19,8 @@ use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Etsy;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingTransformer;
 use ChristianBrown\Etsy\Transformer\PingTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
@@ -40,11 +44,14 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Etsy::class)]
 #[UsesClass(PingApi::class)]
 #[UsesClass(ShopApi::class)]
+#[UsesClass(ShopListingApi::class)]
 #[UsesClass(ShopReceiptApi::class)]
 #[UsesClass(UserApi::class)]
 #[UsesClass(UserAddressApi::class)]
 #[UsesClass(Credentials::class)]
 #[UsesClass(ListingPropertyValuesTransformer::class)]
+#[UsesClass(ListingTransformer::class)]
+#[UsesClass(ListingsTransformer::class)]
 #[UsesClass(PingTransformer::class)]
 #[UsesClass(ReceiptTransformer::class)]
 #[UsesClass(ReceiptsTransformer::class)]
@@ -83,6 +90,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getShopApi(), $etsy->getShopApi());
+    }
+
+    public function testGetShopListingApi(): void
+    {
+        self::assertInstanceOf(ShopListingApiInterface::class, $this->buildEtsy()->getShopListingApi());
+    }
+
+    public function testGetShopListingApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopListingApi(), $etsy->getShopListingApi());
     }
 
     public function testGetShopReceiptApi(): void
