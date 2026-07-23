@@ -1,0 +1,8 @@
+includes:
+    - vendor/christianjbrown/php-code-quality-scripts/config/phpstan.neon
+
+parameters:
+    tmpDir: .phpstan.cache
+    paths:
+        - src
+        - tests
