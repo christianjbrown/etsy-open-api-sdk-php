@@ -6,22 +6,36 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\Etsy\Api\PingApi;
+use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ShopApi;
+use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
+use ChristianBrown\Etsy\Api\UserAddressApi;
+use ChristianBrown\Etsy\Api\UserAddressApiInterface;
+use ChristianBrown\Etsy\Api\UserApi;
+use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
+use ChristianBrown\Etsy\Transformer\PingTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
+use ChristianBrown\Etsy\Transformer\ShopsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationTransformer;
+use ChristianBrown\Etsy\Transformer\UserAddressesTransformer;
+use ChristianBrown\Etsy\Transformer\UserAddressTransformer;
+use ChristianBrown\Etsy\Transformer\UserTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\OAuth2Client\RefreshTokenManager;
 use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
@@ -52,12 +66,68 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getPingApi(): PingApiInterface
+    {
+        /**
+         * @var PingApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_PING_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getShopApi(): ShopApiInterface
+    {
+        /**
+         * @var ShopApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHOP_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getShopReceiptApi(): ShopReceiptApiInterface
     {
         /**
          * @var ShopReceiptApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_SHOP_RECEIPT_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getUserAddressApi(): UserAddressApiInterface
+    {
+        /**
+         * @var UserAddressApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_USER_ADDRESS_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getUserApi(): UserApiInterface
+    {
+        /**
+         * @var UserApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_USER_API);
 
         return $service;
     }
@@ -69,6 +139,10 @@ final class Etsy implements EtsyInterface
         // API clients (which reference every transformer chain) come last.
         $this->registerCore();
         $this->registerReceiptTransformers();
+        $this->registerShopTransformers();
+        $this->registerUserTransformers();
+        $this->registerUserAddressTransformers();
+        $this->registerPingTransformers();
         $this->registerApiClients();
     }
 
@@ -82,6 +156,45 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_RECEIPTS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_API, ShopApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOPS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_USER_API, UserApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_USER_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_USER_ADDRESS_API, UserAddressApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_USER_ADDRESS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_USER_ADDRESSES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PING_API, PingApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_PING_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
     }
@@ -112,6 +225,11 @@ final class Etsy implements EtsyInterface
                     $this->key,
                 ]
             );
+    }
+
+    private function registerPingTransformers(): void
+    {
+        $this->container->register(self::SERVICE_PING_TRANSFORMER, PingTransformer::class);
     }
 
     private function registerReceiptTransformers(): void
@@ -185,5 +303,32 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
                 ]
             );
+    }
+
+    private function registerShopTransformers(): void
+    {
+        $this->container->register(self::SERVICE_SHOP_TRANSFORMER, ShopTransformer::class);
+        $this->container->register(self::SERVICE_SHOPS_TRANSFORMER, ShopsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerUserAddressTransformers(): void
+    {
+        $this->container->register(self::SERVICE_USER_ADDRESS_TRANSFORMER, UserAddressTransformer::class);
+        $this->container->register(self::SERVICE_USER_ADDRESSES_TRANSFORMER, UserAddressesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_USER_ADDRESS_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerUserTransformers(): void
+    {
+        $this->container->register(self::SERVICE_USER_TRANSFORMER, UserTransformer::class);
     }
 }
