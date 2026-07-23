@@ -6,6 +6,7 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
+use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
@@ -48,6 +49,8 @@ interface EtsyInterface
     public const string SERVICE_CREDENTIALS = 'etsy.auth.credentials';
     public const string SERVICE_JSON_API_REQUEST_SENDER = 'etsy.json_api_request_sender';
     public const string SERVICE_LEDGER_ENTRY_API = 'etsy.api.ledger_entry_api';
+    public const string SERVICE_LISTING_BATCH_API = 'etsy.api.listing_batch_api';
+    public const string SERVICE_LISTING_BUYER_PRICE_TRANSFORMER = 'etsy.transformer.listing_buyer_price_transformer';
     public const string SERVICE_LISTING_FILE_API = 'etsy.api.listing_file_api';
     public const string SERVICE_LISTING_FILE_TRANSFORMER = 'etsy.transformer.listing_file_transformer';
     public const string SERVICE_LISTING_FILES_TRANSFORMER = 'etsy.transformer.listing_files_transformer';
@@ -74,7 +77,9 @@ interface EtsyInterface
     public const string SERVICE_LISTING_VIDEO_API = 'etsy.api.listing_video_api';
     public const string SERVICE_LISTING_VIDEO_TRANSFORMER = 'etsy.transformer.listing_video_transformer';
     public const string SERVICE_LISTING_VIDEOS_TRANSFORMER = 'etsy.transformer.listing_videos_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_TRANSFORMER = 'etsy.transformer.listing_with_associations_transformer';
     public const string SERVICE_LISTINGS_TRANSFORMER = 'etsy.transformer.listings_transformer';
+    public const string SERVICE_LISTINGS_WITH_ASSOCIATIONS_TRANSFORMER = 'etsy.transformer.listings_with_associations_transformer';
     public const string SERVICE_MONEY_TRANSFORMER = 'etsy.transformer.money_transformer';
     public const string SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER = 'etsy.transformer.payment_account_ledger_entries_transformer';
     public const string SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER = 'etsy.transformer.payment_account_ledger_entry_transformer';
@@ -155,6 +160,8 @@ interface EtsyInterface
     public function getBuyerTaxonomyApi(): BuyerTaxonomyApiInterface;
 
     public function getLedgerEntryApi(): LedgerEntryApiInterface;
+
+    public function getListingBatchApi(): ListingBatchApiInterface;
 
     public function getListingFileApi(): ListingFileApiInterface;
 

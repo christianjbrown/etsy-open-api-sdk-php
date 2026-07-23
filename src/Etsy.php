@@ -10,6 +10,8 @@ use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
+use ChristianBrown\Etsy\Api\ListingBatchApi;
+use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
@@ -67,6 +69,7 @@ use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScalesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScaleTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValueTransformer;
+use ChristianBrown\Etsy\Transformer\ListingBuyerPriceTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFileTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
@@ -80,12 +83,14 @@ use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\ListingsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingsWithAssociationsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTranslationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVariationImageTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideoTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformer;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformer;
@@ -195,6 +200,20 @@ final class Etsy implements EtsyInterface
          * @var LedgerEntryApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_LEDGER_ENTRY_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingBatchApi(): ListingBatchApiInterface
+    {
+        /**
+         * @var ListingBatchApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_BATCH_API);
 
         return $service;
     }
@@ -559,6 +578,7 @@ final class Etsy implements EtsyInterface
         $this->registerReviewTransformers();
         $this->registerSellerTaxonomyTransformers();
         $this->registerBuyerTaxonomyTransformers();
+        $this->registerListingWithAssociationsTransformers();
         $this->registerApiClients();
     }
 
@@ -835,6 +855,15 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
+
+        $this->container->register(self::SERVICE_LISTING_BATCH_API, ListingBatchApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTINGS_WITH_ASSOCIATIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
     }
 
     private function registerBuyerTaxonomyTransformers(): void
@@ -1046,6 +1075,39 @@ final class Etsy implements EtsyInterface
     private function registerListingTranslationTransformers(): void
     {
         $this->container->register(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER, ListingTranslationTransformer::class);
+    }
+
+    private function registerListingWithAssociationsTransformers(): void
+    {
+        $this->container->register(self::SERVICE_LISTING_BUYER_PRICE_TRANSFORMER, ListingBuyerPriceTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_WITH_ASSOCIATIONS_TRANSFORMER, ListingWithAssociationsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_BUYER_PRICE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_IMAGES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_PERSONALIZATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_VIDEOS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_PRODUCTION_PARTNERS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_USER_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_LISTINGS_WITH_ASSOCIATIONS_TRANSFORMER, ListingsWithAssociationsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_WITH_ASSOCIATIONS_TRANSFORMER),
+                ]
+            );
     }
 
     private function registerPaymentAdjustmentTransformers(): void
