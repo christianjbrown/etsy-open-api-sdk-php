@@ -13,6 +13,10 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Resource | Client | Endpoint(s) | Returns |
 | --- | --- | --- | --- |
 | Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
+| Shops | `getShopApi()` | `GET /shops/{shop_id}`, `GET /users/{user_id}/shops`, `GET /shops?shop_name=…` | `ShopInterface` / `ShopInterface[]` |
+| Users | `getUserApi()` | `GET /users/{user_id}`, `GET /users/me` | `UserInterface` |
+| User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |
+| Ping | `getPingApi()` | `GET /openapi-ping` | `PingInterface` |
 
 _This table grows as more of the read API is covered._
 
