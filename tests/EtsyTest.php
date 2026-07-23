@@ -8,6 +8,8 @@ use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingInventoryApi;
+use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
 use ChristianBrown\Etsy\Api\ListingPropertyApi;
@@ -34,6 +36,11 @@ use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Etsy;
 use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingsTransformer;
@@ -66,6 +73,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Etsy::class)]
 #[UsesClass(ListingFileApi::class)]
 #[UsesClass(ListingImageApi::class)]
+#[UsesClass(ListingInventoryApi::class)]
 #[UsesClass(ListingPersonalizationApi::class)]
 #[UsesClass(ListingPropertyApi::class)]
 #[UsesClass(ListingTranslationApi::class)]
@@ -80,6 +88,11 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(Credentials::class)]
 #[UsesClass(ListingFilesTransformer::class)]
 #[UsesClass(ListingImagesTransformer::class)]
+#[UsesClass(ListingInventoryProductOfferingTransformer::class)]
+#[UsesClass(ListingInventoryProductOfferingsTransformer::class)]
+#[UsesClass(ListingInventoryProductTransformer::class)]
+#[UsesClass(ListingInventoryProductsTransformer::class)]
+#[UsesClass(ListingInventoryTransformer::class)]
 #[UsesClass(ListingPersonalizationTransformer::class)]
 #[UsesClass(ListingPropertyValuesTransformer::class)]
 #[UsesClass(ListingTransformer::class)]
@@ -127,6 +140,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getListingImageApi(), $etsy->getListingImageApi());
+    }
+
+    public function testGetListingInventoryApi(): void
+    {
+        self::assertInstanceOf(ListingInventoryApiInterface::class, $this->buildEtsy()->getListingInventoryApi());
+    }
+
+    public function testGetListingInventoryApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingInventoryApi(), $etsy->getListingInventoryApi());
     }
 
     public function testGetListingPersonalizationApi(): void
