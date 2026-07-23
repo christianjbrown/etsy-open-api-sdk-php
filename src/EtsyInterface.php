@@ -6,6 +6,7 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
+use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApiInterface;
@@ -19,6 +20,8 @@ interface EtsyInterface
     public const string SERVICE_JSON_API_REQUEST_SENDER = 'etsy.json_api_request_sender';
     public const string SERVICE_LISTING_PROPERTY_VALUE_TRANSFORMER = 'etsy.transformer.listing_property_value_transformer';
     public const string SERVICE_LISTING_PROPERTY_VALUES_TRANSFORMER = 'etsy.transformer.listing_property_values_transformer';
+    public const string SERVICE_LISTING_TRANSFORMER = 'etsy.transformer.listing_transformer';
+    public const string SERVICE_LISTINGS_TRANSFORMER = 'etsy.transformer.listings_transformer';
     public const string SERVICE_MONEY_TRANSFORMER = 'etsy.transformer.money_transformer';
     public const string SERVICE_PING_API = 'etsy.api.ping_api';
     public const string SERVICE_PING_TRANSFORMER = 'etsy.transformer.ping_transformer';
@@ -30,6 +33,7 @@ interface EtsyInterface
     public const string SERVICE_SHIPMENT_TRANSFORMER = 'etsy.transformer.shipment_transformer';
     public const string SERVICE_SHIPMENTS_TRANSFORMER = 'etsy.transformer.shipments_transformer';
     public const string SERVICE_SHOP_API = 'etsy.api.shop_api';
+    public const string SERVICE_SHOP_LISTING_API = 'etsy.api.shop_listing_api';
     public const string SERVICE_SHOP_RECEIPT_API = 'etsy.api.shop_receipt_api';
     public const string SERVICE_SHOP_TRANSFORMER = 'etsy.transformer.shop_transformer';
     public const string SERVICE_SHOPS_TRANSFORMER = 'etsy.transformer.shops_transformer';
@@ -46,6 +50,8 @@ interface EtsyInterface
     public function getPingApi(): PingApiInterface;
 
     public function getShopApi(): ShopApiInterface;
+
+    public function getShopListingApi(): ShopListingApiInterface;
 
     public function getShopReceiptApi(): ShopReceiptApiInterface;
 

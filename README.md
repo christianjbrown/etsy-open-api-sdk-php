@@ -13,6 +13,7 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Resource | Client | Endpoint(s) | Returns |
 | --- | --- | --- | --- |
 | Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
+| Listings | `getShopListingApi()` | `GET /listings/{listing_id}`, `GET /shops/{shop_id}/listings`, `GET /listings/active`, `GET /shops/{shop_id}/listings/active`, `GET /listings/batch`, `GET /shops/{shop_id}/listings/featured`, `GET /shops/{shop_id}/policies/return/{return_policy_id}/listings`, `GET /shops/{shop_id}/receipts/{receipt_id}/listings`, `GET /shops/{shop_id}/shop-sections/listings` | `ListingInterface` / `ListingInterface[]` |
 | Shops | `getShopApi()` | `GET /shops/{shop_id}`, `GET /users/{user_id}/shops`, `GET /shops?shop_name=…` | `ShopInterface` / `ShopInterface[]` |
 | Users | `getUserApi()` | `GET /users/{user_id}`, `GET /users/me` | `UserInterface` |
 | User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |
