@@ -15,6 +15,7 @@ use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ReviewApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
@@ -84,6 +85,9 @@ interface EtsyInterface
     public const string SERVICE_REFRESH_TOKEN_MANAGER = 'etsy.oauth.refresh_token_manager';
     public const string SERVICE_REFUND_TRANSFORMER = 'etsy.transformer.refund_transformer';
     public const string SERVICE_REFUNDS_TRANSFORMER = 'etsy.transformer.refunds_transformer';
+    public const string SERVICE_REVIEW_API = 'etsy.api.review_api';
+    public const string SERVICE_REVIEW_TRANSFORMER = 'etsy.transformer.review_transformer';
+    public const string SERVICE_REVIEWS_TRANSFORMER = 'etsy.transformer.reviews_transformer';
     public const string SERVICE_SHIPMENT_TRANSFORMER = 'etsy.transformer.shipment_transformer';
     public const string SERVICE_SHIPMENTS_TRANSFORMER = 'etsy.transformer.shipments_transformer';
     public const string SERVICE_SHIPPING_CARRIER_MAIL_CLASS_TRANSFORMER = 'etsy.transformer.shipping_carrier_mail_class_transformer';
@@ -149,6 +153,8 @@ interface EtsyInterface
     public function getPaymentApi(): PaymentApiInterface;
 
     public function getPingApi(): PingApiInterface;
+
+    public function getReviewApi(): ReviewApiInterface;
 
     public function getShippingProfileApi(): ShippingProfileApiInterface;
 
