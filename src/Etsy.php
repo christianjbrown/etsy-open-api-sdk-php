@@ -28,6 +28,8 @@ use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ShippingProfileApi;
+use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
@@ -90,6 +92,10 @@ use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarriersTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierTransformer;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformer;
 use ChristianBrown\Etsy\Transformer\ShopProductionPartnersTransformer;
@@ -100,6 +106,12 @@ use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformer;
 use ChristianBrown\Etsy\Transformer\ShopSectionsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopSectionTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfilesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
@@ -293,6 +305,20 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getShippingProfileApi(): ShippingProfileApiInterface
+    {
+        /**
+         * @var ShippingProfileApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SHIPPING_PROFILE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getShopApi(): ShopApiInterface
     {
         /**
@@ -457,6 +483,7 @@ final class Etsy implements EtsyInterface
         $this->registerListingPersonalizationTransformers();
         $this->registerShopTransformers();
         $this->registerShopConfigurationTransformers();
+        $this->registerShippingProfileTransformers();
         $this->registerUserTransformers();
         $this->registerUserAddressTransformers();
         $this->registerPingTransformers();
@@ -691,6 +718,20 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHIPPING_PROFILE_API, ShippingProfileApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIERS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -982,6 +1023,70 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerShippingProfileTransformers(): void
+    {
+        $this->container->register(self::SERVICE_SHIPPING_CARRIER_MAIL_CLASS_TRANSFORMER, ShippingCarrierMailClassTransformer::class);
+        $this->container->register(self::SERVICE_SHIPPING_CARRIER_MAIL_CLASSES_TRANSFORMER, ShippingCarrierMailClassesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIER_MAIL_CLASS_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHIPPING_CARRIER_TRANSFORMER, ShippingCarrierTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIER_MAIL_CLASSES_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_SHIPPING_CARRIERS_TRANSFORMER, ShippingCarriersTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIER_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATION_TRANSFORMER, ShopShippingProfileDestinationTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATIONS_TRANSFORMER, ShopShippingProfileDestinationsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATION_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADE_TRANSFORMER, ShopShippingProfileUpgradeTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADES_TRANSFORMER, ShopShippingProfileUpgradesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER, ShopShippingProfileTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADES_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_SHOP_SHIPPING_PROFILES_TRANSFORMER, ShopShippingProfilesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER),
                 ]
             );
     }

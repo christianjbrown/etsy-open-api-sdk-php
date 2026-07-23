@@ -26,6 +26,8 @@ use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ShippingProfileApi;
+use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
@@ -80,6 +82,10 @@ use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarriersTransformer;
+use ChristianBrown\Etsy\Transformer\ShippingCarrierTransformer;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformer;
 use ChristianBrown\Etsy\Transformer\ShopProductionPartnersTransformer;
@@ -90,6 +96,12 @@ use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformer;
 use ChristianBrown\Etsy\Transformer\ShopSectionsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopSectionTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfilesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
@@ -122,6 +134,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShopReceiptApi::class)]
 #[UsesClass(ShopReceiptTransactionApi::class)]
 #[UsesClass(ShopReturnPolicyApi::class)]
+#[UsesClass(ShippingProfileApi::class)]
 #[UsesClass(ShopSectionApi::class)]
 #[UsesClass(PaymentApi::class)]
 #[UsesClass(LedgerEntryApi::class)]
@@ -162,6 +175,16 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShopReturnPoliciesTransformer::class)]
 #[UsesClass(ShopSectionTransformer::class)]
 #[UsesClass(ShopSectionsTransformer::class)]
+#[UsesClass(ShippingCarrierMailClassTransformer::class)]
+#[UsesClass(ShippingCarrierMailClassesTransformer::class)]
+#[UsesClass(ShippingCarrierTransformer::class)]
+#[UsesClass(ShippingCarriersTransformer::class)]
+#[UsesClass(ShopShippingProfileDestinationTransformer::class)]
+#[UsesClass(ShopShippingProfileDestinationsTransformer::class)]
+#[UsesClass(ShopShippingProfileUpgradeTransformer::class)]
+#[UsesClass(ShopShippingProfileUpgradesTransformer::class)]
+#[UsesClass(ShopShippingProfileTransformer::class)]
+#[UsesClass(ShopShippingProfilesTransformer::class)]
 #[UsesClass(TransactionTransformer::class)]
 #[UsesClass(TransactionsTransformer::class)]
 #[UsesClass(TransactionVariationsTransformer::class)]
@@ -308,6 +331,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getPingApi(), $etsy->getPingApi());
+    }
+
+    public function testGetShippingProfileApi(): void
+    {
+        self::assertInstanceOf(ShippingProfileApiInterface::class, $this->buildEtsy()->getShippingProfileApi());
+    }
+
+    public function testGetShippingProfileApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShippingProfileApi(), $etsy->getShippingProfileApi());
     }
 
     public function testGetShopApi(): void
