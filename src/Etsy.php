@@ -6,6 +6,8 @@ namespace ChristianBrown\Etsy;
 
 use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
+use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
@@ -30,6 +32,8 @@ use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ReviewApi;
 use ChristianBrown\Etsy\Api\ReviewApiInterface;
+use ChristianBrown\Etsy\Api\SellerTaxonomyApi;
+use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -55,6 +59,14 @@ use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertiesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertyTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodeTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScalesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScaleTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFileTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
@@ -94,6 +106,8 @@ use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewTransformer;
+use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodesTransformer;
+use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodeTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
@@ -118,6 +132,12 @@ use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertiesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertyTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScalesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScaleTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
@@ -149,6 +169,20 @@ final class Etsy implements EtsyInterface
         $this->refreshTokenStore = $refreshTokenStore;
         $this->container = new ContainerBuilder();
         $this->init();
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getBuyerTaxonomyApi(): BuyerTaxonomyApiInterface
+    {
+        /**
+         * @var BuyerTaxonomyApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_BUYER_TAXONOMY_API);
+
+        return $service;
     }
 
     /**
@@ -315,6 +349,20 @@ final class Etsy implements EtsyInterface
          * @var ReviewApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_REVIEW_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getSellerTaxonomyApi(): SellerTaxonomyApiInterface
+    {
+        /**
+         * @var SellerTaxonomyApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_SELLER_TAXONOMY_API);
 
         return $service;
     }
@@ -509,6 +557,8 @@ final class Etsy implements EtsyInterface
         $this->registerPaymentTransformers();
         $this->registerLedgerTransformers();
         $this->registerReviewTransformers();
+        $this->registerSellerTaxonomyTransformers();
+        $this->registerBuyerTaxonomyTransformers();
         $this->registerApiClients();
     }
 
@@ -763,6 +813,67 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIERS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SELLER_TAXONOMY_API, SellerTaxonomyApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SELLER_TAXONOMY_NODES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_NODE_PROPERTIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_API, BuyerTaxonomyApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_NODES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_NODE_PROPERTIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+    }
+
+    private function registerBuyerTaxonomyTransformers(): void
+    {
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_NODE_TRANSFORMER, BuyerTaxonomyNodeTransformer::class);
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_NODES_TRANSFORMER, BuyerTaxonomyNodesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_NODE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_PROPERTY_SCALE_TRANSFORMER, BuyerTaxonomyPropertyScaleTransformer::class);
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_PROPERTY_SCALES_TRANSFORMER, BuyerTaxonomyPropertyScalesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_PROPERTY_SCALE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_PROPERTY_VALUE_TRANSFORMER, BuyerTaxonomyPropertyValueTransformer::class);
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_PROPERTY_VALUES_TRANSFORMER, BuyerTaxonomyPropertyValuesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_PROPERTY_VALUE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_NODE_PROPERTY_TRANSFORMER, BuyerTaxonomyNodePropertyTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_PROPERTY_SCALES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_PROPERTY_VALUES_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_BUYER_TAXONOMY_NODE_PROPERTIES_TRANSFORMER, BuyerTaxonomyNodePropertiesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_BUYER_TAXONOMY_NODE_PROPERTY_TRANSFORMER),
                 ]
             );
     }
@@ -1063,6 +1174,47 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_REVIEW_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerSellerTaxonomyTransformers(): void
+    {
+        $this->container->register(self::SERVICE_SELLER_TAXONOMY_NODE_TRANSFORMER, SellerTaxonomyNodeTransformer::class);
+        $this->container->register(self::SERVICE_SELLER_TAXONOMY_NODES_TRANSFORMER, SellerTaxonomyNodesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_SELLER_TAXONOMY_NODE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_TAXONOMY_PROPERTY_SCALE_TRANSFORMER, TaxonomyPropertyScaleTransformer::class);
+        $this->container->register(self::SERVICE_TAXONOMY_PROPERTY_SCALES_TRANSFORMER, TaxonomyPropertyScalesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_PROPERTY_SCALE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_TAXONOMY_PROPERTY_VALUE_TRANSFORMER, TaxonomyPropertyValueTransformer::class);
+        $this->container->register(self::SERVICE_TAXONOMY_PROPERTY_VALUES_TRANSFORMER, TaxonomyPropertyValuesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_PROPERTY_VALUE_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_TAXONOMY_NODE_PROPERTY_TRANSFORMER, TaxonomyNodePropertyTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_PROPERTY_SCALES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_PROPERTY_VALUES_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_TAXONOMY_NODE_PROPERTIES_TRANSFORMER, TaxonomyNodePropertiesTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_TAXONOMY_NODE_PROPERTY_TRANSFORMER),
                 ]
             );
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests;
 
+use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
+use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
@@ -28,6 +30,8 @@ use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ReviewApi;
 use ChristianBrown\Etsy\Api\ReviewApiInterface;
+use ChristianBrown\Etsy\Api\SellerTaxonomyApi;
+use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -54,6 +58,14 @@ use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertiesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertyTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodeTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScalesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScaleTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingsTransformer;
@@ -85,6 +97,8 @@ use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewTransformer;
+use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodesTransformer;
+use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodeTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassTransformer;
@@ -108,6 +122,12 @@ use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformer;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertiesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertyTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScalesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScaleTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValuesTransformer;
+use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
@@ -121,6 +141,8 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Etsy::class)]
+#[UsesClass(BuyerTaxonomyApi::class)]
+#[UsesClass(SellerTaxonomyApi::class)]
 #[UsesClass(ListingFileApi::class)]
 #[UsesClass(ListingImageApi::class)]
 #[UsesClass(ListingInventoryApi::class)]
@@ -206,8 +228,36 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(UserTransformer::class)]
 #[UsesClass(UserAddressTransformer::class)]
 #[UsesClass(UserAddressesTransformer::class)]
+#[UsesClass(SellerTaxonomyNodeTransformer::class)]
+#[UsesClass(SellerTaxonomyNodesTransformer::class)]
+#[UsesClass(TaxonomyNodePropertyTransformer::class)]
+#[UsesClass(TaxonomyNodePropertiesTransformer::class)]
+#[UsesClass(TaxonomyPropertyScaleTransformer::class)]
+#[UsesClass(TaxonomyPropertyScalesTransformer::class)]
+#[UsesClass(TaxonomyPropertyValueTransformer::class)]
+#[UsesClass(TaxonomyPropertyValuesTransformer::class)]
+#[UsesClass(BuyerTaxonomyNodeTransformer::class)]
+#[UsesClass(BuyerTaxonomyNodesTransformer::class)]
+#[UsesClass(BuyerTaxonomyNodePropertyTransformer::class)]
+#[UsesClass(BuyerTaxonomyNodePropertiesTransformer::class)]
+#[UsesClass(BuyerTaxonomyPropertyScaleTransformer::class)]
+#[UsesClass(BuyerTaxonomyPropertyScalesTransformer::class)]
+#[UsesClass(BuyerTaxonomyPropertyValueTransformer::class)]
+#[UsesClass(BuyerTaxonomyPropertyValuesTransformer::class)]
 final class EtsyTest extends TestCase
 {
+    public function testGetBuyerTaxonomyApi(): void
+    {
+        self::assertInstanceOf(BuyerTaxonomyApiInterface::class, $this->buildEtsy()->getBuyerTaxonomyApi());
+    }
+
+    public function testGetBuyerTaxonomyApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getBuyerTaxonomyApi(), $etsy->getBuyerTaxonomyApi());
+    }
+
     public function testGetLedgerEntryApi(): void
     {
         self::assertInstanceOf(LedgerEntryApiInterface::class, $this->buildEtsy()->getLedgerEntryApi());
@@ -350,6 +400,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getReviewApi(), $etsy->getReviewApi());
+    }
+
+    public function testGetSellerTaxonomyApi(): void
+    {
+        self::assertInstanceOf(SellerTaxonomyApiInterface::class, $this->buildEtsy()->getSellerTaxonomyApi());
+    }
+
+    public function testGetSellerTaxonomyApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getSellerTaxonomyApi(), $etsy->getSellerTaxonomyApi());
     }
 
     public function testGetShippingProfileApi(): void
