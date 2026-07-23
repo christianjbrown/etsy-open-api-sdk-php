@@ -28,6 +28,8 @@ use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ReviewApi;
+use ChristianBrown\Etsy\Api\ReviewApiInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
@@ -90,6 +92,8 @@ use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
+use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
+use ChristianBrown\Etsy\Transformer\ReviewTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentTransformer;
 use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
@@ -305,6 +309,20 @@ final class Etsy implements EtsyInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
+    public function getReviewApi(): ReviewApiInterface
+    {
+        /**
+         * @var ReviewApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_REVIEW_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function getShippingProfileApi(): ShippingProfileApiInterface
     {
         /**
@@ -490,6 +508,7 @@ final class Etsy implements EtsyInterface
         $this->registerPaymentAdjustmentTransformers();
         $this->registerPaymentTransformers();
         $this->registerLedgerTransformers();
+        $this->registerReviewTransformers();
         $this->registerApiClients();
     }
 
@@ -718,6 +737,16 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
+                ]
+            );
+
+        $this->container->register(self::SERVICE_REVIEW_API, ReviewApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_REVIEWS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -1023,6 +1052,17 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerReviewTransformers(): void
+    {
+        $this->container->register(self::SERVICE_REVIEW_TRANSFORMER, ReviewTransformer::class);
+        $this->container->register(self::SERVICE_REVIEWS_TRANSFORMER, ReviewsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_REVIEW_TRANSFORMER),
                 ]
             );
     }
