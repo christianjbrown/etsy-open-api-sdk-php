@@ -26,6 +26,11 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | Listing translations | `getListingTranslationApi()` | `GET /shops/{shop_id}/listings/{listing_id}/translations/{language}` | `ListingTranslationInterface` |
 | Listing personalization | `getListingPersonalizationApi()` | `GET /listings/{listing_id}/personalization` | `ListingPersonalizationInterface` |
 | Shops | `getShopApi()` | `GET /shops/{shop_id}`, `GET /users/{user_id}/shops`, `GET /shops?shop_name=…` | `ShopInterface` / `ShopInterface[]` |
+| Shop sections | `getShopSectionApi()` | `GET /shops/{shop_id}/sections`, `GET /shops/{shop_id}/sections/{shop_section_id}` | `ShopSectionInterface[]` / `ShopSectionInterface` |
+| Shop return policies | `getShopReturnPolicyApi()` | `GET /shops/{shop_id}/policies/return`, `GET /shops/{shop_id}/policies/return/{return_policy_id}` | `ShopReturnPolicyInterface[]` / `ShopReturnPolicyInterface` |
+| Shop production partners | `getShopProductionPartnerApi()` | `GET /shops/{shop_id}/production-partners` | `ShopProductionPartnerInterface[]` |
+| Shop holiday preferences | `getShopHolidayPreferenceApi()` | `GET /shops/{shop_id}/holiday-preferences` | `ShopHolidayPreferenceInterface[]` |
+| Shop readiness state definitions | `getShopReadinessStateDefinitionApi()` | `GET /shops/{shop_id}/readiness-state-definitions`, `GET /shops/{shop_id}/readiness-state-definitions/{readiness_state_definition_id}` | `ShopReadinessStateDefinitionInterface[]` / `ShopReadinessStateDefinitionInterface` |
 | Users | `getUserApi()` | `GET /users/{user_id}`, `GET /users/me` | `UserInterface` |
 | User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |
 | Ping | `getPingApi()` | `GET /openapi-ping` | `PingInterface` |

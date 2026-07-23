@@ -28,12 +28,22 @@ use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
+use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
+use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
 use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
+use ChristianBrown\Etsy\Api\ShopProductionPartnerApi;
+use ChristianBrown\Etsy\Api\ShopProductionPartnerApiInterface;
+use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApi;
+use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
+use ChristianBrown\Etsy\Api\ShopReturnPolicyApi;
+use ChristianBrown\Etsy\Api\ShopReturnPolicyApiInterface;
+use ChristianBrown\Etsy\Api\ShopSectionApi;
+use ChristianBrown\Etsy\Api\ShopSectionApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
@@ -70,6 +80,16 @@ use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformer;
+use ChristianBrown\Etsy\Transformer\ShopProductionPartnersTransformer;
+use ChristianBrown\Etsy\Transformer\ShopProductionPartnerTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformer;
+use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformer;
+use ChristianBrown\Etsy\Transformer\ShopSectionsTransformer;
+use ChristianBrown\Etsy\Transformer\ShopSectionTransformer;
 use ChristianBrown\Etsy\Transformer\ShopsTransformer;
 use ChristianBrown\Etsy\Transformer\ShopTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
@@ -95,9 +115,14 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ListingVideoApi::class)]
 #[UsesClass(PingApi::class)]
 #[UsesClass(ShopApi::class)]
+#[UsesClass(ShopHolidayPreferenceApi::class)]
 #[UsesClass(ShopListingApi::class)]
+#[UsesClass(ShopProductionPartnerApi::class)]
+#[UsesClass(ShopReadinessStateDefinitionApi::class)]
 #[UsesClass(ShopReceiptApi::class)]
 #[UsesClass(ShopReceiptTransactionApi::class)]
+#[UsesClass(ShopReturnPolicyApi::class)]
+#[UsesClass(ShopSectionApi::class)]
 #[UsesClass(PaymentApi::class)]
 #[UsesClass(LedgerEntryApi::class)]
 #[UsesClass(UserApi::class)]
@@ -127,6 +152,16 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShipmentsTransformer::class)]
 #[UsesClass(ShopTransformer::class)]
 #[UsesClass(ShopsTransformer::class)]
+#[UsesClass(ShopHolidayPreferenceTransformer::class)]
+#[UsesClass(ShopHolidayPreferencesTransformer::class)]
+#[UsesClass(ShopProductionPartnerTransformer::class)]
+#[UsesClass(ShopProductionPartnersTransformer::class)]
+#[UsesClass(ShopReadinessStateDefinitionTransformer::class)]
+#[UsesClass(ShopReadinessStateDefinitionsTransformer::class)]
+#[UsesClass(ShopReturnPolicyTransformer::class)]
+#[UsesClass(ShopReturnPoliciesTransformer::class)]
+#[UsesClass(ShopSectionTransformer::class)]
+#[UsesClass(ShopSectionsTransformer::class)]
 #[UsesClass(TransactionTransformer::class)]
 #[UsesClass(TransactionsTransformer::class)]
 #[UsesClass(TransactionVariationsTransformer::class)]
@@ -287,6 +322,18 @@ final class EtsyTest extends TestCase
         self::assertSame($etsy->getShopApi(), $etsy->getShopApi());
     }
 
+    public function testGetShopHolidayPreferenceApi(): void
+    {
+        self::assertInstanceOf(ShopHolidayPreferenceApiInterface::class, $this->buildEtsy()->getShopHolidayPreferenceApi());
+    }
+
+    public function testGetShopHolidayPreferenceApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopHolidayPreferenceApi(), $etsy->getShopHolidayPreferenceApi());
+    }
+
     public function testGetShopListingApi(): void
     {
         self::assertInstanceOf(ShopListingApiInterface::class, $this->buildEtsy()->getShopListingApi());
@@ -297,6 +344,30 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getShopListingApi(), $etsy->getShopListingApi());
+    }
+
+    public function testGetShopProductionPartnerApi(): void
+    {
+        self::assertInstanceOf(ShopProductionPartnerApiInterface::class, $this->buildEtsy()->getShopProductionPartnerApi());
+    }
+
+    public function testGetShopProductionPartnerApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopProductionPartnerApi(), $etsy->getShopProductionPartnerApi());
+    }
+
+    public function testGetShopReadinessStateDefinitionApi(): void
+    {
+        self::assertInstanceOf(ShopReadinessStateDefinitionApiInterface::class, $this->buildEtsy()->getShopReadinessStateDefinitionApi());
+    }
+
+    public function testGetShopReadinessStateDefinitionApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopReadinessStateDefinitionApi(), $etsy->getShopReadinessStateDefinitionApi());
     }
 
     public function testGetShopReceiptApi(): void
@@ -321,6 +392,30 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getShopReceiptTransactionApi(), $etsy->getShopReceiptTransactionApi());
+    }
+
+    public function testGetShopReturnPolicyApi(): void
+    {
+        self::assertInstanceOf(ShopReturnPolicyApiInterface::class, $this->buildEtsy()->getShopReturnPolicyApi());
+    }
+
+    public function testGetShopReturnPolicyApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopReturnPolicyApi(), $etsy->getShopReturnPolicyApi());
+    }
+
+    public function testGetShopSectionApi(): void
+    {
+        self::assertInstanceOf(ShopSectionApiInterface::class, $this->buildEtsy()->getShopSectionApi());
+    }
+
+    public function testGetShopSectionApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getShopSectionApi(), $etsy->getShopSectionApi());
     }
 
     public function testGetUserAddressApi(): void
