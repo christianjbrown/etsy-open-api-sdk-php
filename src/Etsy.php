@@ -10,6 +10,8 @@ use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
+use ChristianBrown\Etsy\Api\ListingInventoryApi;
+use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
 use ChristianBrown\Etsy\Api\ListingPropertyApi;
@@ -37,6 +39,11 @@ use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFileTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImageTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformer;
+use ChristianBrown\Etsy\Transformer\ListingInventoryTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
@@ -118,6 +125,20 @@ final class Etsy implements EtsyInterface
          * @var ListingImageApiInterface $service
          */
         $service = $this->container->get(self::SERVICE_LISTING_IMAGE_API);
+
+        return $service;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function getListingInventoryApi(): ListingInventoryApiInterface
+    {
+        /**
+         * @var ListingInventoryApiInterface $service
+         */
+        $service = $this->container->get(self::SERVICE_LISTING_INVENTORY_API);
 
         return $service;
     }
@@ -284,6 +305,7 @@ final class Etsy implements EtsyInterface
         $this->registerCore();
         $this->registerReceiptTransformers();
         $this->registerListingTransformers();
+        $this->registerListingInventoryTransformers();
         $this->registerListingMediaTransformers();
         $this->registerListingTranslationTransformers();
         $this->registerListingPersonalizationTransformers();
@@ -370,6 +392,17 @@ final class Etsy implements EtsyInterface
                 ]
             );
 
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_API, ListingInventoryApi::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                ]
+            );
+
         $this->container->register(self::SERVICE_LISTING_PROPERTY_API, ListingPropertyApi::class)
             ->setArguments(
                 [
@@ -453,6 +486,44 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_REFRESH_TOKEN_MANAGER),
                     $this->key,
+                ]
+            );
+    }
+
+    private function registerListingInventoryTransformers(): void
+    {
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER, ListingInventoryProductOfferingTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_MONEY_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERINGS_TRANSFORMER, ListingInventoryProductOfferingsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER, ListingInventoryProductTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERINGS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_PROPERTY_VALUES_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCTS_TRANSFORMER, ListingInventoryProductsTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_TRANSFORMER, ListingInventoryTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCTS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_TRANSFORMER),
                 ]
             );
     }
