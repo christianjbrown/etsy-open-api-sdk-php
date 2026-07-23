@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy;
 
+use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
@@ -12,10 +13,12 @@ use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
 use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
 use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
+use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApiInterface;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
+use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 
@@ -26,6 +29,7 @@ interface EtsyInterface
     public const string SERVICE_API_CLIENT = 'etsy.api_client';
     public const string SERVICE_CREDENTIALS = 'etsy.auth.credentials';
     public const string SERVICE_JSON_API_REQUEST_SENDER = 'etsy.json_api_request_sender';
+    public const string SERVICE_LEDGER_ENTRY_API = 'etsy.api.ledger_entry_api';
     public const string SERVICE_LISTING_FILE_API = 'etsy.api.listing_file_api';
     public const string SERVICE_LISTING_FILE_TRANSFORMER = 'etsy.transformer.listing_file_transformer';
     public const string SERVICE_LISTING_FILES_TRANSFORMER = 'etsy.transformer.listing_files_transformer';
@@ -54,6 +58,15 @@ interface EtsyInterface
     public const string SERVICE_LISTING_VIDEOS_TRANSFORMER = 'etsy.transformer.listing_videos_transformer';
     public const string SERVICE_LISTINGS_TRANSFORMER = 'etsy.transformer.listings_transformer';
     public const string SERVICE_MONEY_TRANSFORMER = 'etsy.transformer.money_transformer';
+    public const string SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER = 'etsy.transformer.payment_account_ledger_entries_transformer';
+    public const string SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER = 'etsy.transformer.payment_account_ledger_entry_transformer';
+    public const string SERVICE_PAYMENT_ADJUSTMENT_ITEM_TRANSFORMER = 'etsy.transformer.payment_adjustment_item_transformer';
+    public const string SERVICE_PAYMENT_ADJUSTMENT_ITEMS_TRANSFORMER = 'etsy.transformer.payment_adjustment_items_transformer';
+    public const string SERVICE_PAYMENT_ADJUSTMENT_TRANSFORMER = 'etsy.transformer.payment_adjustment_transformer';
+    public const string SERVICE_PAYMENT_ADJUSTMENTS_TRANSFORMER = 'etsy.transformer.payment_adjustments_transformer';
+    public const string SERVICE_PAYMENT_API = 'etsy.api.payment_api';
+    public const string SERVICE_PAYMENT_TRANSFORMER = 'etsy.transformer.payment_transformer';
+    public const string SERVICE_PAYMENTS_TRANSFORMER = 'etsy.transformer.payments_transformer';
     public const string SERVICE_PERSONALIZATION_QUESTION_OPTION_TRANSFORMER = 'etsy.transformer.personalization_question_option_transformer';
     public const string SERVICE_PERSONALIZATION_QUESTION_OPTIONS_TRANSFORMER = 'etsy.transformer.personalization_question_options_transformer';
     public const string SERVICE_PERSONALIZATION_QUESTION_TRANSFORMER = 'etsy.transformer.personalization_question_transformer';
@@ -70,6 +83,7 @@ interface EtsyInterface
     public const string SERVICE_SHOP_API = 'etsy.api.shop_api';
     public const string SERVICE_SHOP_LISTING_API = 'etsy.api.shop_listing_api';
     public const string SERVICE_SHOP_RECEIPT_API = 'etsy.api.shop_receipt_api';
+    public const string SERVICE_SHOP_RECEIPT_TRANSACTION_API = 'etsy.api.shop_receipt_transaction_api';
     public const string SERVICE_SHOP_TRANSFORMER = 'etsy.transformer.shop_transformer';
     public const string SERVICE_SHOPS_TRANSFORMER = 'etsy.transformer.shops_transformer';
     public const string SERVICE_TRANSACTION_TRANSFORMER = 'etsy.transformer.transaction_transformer';
@@ -81,6 +95,8 @@ interface EtsyInterface
     public const string SERVICE_USER_ADDRESSES_TRANSFORMER = 'etsy.transformer.user_addresses_transformer';
     public const string SERVICE_USER_API = 'etsy.api.user_api';
     public const string SERVICE_USER_TRANSFORMER = 'etsy.transformer.user_transformer';
+
+    public function getLedgerEntryApi(): LedgerEntryApiInterface;
 
     public function getListingFileApi(): ListingFileApiInterface;
 
@@ -98,6 +114,8 @@ interface EtsyInterface
 
     public function getListingVideoApi(): ListingVideoApiInterface;
 
+    public function getPaymentApi(): PaymentApiInterface;
+
     public function getPingApi(): PingApiInterface;
 
     public function getShopApi(): ShopApiInterface;
@@ -105,6 +123,8 @@ interface EtsyInterface
     public function getShopListingApi(): ShopListingApiInterface;
 
     public function getShopReceiptApi(): ShopReceiptApiInterface;
+
+    public function getShopReceiptTransactionApi(): ShopReceiptTransactionApiInterface;
 
     public function getUserAddressApi(): UserAddressApiInterface;
 
