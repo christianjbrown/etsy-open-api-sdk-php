@@ -15,6 +15,7 @@ use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Api\PingApiInterface;
+use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
@@ -85,6 +86,11 @@ interface EtsyInterface
     public const string SERVICE_REFUNDS_TRANSFORMER = 'etsy.transformer.refunds_transformer';
     public const string SERVICE_SHIPMENT_TRANSFORMER = 'etsy.transformer.shipment_transformer';
     public const string SERVICE_SHIPMENTS_TRANSFORMER = 'etsy.transformer.shipments_transformer';
+    public const string SERVICE_SHIPPING_CARRIER_MAIL_CLASS_TRANSFORMER = 'etsy.transformer.shipping_carrier_mail_class_transformer';
+    public const string SERVICE_SHIPPING_CARRIER_MAIL_CLASSES_TRANSFORMER = 'etsy.transformer.shipping_carrier_mail_classes_transformer';
+    public const string SERVICE_SHIPPING_CARRIER_TRANSFORMER = 'etsy.transformer.shipping_carrier_transformer';
+    public const string SERVICE_SHIPPING_CARRIERS_TRANSFORMER = 'etsy.transformer.shipping_carriers_transformer';
+    public const string SERVICE_SHIPPING_PROFILE_API = 'etsy.api.shipping_profile_api';
     public const string SERVICE_SHOP_API = 'etsy.api.shop_api';
     public const string SERVICE_SHOP_HOLIDAY_PREFERENCE_API = 'etsy.api.shop_holiday_preference_api';
     public const string SERVICE_SHOP_HOLIDAY_PREFERENCE_TRANSFORMER = 'etsy.transformer.shop_holiday_preference_transformer';
@@ -104,6 +110,12 @@ interface EtsyInterface
     public const string SERVICE_SHOP_SECTION_API = 'etsy.api.shop_section_api';
     public const string SERVICE_SHOP_SECTION_TRANSFORMER = 'etsy.transformer.shop_section_transformer';
     public const string SERVICE_SHOP_SECTIONS_TRANSFORMER = 'etsy.transformer.shop_sections_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILE_DESTINATION_TRANSFORMER = 'etsy.transformer.shop_shipping_profile_destination_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILE_DESTINATIONS_TRANSFORMER = 'etsy.transformer.shop_shipping_profile_destinations_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER = 'etsy.transformer.shop_shipping_profile_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILE_UPGRADE_TRANSFORMER = 'etsy.transformer.shop_shipping_profile_upgrade_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILE_UPGRADES_TRANSFORMER = 'etsy.transformer.shop_shipping_profile_upgrades_transformer';
+    public const string SERVICE_SHOP_SHIPPING_PROFILES_TRANSFORMER = 'etsy.transformer.shop_shipping_profiles_transformer';
     public const string SERVICE_SHOP_TRANSFORMER = 'etsy.transformer.shop_transformer';
     public const string SERVICE_SHOPS_TRANSFORMER = 'etsy.transformer.shops_transformer';
     public const string SERVICE_TRANSACTION_TRANSFORMER = 'etsy.transformer.transaction_transformer';
@@ -137,6 +149,8 @@ interface EtsyInterface
     public function getPaymentApi(): PaymentApiInterface;
 
     public function getPingApi(): PingApiInterface;
+
+    public function getShippingProfileApi(): ShippingProfileApiInterface;
 
     public function getShopApi(): ShopApiInterface;
 
