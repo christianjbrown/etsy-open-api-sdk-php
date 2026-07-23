@@ -8,6 +8,8 @@ use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
+use ChristianBrown\Etsy\Api\ListingBatchApi;
+use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
 use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
@@ -66,6 +68,7 @@ use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScalesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScaleTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValueTransformer;
+use ChristianBrown\Etsy\Transformer\ListingBuyerPriceTransformer;
 use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingsTransformer;
@@ -76,9 +79,11 @@ use ChristianBrown\Etsy\Transformer\ListingInventoryTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingsWithAssociationsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTransformer;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformer;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformer;
 use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemsTransformer;
@@ -165,9 +170,11 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShopSectionApi::class)]
 #[UsesClass(PaymentApi::class)]
 #[UsesClass(LedgerEntryApi::class)]
+#[UsesClass(ListingBatchApi::class)]
 #[UsesClass(UserApi::class)]
 #[UsesClass(UserAddressApi::class)]
 #[UsesClass(Credentials::class)]
+#[UsesClass(ListingBuyerPriceTransformer::class)]
 #[UsesClass(ListingFilesTransformer::class)]
 #[UsesClass(ListingImagesTransformer::class)]
 #[UsesClass(ListingInventoryProductOfferingTransformer::class)]
@@ -181,6 +188,8 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ListingsTransformer::class)]
 #[UsesClass(ListingVariationImagesTransformer::class)]
 #[UsesClass(ListingVideosTransformer::class)]
+#[UsesClass(ListingWithAssociationsTransformer::class)]
+#[UsesClass(ListingsWithAssociationsTransformer::class)]
 #[UsesClass(PersonalizationQuestionOptionsTransformer::class)]
 #[UsesClass(PersonalizationQuestionsTransformer::class)]
 #[UsesClass(PersonalizationQuestionTransformer::class)]
@@ -268,6 +277,18 @@ final class EtsyTest extends TestCase
         $etsy = $this->buildEtsy();
 
         self::assertSame($etsy->getLedgerEntryApi(), $etsy->getLedgerEntryApi());
+    }
+
+    public function testGetListingBatchApi(): void
+    {
+        self::assertInstanceOf(ListingBatchApiInterface::class, $this->buildEtsy()->getListingBatchApi());
+    }
+
+    public function testGetListingBatchApiReturnsSharedInstance(): void
+    {
+        $etsy = $this->buildEtsy();
+
+        self::assertSame($etsy->getListingBatchApi(), $etsy->getListingBatchApi());
     }
 
     public function testGetListingFileApi(): void
