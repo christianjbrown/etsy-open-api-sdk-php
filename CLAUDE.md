@@ -2,7 +2,7 @@
 
 Guidance for working in this repository. Match the existing conventions exactly — this codebase is
 small, uniform, and highly opinionated, so new code should be indistinguishable from what's here and
-from its sibling libraries (`php-smartthings-api-lib`, `php-met-office-weather-datahub-api-lib`).
+from its sibling libraries (`smartthings-api-sdk`, `met-office-weather-datahub-api-sdk`).
 
 ## What this is
 
@@ -31,7 +31,7 @@ gitignored and Composer-installed, so run `composer install` first.
 
 After adding autoloadable files, run `composer dump-autoload` if the class isn't found.
 
-Style tooling comes from the `christianjbrown/php-code-quality-scripts` dev dependency: `check-style`
+Style tooling comes from the `christianjbrown/code-quality-scripts` dev dependency: `check-style`
 lints with **PHP_CodeSniffer 4** using the **`ChristianBrown` standard**, and **php-cs-fixer**
 (`@PhpCsFixer`/`@Symfony`) handles formatting. Static analysis is **PHPStan at `level: max`**
 (`phpstan.neon.dist`). The **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) runs style,
@@ -56,7 +56,7 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   and a dynamic, self-refreshing token.
 - **`Api/`** — one `final` resource client per Etsy resource group (`ShopReceiptApi`, …), each
   implementing its interface which `extends ApiInterface`. Constructor order: the
-  `JsonApiRequestSenderInterface` (from `christianjbrown/php-api-client-lib` — no Guzzle/PSR-18 used
+  `JsonApiRequestSenderInterface` (from `christianjbrown/api-client` — no Guzzle/PSR-18 used
   directly), then its transformer(s), then the `CredentialsInterface`, then the injected `int $shopId`
   (shop_id is constructor-level; per-resource ids like `receipt_id` are method arguments). Each
   method: builds headers via `$this->credentials->toHeaders()`, calls `$this->requestSender->get($url,
@@ -120,7 +120,7 @@ on but `ignoreIndirectDeprecations` so Symfony DI's deprecations don't fail the 
   optional fields), do NOT test a cartesian product of fields — path coverage is per-method and each
   `applyX` is independent, so cover it linearly: one "all fields valid" case, then per field one
   "absent" and one "wrong-type" case (all others valid). Small leaf transformers (≤6 fields) may use
-  the nested-loop cartesian style from `php-smartthings-api-lib`'s `DeviceTransformerTest`.
+  the nested-loop cartesian style from `smartthings-api-sdk`'s `DeviceTransformerTest`.
 - **Every test class needs a `#[CoversClass(...)]` attribute** (may list more than one — a
   transformer test covers both the transformer and the model it builds). Use PHPUnit **attributes,
   not annotations**: `#[CoversClass]`, `#[DataProvider]`, `#[TestWith]`.
