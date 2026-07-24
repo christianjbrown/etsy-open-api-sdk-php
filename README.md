@@ -1,6 +1,6 @@
-# Etsy Open API v3 Client
+# Etsy Open API v3 SDK
 
-[![CI](https://github.com/christianjbrown/php-etsy-open-api-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/php-etsy-open-api-sdk/actions/workflows/ci.yml)
+[![CI](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml)
 
 A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It reads your shop's data — receipts, listings, transactions, and more — returning plain, typed model objects rather than raw arrays.
 
@@ -55,7 +55,7 @@ _This table grows as more of the read API is covered._
 For your composer-enabled project:
 
 ```bash
-composer require christianjbrown/php-etsy-open-api-sdk
+composer require christianjbrown/etsy-open-api-sdk
 ```
 
 ## :computer: Usage
@@ -131,7 +131,7 @@ There are two concrete types:
 - **`UnexpectedResponseException`** (extends `RuntimeException`) — the Etsy API returned a body the client or a transformer couldn't parse (a missing/mis-typed field, an empty response).
 - **`MissingInputException`** (extends `InvalidArgumentException`) — bad caller input.
 
-Both live in `src/Exception/`. Request-level failures (network errors, non-2xx responses) surface as `RequestExceptionInterface` from [`christianjbrown/php-api-client-lib`](https://github.com/christianjbrown/php-api-client-lib); token-refresh failures surface as `RequestExceptionInterface` from [`christianjbrown/php-oauth2-client-lib`](https://github.com/christianjbrown/php-oauth2-client-lib). Both are outside this library's exception hierarchy.
+Both live in `src/Exception/`. Request-level failures (network errors, non-2xx responses) surface as `RequestExceptionInterface` from [`christianjbrown/api-client`](https://github.com/christianjbrown/api-client-php); token-refresh failures surface as `RequestExceptionInterface` from [`christianjbrown/oauth2-client`](https://github.com/christianjbrown/oauth2-client-php). Both are outside this library's exception hierarchy.
 
 Under the hood, `Etsy` wires the clients, their transformer chains, and the OAuth refresh machinery through a [Symfony dependency-injection](https://symfony.com/doc/current/components/dependency_injection.html) container. If you don't want the container, you can build the same chain by hand — as shown below.
 
