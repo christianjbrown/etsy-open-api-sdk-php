@@ -25,6 +25,23 @@ final class ListingPersonalizationApiTest extends TestCase
     private const int LISTING_ID = 7;
     private const int SHOP_ID = 42;
 
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ListingPersonalizationApiInterface::API_URL_WRITE_SPRINTF, self::SHOP_ID, self::LISTING_ID),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingPersonalizationTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(self::LISTING_ID);
+    }
+
     public function testGetReturnsPersonalization(): void
     {
         $personalizationData = ['personalization'];
@@ -108,23 +125,6 @@ final class ListingPersonalizationApiTest extends TestCase
 
         self::assertSame($personalization, $api->get(self::LISTING_ID));
         self::assertSame($personalization, $api->get(self::LISTING_ID));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ListingPersonalizationApiInterface::API_URL_WRITE_SPRINTF, self::SHOP_ID, self::LISTING_ID),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingPersonalizationTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(self::LISTING_ID);
     }
 
     public function testUpdateReturnsPersonalization(): void

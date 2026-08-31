@@ -28,6 +28,23 @@ final class ListingFileApiTest extends TestCase
     private const int LISTING_ID = 7;
     private const int SHOP_ID = 42;
 
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ListingFileApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, self::LISTING_ID, 99),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingFileTransformerInterface::class), self::createStub(ListingFilesTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(self::LISTING_ID, 99);
+    }
+
     public function testGetMultipleReturnsFiles(): void
     {
         $resultsData = [['file-1'], ['file-2']];
@@ -222,23 +239,6 @@ final class ListingFileApiTest extends TestCase
 
         self::assertSame($file, $api->getOneById(self::LISTING_ID, 99));
         self::assertSame($file, $api->getOneById(self::LISTING_ID, 99));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ListingFileApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, self::LISTING_ID, 99),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingFileTransformerInterface::class), self::createStub(ListingFilesTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(self::LISTING_ID, 99);
     }
 
     public function testUploadReturnsFile(): void

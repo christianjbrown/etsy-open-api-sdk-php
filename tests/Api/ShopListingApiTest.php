@@ -27,6 +27,70 @@ final class ShopListingApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
 
+    public function testCreateReturnsListing(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $listingData = ['listing-self'];
+        $listing = self::createStub(ListingInterface::class);
+        $listing->method('getListingId')->willReturn(555);
+        $serializedBody = ['title' => 'New listing'];
+
+        $request = self::createStub(CreateDraftListingRequestInterface::class);
+        $requestSerializer = self::createMock(CreateDraftListingRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_SHOP_SPRINTF, self::SHOP_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($listingData);
+
+        $listingTransformer = self::createMock(ListingTransformerInterface::class);
+        $listingTransformer->expects(self::once())->method('transform')
+            ->with($listingData)
+            ->willReturn($listing);
+
+        $api = $this->buildApi($headers, $requestSender, listingTransformer: $listingTransformer, createDraftListingRequestSerializer: $requestSerializer);
+
+        self::assertSame($listing, $api->create($request));
+    }
+
+    public function testCreateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopListingApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->create(self::createStub(CreateDraftListingRequestInterface::class));
+    }
+
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_ID_SPRINTF, 555),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), apiRequestSender: $apiRequestSender);
+
+        $api->delete(555);
+    }
+
     public function testFindActiveByShopReturnsListings(): void
     {
         $resultsData = [['listing-1']];
@@ -683,90 +747,6 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $api->getFeaturedByShop());
     }
 
-    /**
-     * @param array<string, string> $headers
-     */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ?ListingTransformerInterface $listingTransformer = null, ?ListingsTransformerInterface $listingsTransformer = null, ?ApiRequestSenderInterface $apiRequestSender = null, ?CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer = null, ?UpdateListingRequestSerializerInterface $updateListingRequestSerializer = null): ShopListingApi
-    {
-        $credentials = self::createStub(CredentialsInterface::class);
-        $credentials->method('toHeaders')->willReturn($headers);
-
-        return new ShopListingApi(
-            $requestSender,
-            $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class),
-            $listingTransformer ?? self::createStub(ListingTransformerInterface::class),
-            $listingsTransformer ?? self::createStub(ListingsTransformerInterface::class),
-            $createDraftListingRequestSerializer ?? self::createStub(CreateDraftListingRequestSerializerInterface::class),
-            $updateListingRequestSerializer ?? self::createStub(UpdateListingRequestSerializerInterface::class),
-            $credentials,
-            self::SHOP_ID,
-        );
-    }
-
-    public function testCreateReturnsListing(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-        $listingData = ['listing-self'];
-        $listing = self::createStub(ListingInterface::class);
-        $listing->method('getListingId')->willReturn(555);
-        $serializedBody = ['title' => 'New listing'];
-
-        $request = self::createStub(CreateDraftListingRequestInterface::class);
-        $requestSerializer = self::createMock(CreateDraftListingRequestSerializerInterface::class);
-        $requestSerializer->expects(self::once())->method('serialize')
-            ->with($request)
-            ->willReturn($serializedBody);
-
-        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
-        $requestSender->expects(self::once())->method('postForm')
-            ->with(
-                sprintf(ShopListingApiInterface::API_URL_BY_SHOP_SPRINTF, self::SHOP_ID),
-                [],
-                $headers,
-                $serializedBody,
-            )
-            ->willReturn($listingData);
-
-        $listingTransformer = self::createMock(ListingTransformerInterface::class);
-        $listingTransformer->expects(self::once())->method('transform')
-            ->with($listingData)
-            ->willReturn($listing);
-
-        $api = $this->buildApi($headers, $requestSender, listingTransformer: $listingTransformer, createDraftListingRequestSerializer: $requestSerializer);
-
-        self::assertSame($listing, $api->create($request));
-    }
-
-    public function testCreateThrowsWhenEmpty(): void
-    {
-        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
-        $requestSender->method('postForm')->willReturn([]);
-
-        $api = $this->buildApi([], $requestSender);
-
-        $this->expectException(UnexpectedResponseException::class);
-        $this->expectExceptionMessage(ShopListingApiInterface::UNEXPECTED_RESPONSE);
-
-        $api->create(self::createStub(CreateDraftListingRequestInterface::class));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ShopListingApiInterface::API_URL_BY_ID_SPRINTF, 555),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), apiRequestSender: $apiRequestSender);
-
-        $api->delete(555);
-    }
-
     public function testUpdateReturnsListing(): void
     {
         $headers = ['x-api-key' => 'key'];
@@ -811,5 +791,25 @@ final class ShopListingApiTest extends TestCase
         $this->expectExceptionMessage(ShopListingApiInterface::UNEXPECTED_RESPONSE);
 
         $api->update(555, self::createStub(UpdateListingRequestInterface::class));
+    }
+
+    /**
+     * @param array<string, string> $headers
+     */
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ?ListingTransformerInterface $listingTransformer = null, ?ListingsTransformerInterface $listingsTransformer = null, ?ApiRequestSenderInterface $apiRequestSender = null, ?CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer = null, ?UpdateListingRequestSerializerInterface $updateListingRequestSerializer = null): ShopListingApi
+    {
+        $credentials = self::createStub(CredentialsInterface::class);
+        $credentials->method('toHeaders')->willReturn($headers);
+
+        return new ShopListingApi(
+            $requestSender,
+            $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class),
+            $listingTransformer ?? self::createStub(ListingTransformerInterface::class),
+            $listingsTransformer ?? self::createStub(ListingsTransformerInterface::class),
+            $createDraftListingRequestSerializer ?? self::createStub(CreateDraftListingRequestSerializerInterface::class),
+            $updateListingRequestSerializer ?? self::createStub(UpdateListingRequestSerializerInterface::class),
+            $credentials,
+            self::SHOP_ID,
+        );
     }
 }

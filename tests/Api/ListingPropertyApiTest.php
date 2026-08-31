@@ -26,6 +26,23 @@ final class ListingPropertyApiTest extends TestCase
     private const int LISTING_ID = 7;
     private const int SHOP_ID = 42;
 
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ListingPropertyApiInterface::API_URL_WRITE_SPRINTF, self::SHOP_ID, 10, 20),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingPropertyValueTransformerInterface::class), self::createStub(ListingPropertyValuesTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(10, 20);
+    }
+
     public function testGetMultipleReturnsPropertyValues(): void
     {
         $resultsData = [['property-1'], ['property-2']];
@@ -222,34 +239,6 @@ final class ListingPropertyApiTest extends TestCase
         self::assertSame($property, $api->getOneById(self::LISTING_ID, 99));
     }
 
-    /**
-     * @param array<string, string> $headers
-     */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ListingPropertyValueTransformerInterface $valueTransformer, ListingPropertyValuesTransformerInterface $valuesTransformer, ?ApiRequestSenderInterface $apiRequestSender = null, ?UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer = null): ListingPropertyApi
-    {
-        $credentials = self::createStub(CredentialsInterface::class);
-        $credentials->method('toHeaders')->willReturn($headers);
-
-        return new ListingPropertyApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $valueTransformer, $valuesTransformer, $updateListingPropertyRequestSerializer ?? self::createStub(UpdateListingPropertyRequestSerializerInterface::class), $credentials, self::SHOP_ID);
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ListingPropertyApiInterface::API_URL_WRITE_SPRINTF, self::SHOP_ID, 10, 20),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingPropertyValueTransformerInterface::class), self::createStub(ListingPropertyValuesTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(10, 20);
-    }
-
     public function testUpdateReturnsPropertyValue(): void
     {
         $headers = ['x-api-key' => 'key'];
@@ -294,5 +283,16 @@ final class ListingPropertyApiTest extends TestCase
         $this->expectExceptionMessage(ListingPropertyApiInterface::UNEXPECTED_RESPONSE);
 
         $api->update(10, 20, self::createStub(UpdateListingPropertyRequestInterface::class));
+    }
+
+    /**
+     * @param array<string, string> $headers
+     */
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ListingPropertyValueTransformerInterface $valueTransformer, ListingPropertyValuesTransformerInterface $valuesTransformer, ?ApiRequestSenderInterface $apiRequestSender = null, ?UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer = null): ListingPropertyApi
+    {
+        $credentials = self::createStub(CredentialsInterface::class);
+        $credentials->method('toHeaders')->willReturn($headers);
+
+        return new ListingPropertyApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $valueTransformer, $valuesTransformer, $updateListingPropertyRequestSerializer ?? self::createStub(UpdateListingPropertyRequestSerializerInterface::class), $credentials, self::SHOP_ID);
     }
 }

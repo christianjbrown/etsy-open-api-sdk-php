@@ -27,6 +27,69 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
 
+    public function testCreateReturnsDefinition(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $definitionData = ['definition-self'];
+        $definition = self::createStub(ShopReadinessStateDefinitionInterface::class);
+        $serializedBody = ['readiness_state' => 'processed'];
+
+        $createRequest = self::createStub(CreateShopReadinessStateDefinitionRequestInterface::class);
+        $createRequestSerializer = self::createMock(CreateShopReadinessStateDefinitionRequestSerializerInterface::class);
+        $createRequestSerializer->expects(self::once())->method('serialize')
+            ->with($createRequest)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShopReadinessStateDefinitionApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($definitionData);
+
+        $definitionTransformer = self::createMock(ShopReadinessStateDefinitionTransformerInterface::class);
+        $definitionTransformer->expects(self::once())->method('transform')
+            ->with($definitionData)
+            ->willReturn($definition);
+
+        $api = $this->buildApi($headers, $requestSender, $definitionTransformer, self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class), null, $createRequestSerializer);
+
+        self::assertSame($definition, $api->create($createRequest));
+    }
+
+    public function testCreateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReadinessStateDefinitionApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->create(self::createStub(CreateShopReadinessStateDefinitionRequestInterface::class));
+    }
+
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShopReadinessStateDefinitionApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 77),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(77);
+    }
+
     public function testGetMultipleReturnsDefinitions(): void
     {
         $resultsData = [['definition-1'], ['definition-2']];
@@ -221,69 +284,6 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 
         self::assertSame($definition, $api->getOneById(77));
         self::assertSame($definition, $api->getOneById(77));
-    }
-
-    public function testCreateReturnsDefinition(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-        $definitionData = ['definition-self'];
-        $definition = self::createStub(ShopReadinessStateDefinitionInterface::class);
-        $serializedBody = ['readiness_state' => 'processed'];
-
-        $createRequest = self::createStub(CreateShopReadinessStateDefinitionRequestInterface::class);
-        $createRequestSerializer = self::createMock(CreateShopReadinessStateDefinitionRequestSerializerInterface::class);
-        $createRequestSerializer->expects(self::once())->method('serialize')
-            ->with($createRequest)
-            ->willReturn($serializedBody);
-
-        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
-        $requestSender->expects(self::once())->method('postForm')
-            ->with(
-                sprintf(ShopReadinessStateDefinitionApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
-                [],
-                $headers,
-                $serializedBody,
-            )
-            ->willReturn($definitionData);
-
-        $definitionTransformer = self::createMock(ShopReadinessStateDefinitionTransformerInterface::class);
-        $definitionTransformer->expects(self::once())->method('transform')
-            ->with($definitionData)
-            ->willReturn($definition);
-
-        $api = $this->buildApi($headers, $requestSender, $definitionTransformer, self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class), null, $createRequestSerializer);
-
-        self::assertSame($definition, $api->create($createRequest));
-    }
-
-    public function testCreateThrowsWhenEmpty(): void
-    {
-        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
-        $requestSender->method('postForm')->willReturn([]);
-
-        $api = $this->buildApi([], $requestSender, self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class));
-
-        $this->expectException(UnexpectedResponseException::class);
-        $this->expectExceptionMessage(ShopReadinessStateDefinitionApiInterface::UNEXPECTED_RESPONSE);
-
-        $api->create(self::createStub(CreateShopReadinessStateDefinitionRequestInterface::class));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ShopReadinessStateDefinitionApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 77),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(77);
     }
 
     public function testUpdateReturnsDefinition(): void

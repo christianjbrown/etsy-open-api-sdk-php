@@ -284,17 +284,6 @@ final class ListingInventoryApiTest extends TestCase
         self::assertSame($product, $api->getProduct(self::LISTING_ID, self::PRODUCT_ID));
     }
 
-    /**
-     * @param array<string, string> $headers
-     */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ListingInventoryTransformerInterface $inventoryTransformer, ListingInventoryProductTransformerInterface $productTransformer, ListingInventoryProductOfferingTransformerInterface $offeringTransformer, ?UpdateListingInventoryRequestSerializerInterface $updateListingInventoryRequestSerializer = null): ListingInventoryApi
-    {
-        $credentials = self::createStub(CredentialsInterface::class);
-        $credentials->method('toHeaders')->willReturn($headers);
-
-        return new ListingInventoryApi($requestSender, $inventoryTransformer, $productTransformer, $offeringTransformer, $updateListingInventoryRequestSerializer ?? self::createStub(UpdateListingInventoryRequestSerializerInterface::class), $credentials);
-    }
-
     public function testUpdateReturnsInventory(): void
     {
         $headers = ['x-api-key' => 'key'];
@@ -328,6 +317,19 @@ final class ListingInventoryApiTest extends TestCase
         self::assertSame($inventory, $api->update(11, $request));
     }
 
+    public function testUpdateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('put')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), self::createStub(ListingInventoryProductTransformerInterface::class), self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ListingInventoryApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->update(11, self::createStub(UpdateListingInventoryRequestInterface::class));
+    }
+
     public function testUpdateWithMaxVariationsSupportedPassesQuery(): void
     {
         $headers = ['x-api-key' => 'key'];
@@ -352,16 +354,14 @@ final class ListingInventoryApiTest extends TestCase
         self::assertSame($inventory, $api->update(11, self::createStub(UpdateListingInventoryRequestInterface::class), '3'));
     }
 
-    public function testUpdateThrowsWhenEmpty(): void
+    /**
+     * @param array<string, string> $headers
+     */
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ListingInventoryTransformerInterface $inventoryTransformer, ListingInventoryProductTransformerInterface $productTransformer, ListingInventoryProductOfferingTransformerInterface $offeringTransformer, ?UpdateListingInventoryRequestSerializerInterface $updateListingInventoryRequestSerializer = null): ListingInventoryApi
     {
-        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
-        $requestSender->method('put')->willReturn([]);
+        $credentials = self::createStub(CredentialsInterface::class);
+        $credentials->method('toHeaders')->willReturn($headers);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), self::createStub(ListingInventoryProductTransformerInterface::class), self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
-
-        $this->expectException(UnexpectedResponseException::class);
-        $this->expectExceptionMessage(ListingInventoryApiInterface::UNEXPECTED_RESPONSE);
-
-        $api->update(11, self::createStub(UpdateListingInventoryRequestInterface::class));
+        return new ListingInventoryApi($requestSender, $inventoryTransformer, $productTransformer, $offeringTransformer, $updateListingInventoryRequestSerializer ?? self::createStub(UpdateListingInventoryRequestSerializerInterface::class), $credentials);
     }
 }

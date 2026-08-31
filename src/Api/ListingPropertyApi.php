@@ -57,8 +57,7 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
         $url = sprintf(self::API_URL_WRITE_SPRINTF, $this->shopId, $listingId, $propertyId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId]);
-        unset($this->oneCache[sprintf('%d:%d', $listingId, $propertyId)]);
+        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $propertyId)]);
     }
 
     /**

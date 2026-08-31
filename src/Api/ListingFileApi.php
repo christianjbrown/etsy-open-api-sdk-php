@@ -65,8 +65,7 @@ final class ListingFileApi implements ListingFileApiInterface
         $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $listingId, $listingFileId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId]);
-        unset($this->oneCache[sprintf('%d:%d', $listingId, $listingFileId)]);
+        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $listingFileId)]);
     }
 
     /**

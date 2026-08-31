@@ -28,6 +28,52 @@ final class ShopReceiptApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
 
+    public function testCreateReceiptShipmentReturnsReceipt(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $receiptData = ['receipt-self'];
+        $receipt = self::createStub(ReceiptInterface::class);
+        $serializedBody = ['tracking_code' => 'abc'];
+
+        $request = self::createStub(CreateReceiptShipmentRequestInterface::class);
+        $requestSerializer = self::createMock(CreateReceiptShipmentRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('post')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_TRACKING_SPRINTF, self::SHOP_ID, 77),
+                [ShopReceiptApiInterface::KEY_LEGACY => 'true'],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($receiptData);
+
+        $receiptTransformer = self::createMock(ReceiptTransformerInterface::class);
+        $receiptTransformer->expects(self::once())->method('transform')
+            ->with($receiptData)
+            ->willReturn($receipt);
+
+        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class), $requestSerializer);
+
+        self::assertSame($receipt, $api->createReceiptShipment(77, $request, true));
+    }
+
+    public function testCreateReceiptShipmentThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('post')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->createReceiptShipment(77, self::createStub(CreateReceiptShipmentRequestInterface::class));
+    }
+
     public function testGetMultipleReturnsReceipts(): void
     {
         $resultsData = [['receipt-1'], ['receipt-2']];
@@ -315,52 +361,6 @@ final class ShopReceiptApiTest extends TestCase
 
         self::assertSame($page, $api->getPage());
         self::assertSame($page, $api->getPage());
-    }
-
-    public function testCreateReceiptShipmentReturnsReceipt(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-        $receiptData = ['receipt-self'];
-        $receipt = self::createStub(ReceiptInterface::class);
-        $serializedBody = ['tracking_code' => 'abc'];
-
-        $request = self::createStub(CreateReceiptShipmentRequestInterface::class);
-        $requestSerializer = self::createMock(CreateReceiptShipmentRequestSerializerInterface::class);
-        $requestSerializer->expects(self::once())->method('serialize')
-            ->with($request)
-            ->willReturn($serializedBody);
-
-        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
-        $requestSender->expects(self::once())->method('post')
-            ->with(
-                sprintf(ShopReceiptApiInterface::API_URL_TRACKING_SPRINTF, self::SHOP_ID, 77),
-                [ShopReceiptApiInterface::KEY_LEGACY => 'true'],
-                $headers,
-                $serializedBody,
-            )
-            ->willReturn($receiptData);
-
-        $receiptTransformer = self::createMock(ReceiptTransformerInterface::class);
-        $receiptTransformer->expects(self::once())->method('transform')
-            ->with($receiptData)
-            ->willReturn($receipt);
-
-        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class), $requestSerializer);
-
-        self::assertSame($receipt, $api->createReceiptShipment(77, $request, true));
-    }
-
-    public function testCreateReceiptShipmentThrowsWhenEmpty(): void
-    {
-        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
-        $requestSender->method('post')->willReturn([]);
-
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
-
-        $this->expectException(UnexpectedResponseException::class);
-        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
-
-        $api->createReceiptShipment(77, self::createStub(CreateReceiptShipmentRequestInterface::class));
     }
 
     public function testUpdateShopReceiptReturnsReceipt(): void

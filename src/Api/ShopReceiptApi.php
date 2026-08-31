@@ -27,8 +27,8 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
      * @var array<string, array<int, ReceiptInterface>>
      */
     private array $cache = [];
-    private CredentialsInterface $credentials;
     private CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer;
+    private CredentialsInterface $credentials;
 
     /**
      * @var array<string, ReceiptPageInterface>

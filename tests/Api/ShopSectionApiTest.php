@@ -23,6 +23,62 @@ final class ShopSectionApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
 
+    public function testCreateReturnsSection(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $sectionData = ['section-self'];
+        $section = self::createStub(ShopSectionInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShopSectionApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [],
+                $headers,
+                [ShopSectionApiInterface::KEY_TITLE => 'New section'],
+            )
+            ->willReturn($sectionData);
+
+        $sectionTransformer = self::createMock(ShopSectionTransformerInterface::class);
+        $sectionTransformer->expects(self::once())->method('transform')
+            ->with($sectionData)
+            ->willReturn($section);
+
+        $api = $this->buildApi($headers, $requestSender, $sectionTransformer, self::createStub(ShopSectionsTransformerInterface::class));
+
+        self::assertSame($section, $api->create('New section'));
+    }
+
+    public function testCreateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ShopSectionTransformerInterface::class), self::createStub(ShopSectionsTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopSectionApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->create('New section');
+    }
+
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShopSectionApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 77),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ShopSectionTransformerInterface::class), self::createStub(ShopSectionsTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(77);
+    }
+
     public function testGetMultipleReturnsSections(): void
     {
         $resultsData = [['section-1'], ['section-2']];
@@ -217,62 +273,6 @@ final class ShopSectionApiTest extends TestCase
 
         self::assertSame($section, $api->getOneById(77));
         self::assertSame($section, $api->getOneById(77));
-    }
-
-    public function testCreateReturnsSection(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-        $sectionData = ['section-self'];
-        $section = self::createStub(ShopSectionInterface::class);
-
-        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
-        $requestSender->expects(self::once())->method('postForm')
-            ->with(
-                sprintf(ShopSectionApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
-                [],
-                $headers,
-                [ShopSectionApiInterface::KEY_TITLE => 'New section'],
-            )
-            ->willReturn($sectionData);
-
-        $sectionTransformer = self::createMock(ShopSectionTransformerInterface::class);
-        $sectionTransformer->expects(self::once())->method('transform')
-            ->with($sectionData)
-            ->willReturn($section);
-
-        $api = $this->buildApi($headers, $requestSender, $sectionTransformer, self::createStub(ShopSectionsTransformerInterface::class));
-
-        self::assertSame($section, $api->create('New section'));
-    }
-
-    public function testCreateThrowsWhenEmpty(): void
-    {
-        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
-        $requestSender->method('postForm')->willReturn([]);
-
-        $api = $this->buildApi([], $requestSender, self::createStub(ShopSectionTransformerInterface::class), self::createStub(ShopSectionsTransformerInterface::class));
-
-        $this->expectException(UnexpectedResponseException::class);
-        $this->expectExceptionMessage(ShopSectionApiInterface::UNEXPECTED_RESPONSE);
-
-        $api->create('New section');
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ShopSectionApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 77),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ShopSectionTransformerInterface::class), self::createStub(ShopSectionsTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(77);
     }
 
     public function testUpdateReturnsSection(): void

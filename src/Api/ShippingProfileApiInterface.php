@@ -18,12 +18,12 @@ use ChristianBrown\Etsy\Model\UpdateShopShippingProfileUpgradeRequestInterface;
 interface ShippingProfileApiInterface extends ApiInterface
 {
     public const string API_URL_CARRIERS = 'https://openapi.etsy.com/v3/application/shipping-carriers';
-    public const string API_URL_DESTINATIONS_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/destinations';
     public const string API_URL_DESTINATION_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/destinations/%d';
+    public const string API_URL_DESTINATIONS_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/destinations';
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d';
-    public const string API_URL_UPGRADES_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/upgrades';
     public const string API_URL_UPGRADE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/upgrades/%d';
+    public const string API_URL_UPGRADES_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/upgrades';
     public const string KEY_LIMIT = 'limit';
     public const string KEY_OFFSET = 'offset';
     public const string KEY_ORIGIN_COUNTRY_ISO = 'origin_country_iso';

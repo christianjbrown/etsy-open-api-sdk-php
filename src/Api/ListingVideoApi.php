@@ -65,8 +65,7 @@ final class ListingVideoApi implements ListingVideoApiInterface
         $url = sprintf(self::API_URL_WRITE_ONE_SPRINTF, $this->shopId, $listingId, $videoId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId]);
-        unset($this->oneCache[sprintf('%d:%d', $listingId, $videoId)]);
+        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $videoId)]);
     }
 
     /**

@@ -21,6 +21,23 @@ use function sprintf;
 #[CoversClass(UserAddressApi::class)]
 final class UserAddressApiTest extends TestCase
 {
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(UserAddressApiInterface::API_URL_ONE_SPRINTF, 99),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(UserAddressTransformerInterface::class), self::createStub(UserAddressesTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(99);
+    }
+
     public function testGetMultipleReturnsUserAddresses(): void
     {
         $resultsData = [['address-1'], ['address-2']];
@@ -218,23 +235,6 @@ final class UserAddressApiTest extends TestCase
 
         self::assertSame($address, $api->getOneById(99));
         self::assertSame($address, $api->getOneById(99));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(UserAddressApiInterface::API_URL_ONE_SPRINTF, 99),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(UserAddressTransformerInterface::class), self::createStub(UserAddressesTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(99);
     }
 
     /**

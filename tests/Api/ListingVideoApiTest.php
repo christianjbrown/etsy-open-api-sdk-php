@@ -28,6 +28,23 @@ final class ListingVideoApiTest extends TestCase
     private const int LISTING_ID = 7;
     private const int SHOP_ID = 42;
 
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ListingVideoApiInterface::API_URL_WRITE_ONE_SPRINTF, self::SHOP_ID, self::LISTING_ID, 99),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingVideoTransformerInterface::class), self::createStub(ListingVideosTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(self::LISTING_ID, 99);
+    }
+
     public function testGetMultipleReturnsVideos(): void
     {
         $resultsData = [['video-1'], ['video-2']];
@@ -222,23 +239,6 @@ final class ListingVideoApiTest extends TestCase
 
         self::assertSame($video, $api->getOneById(self::LISTING_ID, 99));
         self::assertSame($video, $api->getOneById(self::LISTING_ID, 99));
-    }
-
-    public function testDeleteCallsApiRequestSender(): void
-    {
-        $headers = ['x-api-key' => 'key'];
-
-        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
-        $apiRequestSender->expects(self::once())->method('delete')
-            ->with(
-                sprintf(ListingVideoApiInterface::API_URL_WRITE_ONE_SPRINTF, self::SHOP_ID, self::LISTING_ID, 99),
-                [],
-                $headers,
-            );
-
-        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(ListingVideoTransformerInterface::class), self::createStub(ListingVideosTransformerInterface::class), $apiRequestSender);
-
-        $api->delete(self::LISTING_ID, 99);
     }
 
     public function testUploadReturnsVideo(): void

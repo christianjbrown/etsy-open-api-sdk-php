@@ -28,8 +28,8 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
      * @var null|array<int, ShopReadinessStateDefinitionInterface>
      */
     private ?array $cache = null;
-    private CredentialsInterface $credentials;
     private CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer;
+    private CredentialsInterface $credentials;
 
     /**
      * @var array<int, ShopReadinessStateDefinitionInterface>
