@@ -96,6 +96,7 @@ use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
 use ChristianBrown\Etsy\Transformer\PingTransformer;
+use ChristianBrown\Etsy\Transformer\ReceiptPageTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
@@ -194,6 +195,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(PersonalizationQuestionsTransformer::class)]
 #[UsesClass(PersonalizationQuestionTransformer::class)]
 #[UsesClass(PingTransformer::class)]
+#[UsesClass(ReceiptPageTransformer::class)]
 #[UsesClass(ReceiptTransformer::class)]
 #[UsesClass(ReceiptsTransformer::class)]
 #[UsesClass(RefundTransformer::class)]

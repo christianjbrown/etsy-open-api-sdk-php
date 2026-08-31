@@ -105,6 +105,7 @@ use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
 use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
 use ChristianBrown\Etsy\Transformer\PingTransformer;
+use ChristianBrown\Etsy\Transformer\ReceiptPageTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
@@ -590,6 +591,7 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_RECEIPTS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_RECEIPT_PAGE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -1225,6 +1227,12 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
+                ]
+            );
+        $this->container->register(self::SERVICE_RECEIPT_PAGE_TRANSFORMER, ReceiptPageTransformer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_RECEIPTS_TRANSFORMER),
                 ]
             );
     }

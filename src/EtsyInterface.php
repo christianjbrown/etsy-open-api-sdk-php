@@ -96,6 +96,7 @@ interface EtsyInterface
     public const string SERVICE_PERSONALIZATION_QUESTIONS_TRANSFORMER = 'etsy.transformer.personalization_questions_transformer';
     public const string SERVICE_PING_API = 'etsy.api.ping_api';
     public const string SERVICE_PING_TRANSFORMER = 'etsy.transformer.ping_transformer';
+    public const string SERVICE_RECEIPT_PAGE_TRANSFORMER = 'etsy.transformer.receipt_page_transformer';
     public const string SERVICE_RECEIPT_TRANSFORMER = 'etsy.transformer.receipt_transformer';
     public const string SERVICE_RECEIPTS_TRANSFORMER = 'etsy.transformer.receipts_transformer';
     public const string SERVICE_REFRESH_TOKEN_MANAGER = 'etsy.oauth.refresh_token_manager';

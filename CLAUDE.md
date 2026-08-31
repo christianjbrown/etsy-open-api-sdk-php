@@ -64,6 +64,11 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   delegates the payload to a transformer, and caches by id/key. List endpoints validate the response
   envelope key (e.g. `results`) and return `array<int, XInterface>` via a plural collection
   transformer; single-object endpoints guard against an empty response and return one `XInterface`.
+  Where a caller needs to page through a whole result set, a **page** variant hands the entire
+  envelope to a page transformer and returns a model carrying Etsy's `count` (the shop-wide total)
+  alongside the results — see `ShopReceiptApi::getPage()` / `ReceiptPageTransformer` / `ReceiptPage`.
+  Unlike the plain list methods, a page tolerates an empty `results` array so a count-driven loop
+  never trips over a final empty page.
   Full URLs live in `API_URL*_SPRINTF` constants on the interface (the base host is
   `https://openapi.etsy.com`; note the OAuth token endpoint is on a different host,
   `https://api.etsy.com`, held as `EtsyInterface::OAUTH_TOKEN_URL`).

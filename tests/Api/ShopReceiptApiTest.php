@@ -10,6 +10,8 @@ use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
+use ChristianBrown\Etsy\Model\ReceiptPageInterface;
+use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -45,7 +47,7 @@ final class ShopReceiptApiTest extends TestCase
             ->with($resultsData)
             ->willReturn($receipts);
 
-        $api = $this->buildApi($headers, $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer);
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipts, $api->getMultiple(10, 5));
     }
@@ -61,7 +63,7 @@ final class ShopReceiptApiTest extends TestCase
         $receiptsTransformer = self::createStub(ReceiptsTransformerInterface::class);
         $receiptsTransformer->method('transform')->willReturn($receipts);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer);
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipts, $api->getMultiple(100, 0, true));
         self::assertSame($receipts, $api->getMultiple(100, 0, true));
@@ -72,7 +74,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([ShopReceiptApiInterface::KEY_RESULTS => []]);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(sprintf(ShopReceiptApiInterface::UNEXPECTED_RESPONSE_SPRINTF, ShopReceiptApiInterface::KEY_RESULTS));
@@ -85,7 +87,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([ShopReceiptApiInterface::KEY_RESULTS => 'not-an-array']);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(sprintf(ShopReceiptApiInterface::UNEXPECTED_RESPONSE_SPRINTF, ShopReceiptApiInterface::KEY_RESULTS));
@@ -98,7 +100,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([ShopReceiptApiInterface::KEY_RESULTS => []]);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(sprintf(ShopReceiptApiInterface::UNEXPECTED_RESPONSE_SPRINTF, ShopReceiptApiInterface::KEY_RESULTS));
@@ -111,7 +113,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([ShopReceiptApiInterface::KEY_RESULTS => 'not-an-array']);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(sprintf(ShopReceiptApiInterface::UNEXPECTED_RESPONSE_SPRINTF, ShopReceiptApiInterface::KEY_RESULTS));
@@ -130,7 +132,7 @@ final class ShopReceiptApiTest extends TestCase
         $receiptsTransformer = self::createStub(ReceiptsTransformerInterface::class);
         $receiptsTransformer->method('transform')->willReturn($receipts);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer);
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipts, $api->getMultiple());
         self::assertSame($receipts, $api->getMultiple());
@@ -156,7 +158,7 @@ final class ShopReceiptApiTest extends TestCase
             ->with($receiptData)
             ->willReturn($receipt);
 
-        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipt, $api->getOneById(99));
     }
@@ -172,7 +174,7 @@ final class ShopReceiptApiTest extends TestCase
         $receiptTransformer = self::createStub(ReceiptTransformerInterface::class);
         $receiptTransformer->method('transform')->willReturn($receipt);
 
-        $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipt, $api->getOneById(99, true));
         self::assertSame($receipt, $api->getOneById(99, true));
@@ -183,7 +185,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([]);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
@@ -196,7 +198,7 @@ final class ShopReceiptApiTest extends TestCase
         $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
         $requestSender->method('get')->willReturn([]);
 
-        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         $this->expectException(UnexpectedResponseException::class);
         $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
@@ -215,20 +217,110 @@ final class ShopReceiptApiTest extends TestCase
         $receiptTransformer = self::createStub(ReceiptTransformerInterface::class);
         $receiptTransformer->method('transform')->willReturn($receipt);
 
-        $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class));
+        $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
         self::assertSame($receipt, $api->getOneById(99));
         self::assertSame($receipt, $api->getOneById(99));
     }
 
+    public function testGetPageReturnsPage(): void
+    {
+        $responseData = [
+            ShopReceiptApiInterface::KEY_RESULTS => [['receipt-1']],
+        ];
+        $headers = ['x-api-key' => 'key'];
+        $page = self::createStub(ReceiptPageInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [
+                    ShopReceiptApiInterface::KEY_LIMIT => '10',
+                    ShopReceiptApiInterface::KEY_OFFSET => '5',
+                ],
+                $headers,
+            )
+            ->willReturn($responseData);
+
+        $receiptPageTransformer = self::createMock(ReceiptPageTransformerInterface::class);
+        $receiptPageTransformer->expects(self::once())->method('transform')
+            ->with($responseData)
+            ->willReturn($page);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
+
+        self::assertSame($page, $api->getPage(10, 5));
+    }
+
+    public function testGetPageSkipCacheRefetches(): void
+    {
+        $page = self::createStub(ReceiptPageInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::exactly(2))->method('get')
+            ->willReturn([ShopReceiptApiInterface::KEY_RESULTS => [['receipt-1']]]);
+
+        $receiptPageTransformer = self::createStub(ReceiptPageTransformerInterface::class);
+        $receiptPageTransformer->method('transform')->willReturn($page);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
+
+        self::assertSame($page, $api->getPage(100, 0, true));
+        self::assertSame($page, $api->getPage(100, 0, true));
+    }
+
+    public function testGetPageSkipCacheThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('get')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->getPage(100, 0, true);
+    }
+
+    public function testGetPageThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('get')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->getPage();
+    }
+
+    public function testGetPageUsesCacheOnSecondCall(): void
+    {
+        $page = self::createStub(ReceiptPageInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->willReturn([ShopReceiptApiInterface::KEY_RESULTS => [['receipt-1']]]);
+
+        $receiptPageTransformer = self::createStub(ReceiptPageTransformerInterface::class);
+        $receiptPageTransformer->method('transform')->willReturn($page);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
+
+        self::assertSame($page, $api->getPage());
+        self::assertSame($page, $api->getPage());
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer): ShopReceiptApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer): ShopReceiptApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopReceiptApi($requestSender, $receiptTransformer, $receiptsTransformer, $credentials, self::SHOP_ID);
+        return new ShopReceiptApi($requestSender, $receiptTransformer, $receiptsTransformer, $receiptPageTransformer, $credentials, self::SHOP_ID);
     }
 }
