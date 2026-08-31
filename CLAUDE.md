@@ -6,11 +6,11 @@ from its sibling libraries (`smartthings-api-sdk`, `met-office-weather-datahub-a
 
 ## What this is
 
-A strongly-typed, **read-only** PHP 8.5+ client for the [Etsy Open API v3](https://developers.etsy.com/documentation/).
-It wraps the API's `GET` endpoints, returning typed model objects instead of raw arrays. Writes
-(POST/PUT/DELETE) are intentionally **out of scope** for now. The primary entry point is the `Etsy`
-facade (`src/Etsy.php`), which wires the resource clients, their transformer chains, and the OAuth
-token-refresh machinery through a Symfony `ContainerBuilder` DI container. Hand-wiring the same
+A strongly-typed PHP 8.5+ client for the [Etsy Open API v3](https://developers.etsy.com/documentation/),
+covering every `GET`, `POST`, `PUT`, `PATCH` and `DELETE` operation in the published spec and
+returning typed model objects instead of raw arrays. The primary entry point is the `Etsy` facade
+(`src/Etsy.php`), which wires the resource clients, their transformer and serializer chains, and the
+OAuth token-refresh machinery through a Symfony `ContainerBuilder` DI container. Hand-wiring the same
 chains without the container is still fully supported (see the "Wiring the clients" section of
 `README.md`).
 
@@ -58,26 +58,71 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
 - **`Api/`** — one `final` resource client per Etsy resource group (`ShopReceiptApi`, …), each
   implementing its interface which `extends ApiInterface`. Constructor order: the
   `JsonApiRequestSenderInterface` (from `christianjbrown/api-client` — no Guzzle/PSR-18 used
-  directly), then its transformer(s), then the `CredentialsInterface`, then the injected `int $shopId`
-  (shop_id is constructor-level; per-resource ids like `receipt_id` are method arguments). Each
-  method: builds headers via `$this->credentials->toHeaders()`, calls `$this->requestSender->get($url,
-  $query, $headers)`, defensively validates the response shape (throwing `UnexpectedResponseException`),
-  delegates the payload to a transformer, and caches by id/key. List endpoints validate the response
-  envelope key (e.g. `results`) and return `array<int, XInterface>` via a plural collection
-  transformer; single-object endpoints guard against an empty response and return one `XInterface`.
-  Where a caller needs to page through a whole result set, a **page** variant hands the entire
-  envelope to a page transformer and returns a model carrying Etsy's `count` (the shop-wide total)
-  alongside the results — see `ShopReceiptApi::getPage()` / `ReceiptPageTransformer` / `ReceiptPage`.
-  Unlike the plain list methods, a page tolerates an empty `results` array so a count-driven loop
-  never trips over a final empty page.
+  directly), then `ApiRequestSenderInterface` if the client has any `DELETE` or multipart-upload
+  method (see "Writes" below), then its transformer(s), then any `MultipartFormDataBuilderInterface`
+  and `JsonToArrayTransformerInterface` an upload method needs, then its request serializer(s), then
+  the `CredentialsInterface`, then the injected `int $shopId` (shop_id is constructor-level;
+  per-resource ids like `receipt_id` are method arguments).
+  Read methods: build headers via `$this->credentials->toHeaders()`, call
+  `$this->requestSender->get($url, $query, $headers)`, defensively validate the response shape
+  (throwing `UnexpectedResponseException`), delegate the payload to a transformer, and cache by
+  id/key. List endpoints validate the response envelope key (e.g. `results`) and return
+  `array<int, XInterface>` via a plural collection transformer; single-object endpoints guard against
+  an empty response and return one `XInterface`. Where a caller needs to page through a whole result
+  set, a **page** variant hands the entire envelope to a page transformer and returns a model
+  carrying Etsy's `count` (the shop-wide total) alongside the results — see
+  `ShopReceiptApi::getPage()` / `ReceiptPageTransformer` / `ReceiptPage`. Unlike the plain list
+  methods, a page tolerates an empty `results` array so a count-driven loop never trips over a final
+  empty page.
   Full URLs live in `API_URL*_SPRINTF` constants on the interface (the base host is
   `https://openapi.etsy.com`; note the OAuth token endpoint is on a different host,
   `https://api.etsy.com`, held as `EtsyInterface::OAUTH_TOKEN_URL`).
+- **Writes** — `create`/`update` methods serialize a `Model\XRequest` through its `Serializer\XRequestSerializer`
+  and call `$this->requestSender->postForm()`/`putForm()`/`patchForm()` (form-urlencoded body — most
+  write endpoints) or `->post()`/`->put()` (JSON body — endpoints whose spec `requestBody` is
+  `application/json`, e.g. `updateListingInventory`), then transform and cache the response exactly
+  like a read. `DELETE` methods return `void`, take no body, and go through the **raw**
+  `ApiRequestSenderInterface::delete()` rather than the JSON sender: Etsy replies `204 No Content` on
+  a successful delete, and `JsonApiRequestSenderInterface` always tries to `json_decode` the body, so
+  it throws `ParseJsonExceptionInterface` on a genuinely empty response. The three multipart uploads
+  (`ListingFileApi::upload()`, `ListingImageApi::upload()`, `ListingVideoApi::upload()`) go through
+  `ApiRequestSenderInterface::post()` too, for the same reason in reverse: `JsonApiRequestSenderInterface`
+  only accepts an array body and JSON-encodes it, so it cannot send a pre-built `multipart/form-data`
+  payload. An upload method builds the body with `MultipartFormDataBuilderInterface::build()` (scalar
+  fields from the request serializer, plus the `Model\MultipartFileInterface` field when bytes are
+  being uploaded), sets the `Content-Type` header from
+  `MultipartFormDataBuilderInterface::toContentTypeHeaderValue()`, and decodes the raw string response
+  itself via the api-client package's own `JsonToArrayTransformerInterface` (constructed directly, not
+  behind a wrapper — same pattern `JsonApiRequestSender` uses internally). `christianjbrown/api-client`
+  already ships `put`/`patch`/`delete`/`putForm`/`patchForm` on both senders, so nothing in that
+  package needed extending for this.
 - **`Transformer/`** — turn raw decoded-JSON arrays into `Model` objects. Nested transformers are
   constructor-injected and composed into a chain (e.g. `ReceiptsTransformer` → `ReceiptTransformer` →
   `TransactionsTransformer`/`RefundsTransformer`/`ShipmentsTransformer`/`MoneyTransformer` → leaves).
   A single shared `MoneyTransformer` serves every money field across the graph.
-- **`Model/`** — plain, mutable typed DTOs with getters and fluent setters.
+- **`Serializer/`** — the write-side mirror of `Transformer/`: turn a `Model\XRequest` into the array
+  shape an `Api` client hands to the request sender. A `serialize(XRequestInterface): array` method,
+  one per request model, with `KEY_*` constants on the interface. Two return shapes depending on the
+  endpoint's content type: `array<string, string>` for a form-urlencoded body (built field-by-field
+  via private `applyX(array $data, XRequestInterface $request): array` helpers, skipping optional
+  fields that are `null`/empty exactly like a transformer skips absent input, and encoding non-string
+  scalars through `Http\FormValueEncoderInterface`), or `array<string, mixed>` for a JSON body (plain
+  nested arrays, no `FormValueEncoderInterface` involved — `JsonApiRequestSenderInterface` JSON-encodes
+  it). A serializer whose request has a repeated nested object (e.g. `UpdateListingInventoryRequest`'s
+  `products`) delegates to a plural `XsSerializer` that loops the singular one, mirroring the
+  transformer layer's singular/plural split.
+- **`Http/`** — `FormValueEncoderInterface` (`encodeBool`/`encodeInt`/`encodeFloat`, plus
+  `encodeIntList`/`encodeStringList` for PHP's bracketed repeated-field notation,
+  `tags[0]=one&tags[1]=two`, which is how Etsy's form-encoded endpoints take an array field) and
+  `MultipartFormDataBuilderInterface` (renders a `multipart/form-data` body: one part per scalar
+  field, then the file part when bytes are being uploaded).
+- **`Model/`** — plain, mutable typed DTOs with getters and fluent setters. Request models
+  (`Model/XRequest.php`, doc'd "The body of an `operationId` call") follow the same shape: required
+  spec fields are constructor args, optional fields default `null`/`[]`. Every field name and
+  requiredness comes from the OpenAPI spec's `requestBody` schema for that operation — never from
+  memory or from a same-named response field, since request and response shapes for the same resource
+  can differ (e.g. `is_personalizable` is a real *response* field on `Listing` but is not accepted as
+  *input* by `createDraftListing` or `updateListing`).
 - **`Exception/`** — `final` exception classes + matching interfaces, each extending the library-wide
   `ExceptionInterface` (which extends `Throwable`): `UnexpectedResponseException` (extends
   `RuntimeException`, thrown by clients and transformers for malformed responses) and
@@ -149,6 +194,8 @@ on but `ignoreIndirectDeprecations` so Symfony DI's deprecations don't fail the 
 
 ## Adding a feature (a new resource / endpoint)
 
+For a read (`GET`) endpoint:
+
 1. Add the `Model` DTO(s) + interface(s) (constants, if any, on the interface).
 2. Add the `Transformer`(s) + interfaces, with `KEY_*`/`*_SPRINTF`/`ARRAY_NAME` constants on the
    interface. Reuse the shared `MoneyTransformer` and other existing leaf transformers where the
@@ -161,5 +208,27 @@ on but `ignoreIndirectDeprecations` so Symfony DI's deprecations don't fail the 
 6. Run `composer fix-style`, then `composer check-style`, `composer stan`, and `composer test`, and
    **confirm the coverage report is 100%** on lines, paths, methods, and branches.
 
-The Etsy Open API v3 OpenAPI spec (the source of truth for every field and endpoint) is at
-`https://www.etsy.com/openapi/generated/oas/3.0.0.json`. `GET`-only: skip write endpoints for now.
+For a write (`POST`/`PUT`/`PATCH`/`DELETE`) endpoint, additionally:
+
+1. If the endpoint takes a body, add a `Model\XRequest` + interface, built strictly from the spec
+   operation's `requestBody` schema (field names, types and requiredness — never from memory, and
+   never assumed from a same-named response field). Skip the model entirely for a body of one or two
+   plain scalars with no dedicated schema (e.g. `consolidateShopReturnPolicies`) — build that inline
+   in the `Api` method instead.
+2. Add the matching `Serializer\XRequestSerializer` + interface (see "Writes" above for the
+   form-vs-JSON return shape). Reuse `Http\FormValueEncoderInterface` for non-string scalars in a
+   form body.
+3. Add the `Api` client method. `DELETE` and any multipart upload go through the raw
+   `ApiRequestSenderInterface` (constructor-injected alongside the JSON sender); every other write
+   goes through `JsonApiRequestSenderInterface`. Invalidate/refresh whatever this client's own caches
+   hold for the affected id after a successful write.
+4. Register the new `Serializer` (and `Http\FormValueEncoderInterface`/
+   `Http\MultipartFormDataBuilderInterface`/the raw `ApiRequestSenderInterface`/api-client's
+   `JsonToArrayTransformer` if this is the first write on that client) with new `SERVICE_*` ids on
+   `EtsyInterface`, and add them to the client's constructor args in `Etsy::registerApiClients()`.
+5. Add matching `#[CoversClass]` tests, plus the endpoint to the README table with its HTTP verb and
+   required OAuth scope.
+6. Run the same `composer fix-style` → `check-style` → `stan` → `test` gate and confirm 100% coverage.
+
+The Etsy Open API v3 OpenAPI spec (the source of truth for every operation, field name and required
+scope) is at `https://www.etsy.com/openapi/generated/oas/3.0.0.json`.

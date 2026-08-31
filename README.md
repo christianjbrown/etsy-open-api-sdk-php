@@ -2,13 +2,13 @@
 
 [![CI](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml)
 
-A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It reads your shop's data — receipts, listings, transactions, and more — returning plain, typed model objects rather than raw arrays.
+A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It reads and writes your shop's data — receipts, listings, shipping profiles, and more — returning plain, typed model objects rather than raw arrays, and taking plain, typed request objects for anything you create or update.
 
-The client is **read-only** (it wraps the API's `GET` endpoints only; creating and updating data is not supported yet) and currently supports:
+Every operation in Etsy's published OpenAPI spec is covered: all `GET` endpoints, and every `POST`, `PUT`, `PATCH` and `DELETE` write. A write beyond the shop the client is configured for needs the matching OAuth scope granted to your access token (see "Prerequisites" below) — the read side currently supports:
 
 - **Reading shop receipts** — a page of the shop's receipts (`getMultiple`), a page plus the shop's total receipt count so you can walk the whole set (`getPage`), or a single receipt by id (`getOneById`). Each receipt carries the full order: buyer and address fields, the money totals (grandtotal, subtotal, shipping, tax, VAT, discount, gift wrap), and its nested transactions, refunds, and shipments.
 
-### Supported endpoints
+### Supported read endpoints
 
 | Resource | Client | Endpoint(s) | Returns |
 | --- | --- | --- | --- |
@@ -40,13 +40,68 @@ The client is **read-only** (it wraps the API's `GET` endpoints only; creating a
 | User addresses | `getUserAddressApi()` | `GET /user/addresses`, `GET /user/addresses/{user_address_id}` | `UserAddressInterface[]` / `UserAddressInterface` |
 | Ping | `getPingApi()` | `GET /openapi-ping` | `PingInterface` |
 
-_This table grows as more of the read API is covered._
+### Supported write endpoints
+
+Every write takes a `Model\XRequest` object (constructed directly, or via its fluent setters for the optional fields) and returns the same typed model a read would. `DELETE` operations return `void`. See "Prerequisites" below for how OAuth scopes work.
+
+| Verb | Endpoint | Required scope | Client · Method |
+| --- | --- | --- | --- |
+| `POST` | `/shops/{shop_id}/listings` | `listings_w` | `getShopListingApi()->create()` |
+| `PATCH` | `/shops/{shop_id}/listings/{listing_id}` | `listings_w` | `getShopListingApi()->update()` |
+| `DELETE` | `/listings/{listing_id}` | `listings_d` | `getShopListingApi()->delete()` |
+| `PUT` | `/shops/{shop_id}/listings/{listing_id}/properties/{property_id}` | `listings_w` | `getListingPropertyApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/listings/{listing_id}/properties/{property_id}` | `listings_w` | `getListingPropertyApi()->delete()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/files` | `listings_w` | `getListingFileApi()->upload()` |
+| `DELETE` | `/shops/{shop_id}/listings/{listing_id}/files/{listing_file_id}` | `listings_w` | `getListingFileApi()->delete()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/images` | `listings_w` | `getListingImageApi()->upload()` |
+| `DELETE` | `/shops/{shop_id}/listings/{listing_id}/images/{listing_image_id}` | `listings_w` | `getListingImageApi()->delete()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/videos` | `listings_w` | `getListingVideoApi()->upload()` |
+| `DELETE` | `/shops/{shop_id}/listings/{listing_id}/videos/{video_id}` | `listings_w` | `getListingVideoApi()->delete()` |
+| `PUT` | `/listings/{listing_id}/inventory` | `listings_w` | `getListingInventoryApi()->update()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/personalization` | `listings_w` | `getListingPersonalizationApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/listings/{listing_id}/personalization` | `listings_w` | `getListingPersonalizationApi()->delete()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/translations/{language}` | `listings_w` | `getListingTranslationApi()->create()` |
+| `PUT` | `/shops/{shop_id}/listings/{listing_id}/translations/{language}` | `listings_w` | `getListingTranslationApi()->update()` |
+| `POST` | `/shops/{shop_id}/listings/{listing_id}/variation-images` | `listings_w` | `getListingVariationImageApi()->update()` |
+| `PUT` | `/shops/{shop_id}/receipts/{receipt_id}` | `transactions_w` | `getShopReceiptApi()->updateShopReceipt()` |
+| `POST` | `/shops/{shop_id}/receipts/{receipt_id}/tracking` | `transactions_w` | `getShopReceiptApi()->createReceiptShipment()` |
+| `PUT` | `/shops/{shop_id}` | `shops_r` + `shops_w` | `getShopApi()->updateShop()` |
+| `PUT` | `/shops/{shop_id}/holiday-preferences/{holiday_id}` | `shops_w` | `getShopHolidayPreferenceApi()->updateHolidayPreference()` |
+| `POST` | `/shops/{shop_id}/sections` | `shops_w` | `getShopSectionApi()->create()` |
+| `PUT` | `/shops/{shop_id}/sections/{shop_section_id}` | `shops_w` | `getShopSectionApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/sections/{shop_section_id}` | `shops_w` | `getShopSectionApi()->delete()` |
+| `POST` | `/shops/{shop_id}/policies/return` | `shops_w` | `getShopReturnPolicyApi()->create()` |
+| `PUT` | `/shops/{shop_id}/policies/return/{return_policy_id}` | `shops_w` | `getShopReturnPolicyApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/policies/return/{return_policy_id}` | `shops_w` | `getShopReturnPolicyApi()->delete()` |
+| `POST` | `/shops/{shop_id}/policies/return/consolidate` | `shops_w` | `getShopReturnPolicyApi()->consolidate()` |
+| `POST` | `/shops/{shop_id}/readiness-state-definitions` | `shops_w` | `getShopReadinessStateDefinitionApi()->create()` |
+| `PUT` | `/shops/{shop_id}/readiness-state-definitions/{readiness_state_definition_id}` | `shops_w` | `getShopReadinessStateDefinitionApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/readiness-state-definitions/{readiness_state_definition_id}` | `shops_w` | `getShopReadinessStateDefinitionApi()->delete()` |
+| `POST` | `/shops/{shop_id}/shipping-profiles` | `shops_w` | `getShippingProfileApi()->create()` |
+| `PUT` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}` | `shops_w` | `getShippingProfileApi()->update()` |
+| `DELETE` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}` | `shops_w` | `getShippingProfileApi()->delete()` |
+| `POST` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/destinations` | `shops_w` | `getShippingProfileApi()->createDestination()` |
+| `PUT` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/destinations/{shipping_profile_destination_id}` | `shops_w` | `getShippingProfileApi()->updateDestination()` |
+| `DELETE` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/destinations/{shipping_profile_destination_id}` | `shops_w` | `getShippingProfileApi()->deleteDestination()` |
+| `POST` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/upgrades` | `shops_w` | `getShippingProfileApi()->createUpgrade()` |
+| `PUT` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/upgrades/{upgrade_id}` | `shops_w` | `getShippingProfileApi()->updateUpgrade()` |
+| `DELETE` | `/shops/{shop_id}/shipping-profiles/{shipping_profile_id}/upgrades/{upgrade_id}` | `shops_w` | `getShippingProfileApi()->deleteUpgrade()` |
+| `DELETE` | `/user/addresses/{user_address_id}` | `address_r` | `getUserAddressApi()->delete()` |
+| `POST` | `/scopes` | none | `getPingApi()->getScopes()` |
 
 ## :heavy_check_mark: Prerequisites
 
 - [Git](https://git-scm.com/)
 - [PHP](https://www.php.net/) 8.5 or higher (8.x)
 - [Composer](https://getcomposer.org/)
+- An Etsy OAuth **access token** carrying the scope(s) your calls need. Every read endpoint needs
+  the matching `_r` scope (`listings_r`, `transactions_r`, `shops_r`, …); every write additionally
+  needs the matching `_w` scope (`listings_w`, `listings_d` for `deleteListing`, `transactions_w`,
+  `shops_w`), and `deleteUserAddress` needs `address_r`. See the "Supported write endpoints" table
+  above for the exact scope each write call needs, and Etsy's own
+  [scopes documentation](https://developers.etsy.com/documentation/essentials/authentication/#scopes)
+  for how scopes are requested during the OAuth authorization flow. A token missing a scope gets a
+  `403` from Etsy, not a client-side error — this library does not validate scopes locally.
 
 :bulb: If you're on MacOS and have [Homebrew](https://brew.sh/), PHP and Composer will install with `brew install composer`.
 
@@ -140,6 +195,24 @@ do {
     $offset += $limit;
 } while ($offset < $page->getCount());
 ```
+
+Writing data follows the same shape: build a `Model\XRequest`, and call the matching client method. Optional fields are set through fluent setters, exactly like a model's getters mirror the response:
+
+```php
+use ChristianBrown\Etsy\Model\ShopReturnPolicyRequest;
+
+$shopReturnPolicyApi = $etsy->getShopReturnPolicyApi();
+
+$request = (new ShopReturnPolicyRequest(acceptsReturns: true, acceptsExchanges: true))
+    ->setReturnDeadline(30);
+
+$policy = $shopReturnPolicyApi->create($request);   // ShopReturnPolicyInterface
+echo $policy->getReturnPolicyId(), "\n";
+
+$shopReturnPolicyApi->delete($policy->getReturnPolicyId());   // void
+```
+
+See "Supported write endpoints" above for the full list of write calls and their required OAuth scopes.
 
 ## :rotating_light: Error handling
 

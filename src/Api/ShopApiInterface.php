@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ShopInterface;
+use ChristianBrown\Etsy\Model\UpdateShopRequestInterface;
 
 interface ShopApiInterface extends ApiInterface
 {
@@ -28,4 +29,9 @@ interface ShopApiInterface extends ApiInterface
     public function getByOwnerUserId(int $userId, bool $skipCache = false): ShopInterface;
 
     public function getShop(bool $skipCache = false): ShopInterface;
+
+    /**
+     * Updates the shop's title, announcement, sale messaging or additional policy text.
+     */
+    public function updateShop(UpdateShopRequestInterface $updateShopRequest): ShopInterface;
 }

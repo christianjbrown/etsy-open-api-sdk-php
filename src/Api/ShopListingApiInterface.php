@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\Etsy\Model\CreateDraftListingRequestInterface;
 use ChristianBrown\Etsy\Model\ListingInterface;
+use ChristianBrown\Etsy\Model\UpdateListingRequestInterface;
 
 interface ShopListingApiInterface extends ApiInterface
 {
@@ -17,6 +19,7 @@ interface ShopListingApiInterface extends ApiInterface
     public const string API_URL_BY_SHOP_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings';
     public const string API_URL_FEATURED_BY_SHOP_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/featured';
     public const string API_URL_SHOP_SECTIONS_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shop-sections/listings';
+    public const string API_URL_UPDATE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/%d';
     public const string KEY_KEYWORDS = 'keywords';
     public const string KEY_LIMIT = 'limit';
     public const string KEY_LISTING_IDS = 'listing_ids';
@@ -26,6 +29,16 @@ interface ShopListingApiInterface extends ApiInterface
     public const string KEY_STATE = 'state';
     public const string UNEXPECTED_RESPONSE = 'Response not set or not an array';
     public const string UNEXPECTED_RESPONSE_SPRINTF = '%s not set or not an array';
+
+    /**
+     * Creates a new draft listing in the shop.
+     */
+    public function create(CreateDraftListingRequestInterface $createDraftListingRequest): ListingInterface;
+
+    /**
+     * Permanently deletes a listing.
+     */
+    public function delete(int $listingId): void;
 
     /**
      * Searches active listings across Etsy, optionally filtered by keywords.
@@ -88,4 +101,9 @@ interface ShopListingApiInterface extends ApiInterface
      * @return array<int, ListingInterface>
      */
     public function getFeaturedByShop(int $limit = 25, int $offset = 0, bool $skipCache = false): array;
+
+    /**
+     * Updates a listing's fields. Every field on the request is optional; only what is set changes.
+     */
+    public function update(int $listingId, UpdateListingRequestInterface $updateListingRequest): ListingInterface;
 }

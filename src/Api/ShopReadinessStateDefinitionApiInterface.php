@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\Etsy\Model\CreateShopReadinessStateDefinitionRequestInterface;
 use ChristianBrown\Etsy\Model\ShopReadinessStateDefinitionInterface;
+use ChristianBrown\Etsy\Model\UpdateShopReadinessStateDefinitionRequestInterface;
 
 interface ShopReadinessStateDefinitionApiInterface extends ApiInterface
 {
@@ -15,6 +17,16 @@ interface ShopReadinessStateDefinitionApiInterface extends ApiInterface
     public const string UNEXPECTED_RESPONSE_SPRINTF = '%s not set or not an array';
 
     /**
+     * Creates a new readiness state (processing profile) definition for the shop.
+     */
+    public function create(CreateShopReadinessStateDefinitionRequestInterface $createShopReadinessStateDefinitionRequest): ShopReadinessStateDefinitionInterface;
+
+    /**
+     * Deletes a readiness state definition from the shop.
+     */
+    public function delete(int $readinessStateDefinitionId): void;
+
+    /**
      * Reads all the readiness state definitions for the shop.
      *
      * @return array<int, ShopReadinessStateDefinitionInterface>
@@ -22,4 +34,9 @@ interface ShopReadinessStateDefinitionApiInterface extends ApiInterface
     public function getMultiple(bool $skipCache = false): array;
 
     public function getOneById(int $readinessStateDefinitionId, bool $skipCache = false): ShopReadinessStateDefinitionInterface;
+
+    /**
+     * Updates an existing readiness state definition for the shop.
+     */
+    public function update(int $readinessStateDefinitionId, UpdateShopReadinessStateDefinitionRequestInterface $updateShopReadinessStateDefinitionRequest): ShopReadinessStateDefinitionInterface;
 }

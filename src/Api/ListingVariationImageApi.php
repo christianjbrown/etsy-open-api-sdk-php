@@ -9,6 +9,8 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingVariationImageInterface;
+use ChristianBrown\Etsy\Model\UpdateVariationImagesRequestInterface;
+use ChristianBrown\Etsy\Serializer\UpdateVariationImagesRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformerInterface;
 
 use function is_array;
@@ -24,11 +26,13 @@ final class ListingVariationImageApi implements ListingVariationImageApiInterfac
     private ListingVariationImagesTransformerInterface $listingVariationImagesTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
+    private UpdateVariationImagesRequestSerializerInterface $updateVariationImagesRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingVariationImagesTransformerInterface $listingVariationImagesTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingVariationImagesTransformerInterface $listingVariationImagesTransformer, UpdateVariationImagesRequestSerializerInterface $updateVariationImagesRequestSerializer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->listingVariationImagesTransformer = $listingVariationImagesTransformer;
+        $this->updateVariationImagesRequestSerializer = $updateVariationImagesRequestSerializer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -49,6 +53,29 @@ final class ListingVariationImageApi implements ListingVariationImageApiInterfac
 
         $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId, $listingId);
         $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+
+        if (empty($data[self::KEY_RESULTS])) {
+            throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
+        }
+        if (!is_array($data[self::KEY_RESULTS])) {
+            throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
+        }
+        $variationImages = $this->listingVariationImagesTransformer->transform($data[self::KEY_RESULTS]);
+        $this->cache[$listingId] = $variationImages;
+
+        return $variationImages;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     *
+     * @return array<int, ListingVariationImageInterface>
+     */
+    public function update(int $listingId, UpdateVariationImagesRequestInterface $updateVariationImagesRequest): array
+    {
+        $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId, $listingId);
+        $data = $this->requestSender->post($url, [], $this->credentials->toHeaders(), $this->updateVariationImagesRequestSerializer->serialize($updateVariationImagesRequest));
 
         if (empty($data[self::KEY_RESULTS])) {
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));

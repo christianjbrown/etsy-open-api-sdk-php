@@ -4,20 +4,35 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
+use ChristianBrown\Etsy\Model\CreateShopShippingProfileDestinationRequestInterface;
+use ChristianBrown\Etsy\Model\CreateShopShippingProfileRequestInterface;
+use ChristianBrown\Etsy\Model\CreateShopShippingProfileUpgradeRequestInterface;
 use ChristianBrown\Etsy\Model\ShippingCarrierInterface;
 use ChristianBrown\Etsy\Model\ShopShippingProfileDestinationInterface;
 use ChristianBrown\Etsy\Model\ShopShippingProfileInterface;
 use ChristianBrown\Etsy\Model\ShopShippingProfileUpgradeInterface;
+use ChristianBrown\Etsy\Model\UpdateShopShippingProfileDestinationRequestInterface;
+use ChristianBrown\Etsy\Model\UpdateShopShippingProfileRequestInterface;
+use ChristianBrown\Etsy\Model\UpdateShopShippingProfileUpgradeRequestInterface;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileDestinationRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileUpgradeRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileDestinationRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileUpgradeRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ShippingCarriersTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationsTransformerInterface;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfilesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformerInterface;
+use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -28,6 +43,195 @@ final class ShippingProfileApiTest extends TestCase
 {
     private const int PROFILE_ID = 77;
     private const int SHOP_ID = 42;
+
+    public function testCreateDestinationReturnsDestination(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $destinationData = ['destination-self'];
+        $destination = self::createStub(ShopShippingProfileDestinationInterface::class);
+        $serializedBody = ['primary_cost' => '5.00'];
+
+        $request = self::createStub(CreateShopShippingProfileDestinationRequestInterface::class);
+        $requestSerializer = self::createMock(CreateShopShippingProfileDestinationRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_DESTINATIONS_SPRINTF, self::SHOP_ID, self::PROFILE_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($destinationData);
+
+        $destinationTransformer = self::createMock(ShopShippingProfileDestinationTransformerInterface::class);
+        $destinationTransformer->expects(self::once())->method('transform')
+            ->with($destinationData)
+            ->willReturn($destination);
+
+        $api = $this->buildApi($headers, $requestSender, destinationTransformer: $destinationTransformer, createDestinationRequestSerializer: $requestSerializer);
+
+        self::assertSame($destination, $api->createDestination(self::PROFILE_ID, $request));
+    }
+
+    public function testCreateDestinationThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->createDestination(self::PROFILE_ID, self::createStub(CreateShopShippingProfileDestinationRequestInterface::class));
+    }
+
+    public function testCreateReturnsProfile(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $profileData = ['profile-self'];
+        $profile = self::createStub(ShopShippingProfileInterface::class);
+        $serializedBody = ['title' => 'Standard'];
+
+        $request = self::createStub(CreateShopShippingProfileRequestInterface::class);
+        $requestSerializer = self::createMock(CreateShopShippingProfileRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($profileData);
+
+        $profileTransformer = self::createMock(ShopShippingProfileTransformerInterface::class);
+        $profileTransformer->expects(self::once())->method('transform')
+            ->with($profileData)
+            ->willReturn($profile);
+
+        $api = $this->buildApi($headers, $requestSender, profileTransformer: $profileTransformer, createProfileRequestSerializer: $requestSerializer);
+
+        self::assertSame($profile, $api->create($request));
+    }
+
+    public function testCreateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->create(self::createStub(CreateShopShippingProfileRequestInterface::class));
+    }
+
+    public function testCreateUpgradeReturnsUpgrade(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $upgradeData = ['upgrade-self'];
+        $upgrade = self::createStub(ShopShippingProfileUpgradeInterface::class);
+        $serializedBody = ['upgrade_name' => 'Rush'];
+
+        $request = self::createStub(CreateShopShippingProfileUpgradeRequestInterface::class);
+        $requestSerializer = self::createMock(CreateShopShippingProfileUpgradeRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('postForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_UPGRADES_SPRINTF, self::SHOP_ID, self::PROFILE_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($upgradeData);
+
+        $upgradeTransformer = self::createMock(ShopShippingProfileUpgradeTransformerInterface::class);
+        $upgradeTransformer->expects(self::once())->method('transform')
+            ->with($upgradeData)
+            ->willReturn($upgrade);
+
+        $api = $this->buildApi($headers, $requestSender, upgradeTransformer: $upgradeTransformer, createUpgradeRequestSerializer: $requestSerializer);
+
+        self::assertSame($upgrade, $api->createUpgrade(self::PROFILE_ID, $request));
+    }
+
+    public function testCreateUpgradeThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('postForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->createUpgrade(self::PROFILE_ID, self::createStub(CreateShopShippingProfileUpgradeRequestInterface::class));
+    }
+
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, self::PROFILE_ID),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), apiRequestSender: $apiRequestSender);
+
+        $api->delete(self::PROFILE_ID);
+    }
+
+    public function testDeleteDestinationCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_DESTINATION_SPRINTF, self::SHOP_ID, self::PROFILE_ID, 5),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), apiRequestSender: $apiRequestSender);
+
+        $api->deleteDestination(self::PROFILE_ID, 5);
+    }
+
+    public function testDeleteUpgradeCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_UPGRADE_SPRINTF, self::SHOP_ID, self::PROFILE_ID, 9),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), apiRequestSender: $apiRequestSender);
+
+        $api->deleteUpgrade(self::PROFILE_ID, 9);
+    }
 
     public function testGetCarriersReturnsCarriers(): void
     {
@@ -559,23 +763,204 @@ final class ShippingProfileApiTest extends TestCase
         self::assertSame($upgrades, $api->getUpgrades(self::PROFILE_ID));
     }
 
+    public function testUpdateDestinationReturnsDestination(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $destinationData = ['destination-self'];
+        $destination = self::createStub(ShopShippingProfileDestinationInterface::class);
+        $serializedBody = ['primary_cost' => '6.00'];
+
+        $request = self::createStub(UpdateShopShippingProfileDestinationRequestInterface::class);
+        $requestSerializer = self::createMock(UpdateShopShippingProfileDestinationRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_DESTINATION_SPRINTF, self::SHOP_ID, self::PROFILE_ID, 5),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($destinationData);
+
+        $destinationTransformer = self::createMock(ShopShippingProfileDestinationTransformerInterface::class);
+        $destinationTransformer->expects(self::once())->method('transform')
+            ->with($destinationData)
+            ->willReturn($destination);
+
+        $api = $this->buildApi($headers, $requestSender, destinationTransformer: $destinationTransformer, updateDestinationRequestSerializer: $requestSerializer);
+
+        self::assertSame($destination, $api->updateDestination(self::PROFILE_ID, 5, $request));
+    }
+
+    public function testUpdateDestinationThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->updateDestination(self::PROFILE_ID, 5, self::createStub(UpdateShopShippingProfileDestinationRequestInterface::class));
+    }
+
+    public function testUpdateReturnsProfile(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $profileData = ['profile-self'];
+        $profile = self::createStub(ShopShippingProfileInterface::class);
+        $serializedBody = ['title' => 'Renamed'];
+
+        $request = self::createStub(UpdateShopShippingProfileRequestInterface::class);
+        $requestSerializer = self::createMock(UpdateShopShippingProfileRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, self::PROFILE_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($profileData);
+
+        $profileTransformer = self::createMock(ShopShippingProfileTransformerInterface::class);
+        $profileTransformer->expects(self::once())->method('transform')
+            ->with($profileData)
+            ->willReturn($profile);
+
+        $api = $this->buildApi($headers, $requestSender, profileTransformer: $profileTransformer, updateProfileRequestSerializer: $requestSerializer);
+
+        self::assertSame($profile, $api->update(self::PROFILE_ID, $request));
+    }
+
+    public function testUpdateThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->update(self::PROFILE_ID, self::createStub(UpdateShopShippingProfileRequestInterface::class));
+    }
+
+    public function testUpdateUpgradeReturnsUpgrade(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $upgradeData = ['upgrade-self'];
+        $upgrade = self::createStub(ShopShippingProfileUpgradeInterface::class);
+        $serializedBody = ['upgrade_name' => 'Renamed'];
+
+        $request = self::createStub(UpdateShopShippingProfileUpgradeRequestInterface::class);
+        $requestSerializer = self::createMock(UpdateShopShippingProfileUpgradeRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShippingProfileApiInterface::API_URL_UPGRADE_SPRINTF, self::SHOP_ID, self::PROFILE_ID, 9),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($upgradeData);
+
+        $upgradeTransformer = self::createMock(ShopShippingProfileUpgradeTransformerInterface::class);
+        $upgradeTransformer->expects(self::once())->method('transform')
+            ->with($upgradeData)
+            ->willReturn($upgrade);
+
+        $api = $this->buildApi($headers, $requestSender, upgradeTransformer: $upgradeTransformer, updateUpgradeRequestSerializer: $requestSerializer);
+
+        self::assertSame($upgrade, $api->updateUpgrade(self::PROFILE_ID, 9, $request));
+    }
+
+    public function testUpdateUpgradeThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender);
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShippingProfileApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->updateUpgrade(self::PROFILE_ID, 9, self::createStub(UpdateShopShippingProfileUpgradeRequestInterface::class));
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ?ShopShippingProfileTransformerInterface $profileTransformer = null, ?ShopShippingProfilesTransformerInterface $profilesTransformer = null, ?ShopShippingProfileDestinationsTransformerInterface $destinationsTransformer = null, ?ShopShippingProfileUpgradesTransformerInterface $upgradesTransformer = null, ?ShippingCarriersTransformerInterface $carriersTransformer = null): ShippingProfileApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ?ShopShippingProfileTransformerInterface $profileTransformer = null, ?ShopShippingProfilesTransformerInterface $profilesTransformer = null, ?ShopShippingProfileDestinationTransformerInterface $destinationTransformer = null, ?ShopShippingProfileDestinationsTransformerInterface $destinationsTransformer = null, ?ShopShippingProfileUpgradeTransformerInterface $upgradeTransformer = null, ?ShopShippingProfileUpgradesTransformerInterface $upgradesTransformer = null, ?ShippingCarriersTransformerInterface $carriersTransformer = null, ?ApiRequestSenderInterface $apiRequestSender = null, ?CreateShopShippingProfileRequestSerializerInterface $createProfileRequestSerializer = null, ?CreateShopShippingProfileDestinationRequestSerializerInterface $createDestinationRequestSerializer = null, ?CreateShopShippingProfileUpgradeRequestSerializerInterface $createUpgradeRequestSerializer = null, ?UpdateShopShippingProfileRequestSerializerInterface $updateProfileRequestSerializer = null, ?UpdateShopShippingProfileDestinationRequestSerializerInterface $updateDestinationRequestSerializer = null, ?UpdateShopShippingProfileUpgradeRequestSerializerInterface $updateUpgradeRequestSerializer = null): ShippingProfileApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
+        [$profileTransformer, $profilesTransformer, $destinationTransformer, $destinationsTransformer, $upgradeTransformer, $upgradesTransformer, $carriersTransformer] = self::resolveTransformers($profileTransformer, $profilesTransformer, $destinationTransformer, $destinationsTransformer, $upgradeTransformer, $upgradesTransformer, $carriersTransformer);
+        [$createProfileRequestSerializer, $createDestinationRequestSerializer, $createUpgradeRequestSerializer, $updateProfileRequestSerializer, $updateDestinationRequestSerializer, $updateUpgradeRequestSerializer] = self::resolveSerializers($createProfileRequestSerializer, $createDestinationRequestSerializer, $createUpgradeRequestSerializer, $updateProfileRequestSerializer, $updateDestinationRequestSerializer, $updateUpgradeRequestSerializer);
+
         return new ShippingProfileApi(
             $requestSender,
-            $profileTransformer ?? self::createStub(ShopShippingProfileTransformerInterface::class),
-            $profilesTransformer ?? self::createStub(ShopShippingProfilesTransformerInterface::class),
-            $destinationsTransformer ?? self::createStub(ShopShippingProfileDestinationsTransformerInterface::class),
-            $upgradesTransformer ?? self::createStub(ShopShippingProfileUpgradesTransformerInterface::class),
-            $carriersTransformer ?? self::createStub(ShippingCarriersTransformerInterface::class),
+            $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class),
+            $profileTransformer,
+            $profilesTransformer,
+            $destinationTransformer,
+            $destinationsTransformer,
+            $upgradeTransformer,
+            $upgradesTransformer,
+            $carriersTransformer,
+            $createProfileRequestSerializer,
+            $createDestinationRequestSerializer,
+            $createUpgradeRequestSerializer,
+            $updateProfileRequestSerializer,
+            $updateDestinationRequestSerializer,
+            $updateUpgradeRequestSerializer,
             $credentials,
             self::SHOP_ID,
         );
+    }
+
+    /**
+     * @return array{0: CreateShopShippingProfileRequestSerializerInterface, 1: CreateShopShippingProfileDestinationRequestSerializerInterface, 2: CreateShopShippingProfileUpgradeRequestSerializerInterface, 3: UpdateShopShippingProfileRequestSerializerInterface, 4: UpdateShopShippingProfileDestinationRequestSerializerInterface, 5: UpdateShopShippingProfileUpgradeRequestSerializerInterface}
+     */
+    private static function resolveSerializers(?CreateShopShippingProfileRequestSerializerInterface $createProfileRequestSerializer, ?CreateShopShippingProfileDestinationRequestSerializerInterface $createDestinationRequestSerializer, ?CreateShopShippingProfileUpgradeRequestSerializerInterface $createUpgradeRequestSerializer, ?UpdateShopShippingProfileRequestSerializerInterface $updateProfileRequestSerializer, ?UpdateShopShippingProfileDestinationRequestSerializerInterface $updateDestinationRequestSerializer, ?UpdateShopShippingProfileUpgradeRequestSerializerInterface $updateUpgradeRequestSerializer): array
+    {
+        return [
+            $createProfileRequestSerializer ?? self::createStub(CreateShopShippingProfileRequestSerializerInterface::class),
+            $createDestinationRequestSerializer ?? self::createStub(CreateShopShippingProfileDestinationRequestSerializerInterface::class),
+            $createUpgradeRequestSerializer ?? self::createStub(CreateShopShippingProfileUpgradeRequestSerializerInterface::class),
+            $updateProfileRequestSerializer ?? self::createStub(UpdateShopShippingProfileRequestSerializerInterface::class),
+            $updateDestinationRequestSerializer ?? self::createStub(UpdateShopShippingProfileDestinationRequestSerializerInterface::class),
+            $updateUpgradeRequestSerializer ?? self::createStub(UpdateShopShippingProfileUpgradeRequestSerializerInterface::class),
+        ];
+    }
+
+    /**
+     * @return array{0: ShopShippingProfileTransformerInterface, 1: ShopShippingProfilesTransformerInterface, 2: ShopShippingProfileDestinationTransformerInterface, 3: ShopShippingProfileDestinationsTransformerInterface, 4: ShopShippingProfileUpgradeTransformerInterface, 5: ShopShippingProfileUpgradesTransformerInterface, 6: ShippingCarriersTransformerInterface}
+     */
+    private static function resolveTransformers(?ShopShippingProfileTransformerInterface $profileTransformer, ?ShopShippingProfilesTransformerInterface $profilesTransformer, ?ShopShippingProfileDestinationTransformerInterface $destinationTransformer, ?ShopShippingProfileDestinationsTransformerInterface $destinationsTransformer, ?ShopShippingProfileUpgradeTransformerInterface $upgradeTransformer, ?ShopShippingProfileUpgradesTransformerInterface $upgradesTransformer, ?ShippingCarriersTransformerInterface $carriersTransformer): array
+    {
+        return [
+            $profileTransformer ?? self::createStub(ShopShippingProfileTransformerInterface::class),
+            $profilesTransformer ?? self::createStub(ShopShippingProfilesTransformerInterface::class),
+            $destinationTransformer ?? self::createStub(ShopShippingProfileDestinationTransformerInterface::class),
+            $destinationsTransformer ?? self::createStub(ShopShippingProfileDestinationsTransformerInterface::class),
+            $upgradeTransformer ?? self::createStub(ShopShippingProfileUpgradeTransformerInterface::class),
+            $upgradesTransformer ?? self::createStub(ShopShippingProfileUpgradesTransformerInterface::class),
+            $carriersTransformer ?? self::createStub(ShippingCarriersTransformerInterface::class),
+        ];
     }
 }

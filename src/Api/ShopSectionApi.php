@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
@@ -17,6 +18,8 @@ use function sprintf;
 
 final class ShopSectionApi implements ShopSectionApiInterface
 {
+    private ApiRequestSenderInterface $apiRequestSender;
+
     /**
      * @var null|array<int, ShopSectionInterface>
      */
@@ -32,13 +35,44 @@ final class ShopSectionApi implements ShopSectionApiInterface
     private ShopSectionsTransformerInterface $shopSectionsTransformer;
     private ShopSectionTransformerInterface $shopSectionTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ShopSectionTransformerInterface $shopSectionTransformer, ShopSectionsTransformerInterface $shopSectionsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopSectionTransformerInterface $shopSectionTransformer, ShopSectionsTransformerInterface $shopSectionsTransformer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
+        $this->apiRequestSender = $apiRequestSender;
         $this->shopSectionTransformer = $shopSectionTransformer;
         $this->shopSectionsTransformer = $shopSectionsTransformer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function create(string $title): ShopSectionInterface
+    {
+        $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId);
+        $data = $this->requestSender->postForm($url, [], $this->credentials->toHeaders(), [self::KEY_TITLE => $title]);
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $shopSection = $this->shopSectionTransformer->transform($data);
+        $this->cache = null;
+
+        return $shopSection;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     */
+    public function delete(int $shopSectionId): void
+    {
+        $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $shopSectionId);
+        $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
+
+        $this->cache = null;
+        unset($this->shopSectionCache[$shopSectionId]);
     }
 
     /**
@@ -89,6 +123,25 @@ final class ShopSectionApi implements ShopSectionApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopSection = $this->shopSectionTransformer->transform($data);
+        $this->shopSectionCache[$shopSectionId] = $shopSection;
+
+        return $shopSection;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function update(int $shopSectionId, string $title): ShopSectionInterface
+    {
+        $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $shopSectionId);
+        $data = $this->requestSender->putForm($url, [], $this->credentials->toHeaders(), [self::KEY_TITLE => $title]);
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $shopSection = $this->shopSectionTransformer->transform($data);
+        $this->cache = null;
         $this->shopSectionCache[$shopSectionId] = $shopSection;
 
         return $shopSection;

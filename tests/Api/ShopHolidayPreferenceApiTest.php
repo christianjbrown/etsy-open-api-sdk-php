@@ -8,8 +8,11 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
+use ChristianBrown\Etsy\Http\FormValueEncoderInterface;
 use ChristianBrown\Etsy\Model\ShopHolidayPreferenceInterface;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformerInterface;
+use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -94,14 +97,56 @@ final class ShopHolidayPreferenceApiTest extends TestCase
         self::assertSame($preferences, $api->getMultiple());
     }
 
+    public function testUpdateHolidayPreferenceReturnsPreference(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $preferenceData = ['preference-self'];
+        $preference = self::createStub(ShopHolidayPreferenceInterface::class);
+
+        $formValueEncoder = self::createStub(FormValueEncoderInterface::class);
+        $formValueEncoder->method('encodeBool')->willReturn('true');
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShopHolidayPreferenceApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 3),
+                [],
+                $headers,
+                [ShopHolidayPreferenceApiInterface::KEY_IS_WORKING => 'true'],
+            )
+            ->willReturn($preferenceData);
+
+        $preferenceTransformer = self::createMock(ShopHolidayPreferenceTransformerInterface::class);
+        $preferenceTransformer->expects(self::once())->method('transform')
+            ->with($preferenceData)
+            ->willReturn($preference);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ShopHolidayPreferencesTransformerInterface::class), $preferenceTransformer, $formValueEncoder);
+
+        self::assertSame($preference, $api->updateHolidayPreference(3, true));
+    }
+
+    public function testUpdateHolidayPreferenceThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ShopHolidayPreferencesTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopHolidayPreferenceApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->updateHolidayPreference(3, true);
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ShopHolidayPreferencesTransformerInterface $shopHolidayPreferencesTransformer): ShopHolidayPreferenceApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ShopHolidayPreferencesTransformerInterface $shopHolidayPreferencesTransformer, ?ShopHolidayPreferenceTransformerInterface $shopHolidayPreferenceTransformer = null, ?FormValueEncoderInterface $formValueEncoder = null): ShopHolidayPreferenceApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopHolidayPreferenceApi($requestSender, $shopHolidayPreferencesTransformer, $credentials, self::SHOP_ID);
+        return new ShopHolidayPreferenceApi($requestSender, $shopHolidayPreferenceTransformer ?? self::createStub(ShopHolidayPreferenceTransformerInterface::class), $shopHolidayPreferencesTransformer, $formValueEncoder ?? self::createStub(FormValueEncoderInterface::class), $credentials, self::SHOP_ID);
     }
 }

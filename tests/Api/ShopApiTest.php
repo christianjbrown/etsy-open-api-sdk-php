@@ -10,6 +10,8 @@ use ChristianBrown\Etsy\Api\ShopApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ShopInterface;
+use ChristianBrown\Etsy\Model\UpdateShopRequestInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ShopsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -307,14 +309,60 @@ final class ShopApiTest extends TestCase
         self::assertSame($shop, $api->getShop());
     }
 
+    public function testUpdateShopReturnsShop(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $shopData = ['shop-self'];
+        $shop = self::createStub(ShopInterface::class);
+        $serializedBody = ['title' => 'New title'];
+
+        $request = self::createStub(UpdateShopRequestInterface::class);
+        $requestSerializer = self::createMock(UpdateShopRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShopApiInterface::API_URL_SHOP_SPRINTF, self::SHOP_ID),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($shopData);
+
+        $shopTransformer = self::createMock(ShopTransformerInterface::class);
+        $shopTransformer->expects(self::once())->method('transform')
+            ->with($shopData)
+            ->willReturn($shop);
+
+        $api = $this->buildApi($headers, $requestSender, $shopTransformer, self::createStub(ShopsTransformerInterface::class), $requestSerializer);
+
+        self::assertSame($shop, $api->updateShop($request));
+    }
+
+    public function testUpdateShopThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ShopTransformerInterface::class), self::createStub(ShopsTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->updateShop(self::createStub(UpdateShopRequestInterface::class));
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ShopTransformerInterface $shopTransformer, ShopsTransformerInterface $shopsTransformer): ShopApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ShopTransformerInterface $shopTransformer, ShopsTransformerInterface $shopsTransformer, ?UpdateShopRequestSerializerInterface $updateShopRequestSerializer = null): ShopApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopApi($requestSender, $shopTransformer, $shopsTransformer, $credentials, self::SHOP_ID);
+        return new ShopApi($requestSender, $shopTransformer, $shopsTransformer, $updateShopRequestSerializer ?? self::createStub(UpdateShopRequestSerializerInterface::class), $credentials, self::SHOP_ID);
     }
 }

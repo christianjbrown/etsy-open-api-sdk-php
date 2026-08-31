@@ -9,6 +9,8 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ShopInterface;
+use ChristianBrown\Etsy\Model\UpdateShopRequestInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ShopsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopTransformerInterface;
 
@@ -33,12 +35,14 @@ final class ShopApi implements ShopApiInterface
     private int $shopId;
     private ShopsTransformerInterface $shopsTransformer;
     private ShopTransformerInterface $shopTransformer;
+    private UpdateShopRequestSerializerInterface $updateShopRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ShopTransformerInterface $shopTransformer, ShopsTransformerInterface $shopsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ShopTransformerInterface $shopTransformer, ShopsTransformerInterface $shopsTransformer, UpdateShopRequestSerializerInterface $updateShopRequestSerializer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->shopTransformer = $shopTransformer;
         $this->shopsTransformer = $shopsTransformer;
+        $this->updateShopRequestSerializer = $updateShopRequestSerializer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -110,6 +114,24 @@ final class ShopApi implements ShopApiInterface
 
         $url = sprintf(self::API_URL_SHOP_SPRINTF, $this->shopId);
         $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $shop = $this->shopTransformer->transform($data);
+        $this->shopCache = $shop;
+
+        return $shop;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function updateShop(UpdateShopRequestInterface $updateShopRequest): ShopInterface
+    {
+        $url = sprintf(self::API_URL_SHOP_SPRINTF, $this->shopId);
+        $data = $this->requestSender->putForm($url, [], $this->credentials->toHeaders(), $this->updateShopRequestSerializer->serialize($updateShopRequest));
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);

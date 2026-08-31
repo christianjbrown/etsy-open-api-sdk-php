@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy;
 
 use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformer;
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
@@ -61,6 +63,44 @@ use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\Http\FormValueEncoder;
+use ChristianBrown\Etsy\Http\MultipartFormDataBuilder;
+use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopReadinessStateDefinitionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileDestinationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileUpgradeRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductOfferingRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductOfferingRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductPropertyValueRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductPropertyValueRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingTranslationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingVariationImageRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingVariationImageRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionOptionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionOptionRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ShopReturnPolicyRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingInventoryRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingPersonalizationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingPropertyRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopReadinessStateDefinitionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileDestinationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileUpgradeRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateVariationImagesRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingFileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingImageRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingVideoRequestSerializer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertiesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertyTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodesTransformer;
@@ -112,6 +152,7 @@ use ChristianBrown\Etsy\Transformer\RefundsTransformer;
 use ChristianBrown\Etsy\Transformer\RefundTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
 use ChristianBrown\Etsy\Transformer\ReviewTransformer;
+use ChristianBrown\Etsy\Transformer\ScopesTransformer;
 use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodesTransformer;
 use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodeTransformer;
 use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
@@ -564,6 +605,7 @@ final class Etsy implements EtsyInterface
         // service wires a reference to its definition, so core comes first and the
         // API clients (which reference every transformer chain) come last.
         $this->registerCore();
+        $this->registerRequestSerializers();
         $this->registerReceiptTransformers();
         $this->registerListingTransformers();
         $this->registerListingInventoryTransformers();
@@ -595,6 +637,8 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_RECEIPT_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_RECEIPTS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_RECEIPT_PAGE_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_RECEIPT_SHIPMENT_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_RECEIPT_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -606,6 +650,7 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOPS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -615,8 +660,11 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTINGS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_DRAFT_LISTING_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_LISTING_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -626,8 +674,12 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_FILE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_FILES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_MULTIPART_FORM_DATA_BUILDER),
+                    $this->container->getDefinition(self::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPLOAD_LISTING_FILE_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -637,9 +689,14 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_IMAGE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_IMAGES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_MULTIPART_FORM_DATA_BUILDER),
+                    $this->container->getDefinition(self::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPLOAD_LISTING_IMAGE_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
                 ]
             );
 
@@ -647,9 +704,14 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_VIDEO_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_VIDEOS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_MULTIPART_FORM_DATA_BUILDER),
+                    $this->container->getDefinition(self::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPLOAD_LISTING_VIDEO_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
                 ]
             );
 
@@ -658,6 +720,7 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_VARIATION_IMAGES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_VARIATION_IMAGES_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -670,6 +733,7 @@ final class Etsy implements EtsyInterface
                     $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_LISTING_INVENTORY_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
@@ -678,8 +742,10 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_PROPERTY_VALUE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_LISTING_PROPERTY_VALUES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_LISTING_PROPERTY_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -690,6 +756,7 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_TRANSLATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_TRANSLATION_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -699,8 +766,11 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_LISTING_PERSONALIZATION_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_LISTING_PERSONALIZATION_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
+                    $this->shopId,
                 ]
             );
 
@@ -717,6 +787,7 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_USER_ADDRESS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_USER_ADDRESSES_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
@@ -728,6 +799,7 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_PING_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SCOPES_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                 ]
             );
@@ -768,6 +840,7 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SECTION_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SECTIONS_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
@@ -779,8 +852,10 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICY_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICIES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_RETURN_POLICY_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -800,7 +875,9 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_HOLIDAY_PREFERENCE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_HOLIDAY_PREFERENCES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -810,8 +887,11 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITION_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -831,11 +911,20 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_JSON_API_REQUEST_SENDER),
+                    $this->container->getDefinition(self::SERVICE_API_REQUEST_SENDER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILES_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATION_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_DESTINATIONS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADE_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHOP_SHIPPING_PROFILE_UPGRADES_TRANSFORMER),
                     $this->container->getDefinition(self::SERVICE_SHIPPING_CARRIERS_TRANSFORMER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_DESTINATION_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_UPGRADE_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_DESTINATION_REQUEST_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_UPGRADE_REQUEST_SERIALIZER),
                     $this->container->getDefinition(self::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -917,6 +1006,12 @@ final class Etsy implements EtsyInterface
         $this->container->register(self::SERVICE_API_CLIENT, ApiClient::class);
         $this->container->register(self::SERVICE_JSON_API_REQUEST_SENDER, JsonApiRequestSenderInterface::class)
             ->setFactory([new Reference(self::SERVICE_API_CLIENT), 'getJsonApiRequestSender']);
+        $this->container->register(self::SERVICE_API_REQUEST_SENDER, ApiRequestSenderInterface::class)
+            ->setFactory([new Reference(self::SERVICE_API_CLIENT), 'getApiRequestSender']);
+
+        $this->container->register(self::SERVICE_JSON_TO_ARRAY_TRANSFORMER, JsonToArrayTransformer::class);
+        $this->container->register(self::SERVICE_FORM_VALUE_ENCODER, FormValueEncoder::class);
+        $this->container->register(self::SERVICE_MULTIPART_FORM_DATA_BUILDER, MultipartFormDataBuilder::class);
 
         $this->container->register(self::SERVICE_ACCESS_TOKEN_TRANSFORMER, AccessTokenTransformer::class);
 
@@ -1160,6 +1255,7 @@ final class Etsy implements EtsyInterface
     private function registerPingTransformers(): void
     {
         $this->container->register(self::SERVICE_PING_TRANSFORMER, PingTransformer::class);
+        $this->container->register(self::SERVICE_SCOPES_TRANSFORMER, ScopesTransformer::class);
     }
 
     private function registerReceiptTransformers(): void
@@ -1237,6 +1333,232 @@ final class Etsy implements EtsyInterface
             ->setArguments(
                 [
                     $this->container->getDefinition(self::SERVICE_RECEIPTS_TRANSFORMER),
+                ]
+            );
+    }
+
+    private function registerRequestSerializers(): void
+    {
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_REQUEST_SERIALIZER, ListingInventoryProductOfferingRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_PROPERTY_VALUE_REQUEST_SERIALIZER, ListingInventoryProductPropertyValueRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_LISTING_VARIATION_IMAGE_REQUEST_SERIALIZER, ListingVariationImageRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_REQUEST_SERIALIZER, PersonalizationQuestionOptionRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_RECEIPT_SHIPMENT_CUSTOMS_ITEM_REQUEST_SERIALIZER, ReceiptShipmentCustomsItemRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_REQUEST_SERIALIZER, UpdateShopRequestSerializer::class);
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_REQUESTS_SERIALIZER, ListingInventoryProductOfferingRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_PROPERTY_VALUE_REQUESTS_SERIALIZER, ListingInventoryProductPropertyValueRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_PROPERTY_VALUE_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_VARIATION_IMAGE_REQUESTS_SERIALIZER, ListingVariationImageRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_VARIATION_IMAGE_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_REQUESTS_SERIALIZER, PersonalizationQuestionOptionRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_RECEIPT_SHIPMENT_CUSTOMS_ITEM_REQUESTS_SERIALIZER, ReceiptShipmentCustomsItemRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_RECEIPT_SHIPMENT_CUSTOMS_ITEM_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_REQUEST_SERIALIZER, PersonalizationQuestionRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_OPTION_REQUESTS_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_PERSONALIZATION_QUESTION_REQUESTS_SERIALIZER, PersonalizationQuestionRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_REQUEST_SERIALIZER, ListingInventoryProductRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_REQUESTS_SERIALIZER),
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_PROPERTY_VALUE_REQUESTS_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_INVENTORY_PRODUCT_REQUESTS_SERIALIZER, ListingInventoryProductRequestsSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_REQUEST_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_DRAFT_LISTING_REQUEST_SERIALIZER, CreateDraftListingRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_LISTING_REQUEST_SERIALIZER, UpdateListingRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_LISTING_PROPERTY_REQUEST_SERIALIZER, UpdateListingPropertyRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_LISTING_TRANSLATION_REQUEST_SERIALIZER, ListingTranslationRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_SHOP_RETURN_POLICY_REQUEST_SERIALIZER, ShopReturnPolicyRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER, CreateShopReadinessStateDefinitionRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER, UpdateShopReadinessStateDefinitionRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_RECEIPT_REQUEST_SERIALIZER, UpdateShopReceiptRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_REQUEST_SERIALIZER, CreateShopShippingProfileRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_DESTINATION_REQUEST_SERIALIZER, CreateShopShippingProfileDestinationRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_SHOP_SHIPPING_PROFILE_UPGRADE_REQUEST_SERIALIZER, CreateShopShippingProfileUpgradeRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_REQUEST_SERIALIZER, UpdateShopShippingProfileRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_DESTINATION_REQUEST_SERIALIZER, UpdateShopShippingProfileDestinationRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_UPGRADE_REQUEST_SERIALIZER, UpdateShopShippingProfileUpgradeRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPLOAD_LISTING_FILE_REQUEST_SERIALIZER, UploadListingFileRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPLOAD_LISTING_IMAGE_REQUEST_SERIALIZER, UploadListingImageRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPLOAD_LISTING_VIDEO_REQUEST_SERIALIZER, UploadListingVideoRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_FORM_VALUE_ENCODER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_LISTING_INVENTORY_REQUEST_SERIALIZER, UpdateListingInventoryRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_INVENTORY_PRODUCT_REQUESTS_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_LISTING_PERSONALIZATION_REQUEST_SERIALIZER, UpdateListingPersonalizationRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_PERSONALIZATION_QUESTION_REQUESTS_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_UPDATE_VARIATION_IMAGES_REQUEST_SERIALIZER, UpdateVariationImagesRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_LISTING_VARIATION_IMAGE_REQUESTS_SERIALIZER),
+                ]
+            );
+
+        $this->container->register(self::SERVICE_CREATE_RECEIPT_SHIPMENT_REQUEST_SERIALIZER, CreateReceiptShipmentRequestSerializer::class)
+            ->setArguments(
+                [
+                    $this->container->getDefinition(self::SERVICE_RECEIPT_SHIPMENT_CUSTOMS_ITEM_REQUESTS_SERIALIZER),
                 ]
             );
     }

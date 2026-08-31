@@ -17,6 +17,11 @@ interface UserAddressApiInterface extends ApiInterface
     public const string UNEXPECTED_RESPONSE_SPRINTF = '%s not set or not an array';
 
     /**
+     * Deletes an address from the authenticated user's address book.
+     */
+    public function delete(int $userAddressId): void;
+
+    /**
      * Reads a single page of the authenticated user's addresses.
      *
      * @return array<int, UserAddressInterface>

@@ -11,6 +11,8 @@ use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingInventoryInterface;
 use ChristianBrown\Etsy\Model\ListingInventoryProductInterface;
 use ChristianBrown\Etsy\Model\ListingInventoryProductOfferingInterface;
+use ChristianBrown\Etsy\Model\UpdateListingInventoryRequestInterface;
+use ChristianBrown\Etsy\Serializer\UpdateListingInventoryRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryTransformerInterface;
@@ -38,13 +40,15 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      */
     private array $productCache = [];
     private JsonApiRequestSenderInterface $requestSender;
+    private UpdateListingInventoryRequestSerializerInterface $updateListingInventoryRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingInventoryTransformerInterface $listingInventoryTransformer, ListingInventoryProductTransformerInterface $listingInventoryProductTransformer, ListingInventoryProductOfferingTransformerInterface $listingInventoryProductOfferingTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingInventoryTransformerInterface $listingInventoryTransformer, ListingInventoryProductTransformerInterface $listingInventoryProductTransformer, ListingInventoryProductOfferingTransformerInterface $listingInventoryProductOfferingTransformer, UpdateListingInventoryRequestSerializerInterface $updateListingInventoryRequestSerializer, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->listingInventoryTransformer = $listingInventoryTransformer;
         $this->listingInventoryProductTransformer = $listingInventoryProductTransformer;
         $this->listingInventoryProductOfferingTransformer = $listingInventoryProductOfferingTransformer;
+        $this->updateListingInventoryRequestSerializer = $updateListingInventoryRequestSerializer;
         $this->credentials = $credentials;
     }
 
@@ -120,5 +124,37 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         $this->productCache[$cacheKey] = $product;
 
         return $product;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function update(int $listingId, UpdateListingInventoryRequestInterface $updateListingInventoryRequest, ?string $maxVariationsSupported = null): ListingInventoryInterface
+    {
+        $url = sprintf(self::API_URL_BY_LISTING_ID_SPRINTF, $listingId);
+        $data = $this->requestSender->put($url, self::buildMaxVariationsQuery($maxVariationsSupported), $this->credentials->toHeaders(), $this->updateListingInventoryRequestSerializer->serialize($updateListingInventoryRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $inventory = $this->listingInventoryTransformer->transform($data);
+        $this->byListingIdCache[$listingId] = $inventory;
+        $this->offeringCache = [];
+        $this->productCache = [];
+
+        return $inventory;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildMaxVariationsQuery(?string $maxVariationsSupported): array
+    {
+        if (null === $maxVariationsSupported) {
+            return [];
+        }
+
+        return [self::KEY_MAX_VARIATIONS_SUPPORTED => $maxVariationsSupported];
     }
 }

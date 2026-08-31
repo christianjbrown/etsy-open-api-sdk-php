@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
@@ -17,6 +18,8 @@ use function sprintf;
 
 final class UserAddressApi implements UserAddressApiInterface
 {
+    private ApiRequestSenderInterface $apiRequestSender;
+
     /**
      * @var array<string, array<int, UserAddressInterface>>
      */
@@ -31,12 +34,25 @@ final class UserAddressApi implements UserAddressApiInterface
     private UserAddressesTransformerInterface $userAddressesTransformer;
     private UserAddressTransformerInterface $userAddressTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
+        $this->apiRequestSender = $apiRequestSender;
         $this->userAddressTransformer = $userAddressTransformer;
         $this->userAddressesTransformer = $userAddressesTransformer;
         $this->credentials = $credentials;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     */
+    public function delete(int $userAddressId): void
+    {
+        $url = sprintf(self::API_URL_ONE_SPRINTF, $userAddressId);
+        $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
+
+        $this->cache = [];
+        unset($this->userAddressCache[$userAddressId]);
     }
 
     /**
