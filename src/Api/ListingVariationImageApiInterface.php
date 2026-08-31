@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ListingVariationImageInterface;
+use ChristianBrown\Etsy\Model\UpdateVariationImagesRequestInterface;
 
 interface ListingVariationImageApiInterface extends ApiInterface
 {
@@ -18,4 +19,11 @@ interface ListingVariationImageApiInterface extends ApiInterface
      * @return array<int, ListingVariationImageInterface>
      */
     public function getMultiple(int $listingId, bool $skipCache = false): array;
+
+    /**
+     * Binds listing variation property values to images.
+     *
+     * @return array<int, ListingVariationImageInterface>
+     */
+    public function update(int $listingId, UpdateVariationImagesRequestInterface $updateVariationImagesRequest): array;
 }

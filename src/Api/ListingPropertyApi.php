@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingPropertyValueInterface;
+use ChristianBrown\Etsy\Model\UpdateListingPropertyRequestInterface;
+use ChristianBrown\Etsy\Serializer\UpdateListingPropertyRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformerInterface;
 
@@ -17,6 +20,8 @@ use function sprintf;
 
 final class ListingPropertyApi implements ListingPropertyApiInterface
 {
+    private ApiRequestSenderInterface $apiRequestSender;
+
     /**
      * @var array<int, array<int, ListingPropertyValueInterface>>
      */
@@ -31,14 +36,29 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
     private array $oneCache = [];
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
+    private UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
+        $this->apiRequestSender = $apiRequestSender;
         $this->listingPropertyValueTransformer = $listingPropertyValueTransformer;
         $this->listingPropertyValuesTransformer = $listingPropertyValuesTransformer;
+        $this->updateListingPropertyRequestSerializer = $updateListingPropertyRequestSerializer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     */
+    public function delete(int $listingId, int $propertyId): void
+    {
+        $url = sprintf(self::API_URL_WRITE_SPRINTF, $this->shopId, $listingId, $propertyId);
+        $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
+
+        unset($this->cache[$listingId]);
+        unset($this->oneCache[sprintf('%d:%d', $listingId, $propertyId)]);
     }
 
     /**
@@ -91,6 +111,25 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
         }
         $propertyValue = $this->listingPropertyValueTransformer->transform($data);
         $this->oneCache[$cacheKey] = $propertyValue;
+
+        return $propertyValue;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function update(int $listingId, int $propertyId, UpdateListingPropertyRequestInterface $updateListingPropertyRequest): ListingPropertyValueInterface
+    {
+        $url = sprintf(self::API_URL_WRITE_SPRINTF, $this->shopId, $listingId, $propertyId);
+        $data = $this->requestSender->putForm($url, [], $this->credentials->toHeaders(), $this->updateListingPropertyRequestSerializer->serialize($updateListingPropertyRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $propertyValue = $this->listingPropertyValueTransformer->transform($data);
+        unset($this->cache[$listingId]);
+        $this->oneCache[sprintf('%d:%d', $listingId, $propertyId)] = $propertyValue;
 
         return $propertyValue;
     }

@@ -8,8 +8,12 @@ use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
+use ChristianBrown\Etsy\Model\CreateReceiptShipmentRequestInterface;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
 use ChristianBrown\Etsy\Model\ReceiptPageInterface;
+use ChristianBrown\Etsy\Model\UpdateShopReceiptRequestInterface;
+use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
@@ -24,6 +28,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
      */
     private array $cache = [];
     private CredentialsInterface $credentials;
+    private CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer;
 
     /**
      * @var array<string, ReceiptPageInterface>
@@ -39,15 +44,38 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     private ReceiptTransformerInterface $receiptTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
+    private UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer, UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->receiptTransformer = $receiptTransformer;
         $this->receiptsTransformer = $receiptsTransformer;
         $this->receiptPageTransformer = $receiptPageTransformer;
+        $this->createReceiptShipmentRequestSerializer = $createReceiptShipmentRequestSerializer;
+        $this->updateShopReceiptRequestSerializer = $updateShopReceiptRequestSerializer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function createReceiptShipment(int $receiptId, CreateReceiptShipmentRequestInterface $createReceiptShipmentRequest, bool $legacy = false): ReceiptInterface
+    {
+        $url = sprintf(self::API_URL_TRACKING_SPRINTF, $this->shopId, $receiptId);
+        $data = $this->requestSender->post($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders(), $this->createReceiptShipmentRequestSerializer->serialize($createReceiptShipmentRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $receipt = $this->receiptTransformer->transform($data);
+        $this->cache = [];
+        $this->pageCache = [];
+        $this->receiptCache[$receiptId] = $receipt;
+
+        return $receipt;
     }
 
     /**
@@ -127,6 +155,38 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         $this->pageCache[$cacheKey] = $page;
 
         return $page;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function updateShopReceipt(int $receiptId, UpdateShopReceiptRequestInterface $updateShopReceiptRequest, bool $legacy = false): ReceiptInterface
+    {
+        $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $receiptId);
+        $data = $this->requestSender->putForm($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders(), $this->updateShopReceiptRequestSerializer->serialize($updateShopReceiptRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $receipt = $this->receiptTransformer->transform($data);
+        $this->cache = [];
+        $this->pageCache = [];
+        $this->receiptCache[$receiptId] = $receipt;
+
+        return $receipt;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildLegacyQuery(bool $legacy): array
+    {
+        if (!$legacy) {
+            return [];
+        }
+
+        return [self::KEY_LEGACY => 'true'];
     }
 
     /**

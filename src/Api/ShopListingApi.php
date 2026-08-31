@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
+use ChristianBrown\Etsy\Model\CreateDraftListingRequestInterface;
 use ChristianBrown\Etsy\Model\ListingInterface;
+use ChristianBrown\Etsy\Model\UpdateListingRequestInterface;
+use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingTransformerInterface;
 
@@ -27,6 +32,7 @@ final class ShopListingApi implements ShopListingApiInterface
      * @var array<string, array<int, ListingInterface>>
      */
     private array $activeCache = [];
+    private ApiRequestSenderInterface $apiRequestSender;
 
     /**
      * @var array<int, ListingInterface>
@@ -57,6 +63,7 @@ final class ShopListingApi implements ShopListingApiInterface
      * @var array<string, array<int, ListingInterface>>
      */
     private array $byShopSectionIdsCache = [];
+    private CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer;
     private CredentialsInterface $credentials;
 
     /**
@@ -67,14 +74,58 @@ final class ShopListingApi implements ShopListingApiInterface
     private ListingTransformerInterface $listingTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
+    private UpdateListingRequestSerializerInterface $updateListingRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer, UpdateListingRequestSerializerInterface $updateListingRequestSerializer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
+        $this->apiRequestSender = $apiRequestSender;
         $this->listingTransformer = $listingTransformer;
         $this->listingsTransformer = $listingsTransformer;
+        $this->createDraftListingRequestSerializer = $createDraftListingRequestSerializer;
+        $this->updateListingRequestSerializer = $updateListingRequestSerializer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function create(CreateDraftListingRequestInterface $createDraftListingRequest): ListingInterface
+    {
+        $url = sprintf(self::API_URL_BY_SHOP_SPRINTF, $this->shopId);
+        $data = $this->requestSender->postForm($url, [], $this->credentials->toHeaders(), $this->createDraftListingRequestSerializer->serialize($createDraftListingRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $listing = $this->listingTransformer->transform($data);
+        $this->byIdCache[$listing->getListingId()] = $listing;
+        $this->activeByShopCache = [];
+        $this->byShopCache = [];
+        $this->featuredByShopCache = [];
+
+        return $listing;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     */
+    public function delete(int $listingId): void
+    {
+        $url = sprintf(self::API_URL_BY_ID_SPRINTF, $listingId);
+        $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
+
+        unset($this->byIdCache[$listingId]);
+        $this->activeCache = [];
+        $this->activeByShopCache = [];
+        $this->byShopCache = [];
+        $this->byShopSectionIdsCache = [];
+        $this->byListingIdsCache = [];
+        $this->byReceiptCache = [];
+        $this->byReturnPolicyCache = [];
+        $this->featuredByShopCache = [];
     }
 
     /**
@@ -292,6 +343,32 @@ final class ShopListingApi implements ShopListingApiInterface
         $this->featuredByShopCache[$cacheKey] = $listings;
 
         return $listings;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function update(int $listingId, UpdateListingRequestInterface $updateListingRequest): ListingInterface
+    {
+        $url = sprintf(self::API_URL_UPDATE_SPRINTF, $this->shopId, $listingId);
+        $data = $this->requestSender->patchForm($url, [], $this->credentials->toHeaders(), $this->updateListingRequestSerializer->serialize($updateListingRequest));
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $listing = $this->listingTransformer->transform($data);
+        $this->byIdCache[$listingId] = $listing;
+        $this->activeCache = [];
+        $this->activeByShopCache = [];
+        $this->byShopCache = [];
+        $this->byShopSectionIdsCache = [];
+        $this->byListingIdsCache = [];
+        $this->byReceiptCache = [];
+        $this->byReturnPolicyCache = [];
+        $this->featuredByShopCache = [];
+
+        return $listing;
     }
 
     /**
