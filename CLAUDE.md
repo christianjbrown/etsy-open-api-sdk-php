@@ -113,6 +113,17 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
 - Public methods that can throw carry `@throws` docblocks naming the concrete exception(s). Array
   shapes are documented with `@param mixed[]` / `@return array<int, XInterface>` docblocks.
 
+### The `x-api-key` header
+
+Etsy requires `x-api-key` to be the app **keystring and shared secret joined by
+a colon**, not the keystring alone. The keystring on its own is rejected with
+403 "Shared secret is required in x-api-key header." on every endpoint,
+including `openapi-ping`. `Credentials` therefore takes both values, and the
+`Etsy` facade takes the shared secret as its third constructor argument.
+
+The keystring alone is still correct as the OAuth2 `client_id` on the token
+endpoint, which is why a refresh can succeed while every API call 403s.
+
 ## Testing
 
 The `phpunit.xml` config is strict (`requireCoverageMetadata`, `beStrictAboutCoverageMetadata`,

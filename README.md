@@ -83,7 +83,8 @@ $refreshTokenStore->setValue('your-seed-refresh-token');
 
 $etsy = new Etsy(
     12345678,                 // your shop id
-    'your-app-keystring',     // x-api-key + OAuth client_id
+    'your-app-keystring',     // OAuth client_id, and the first half of x-api-key
+    'your-app-shared-secret', // the second half of x-api-key
     $accessTokenStore,
     $refreshTokenStore
 );

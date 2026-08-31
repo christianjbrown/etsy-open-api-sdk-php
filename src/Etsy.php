@@ -166,12 +166,14 @@ final class Etsy implements EtsyInterface
     private ContainerBuilder $container;
     private string $key;
     private KeyValueStoreInterface $refreshTokenStore;
+    private string $sharedSecret;
     private int $shopId;
 
-    public function __construct(int $shopId, string $key, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
+    public function __construct(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
     {
         $this->shopId = $shopId;
         $this->key = $key;
+        $this->sharedSecret = $sharedSecret;
         $this->accessTokenStore = $accessTokenStore;
         $this->refreshTokenStore = $refreshTokenStore;
         $this->container = new ContainerBuilder();
@@ -934,6 +936,7 @@ final class Etsy implements EtsyInterface
                 [
                     $this->container->getDefinition(self::SERVICE_REFRESH_TOKEN_MANAGER),
                     $this->key,
+                    $this->sharedSecret,
                 ]
             );
     }

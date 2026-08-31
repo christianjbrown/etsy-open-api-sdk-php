@@ -586,6 +586,7 @@ final class EtsyTest extends TestCase
         return new Etsy(
             42,
             'test-keystring',
+            'test-shared-secret',
             self::createStub(TtlAwareKeyValueStoreInterface::class),
             self::createStub(KeyValueStoreInterface::class),
         );
