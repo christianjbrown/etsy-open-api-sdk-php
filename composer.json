@@ -1,6 +1,6 @@
 {
     "name": "christianjbrown/etsy-open-api-sdk",
-    "description": "A strongly-typed, read-only PHP 8.5+ client for the Etsy Open API v3 that returns typed model objects instead of raw arrays.",
+    "description": "A strongly-typed PHP 8.5+ client for the Etsy Open API v3 that returns typed model objects instead of raw arrays, covering every read and write operation.",
     "type": "library",
     "license": "MIT",
     "keywords": [
