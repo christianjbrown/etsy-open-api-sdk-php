@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ReceiptInterface;
+use ChristianBrown\Etsy\Model\ReceiptPageInterface;
 
 interface ShopReceiptApiInterface extends ApiInterface
 {
@@ -24,4 +25,11 @@ interface ShopReceiptApiInterface extends ApiInterface
     public function getMultiple(int $limit = 100, int $offset = 0, bool $skipCache = false): array;
 
     public function getOneById(int $receiptId, bool $skipCache = false): ReceiptInterface;
+
+    /**
+     * Reads a single page of the shop's receipts together with the shop's total
+     * receipt count, so a caller can page through the whole set without having
+     * to infer the end from a short page.
+     */
+    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false): ReceiptPageInterface;
 }

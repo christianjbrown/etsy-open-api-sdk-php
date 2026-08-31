@@ -6,13 +6,13 @@ A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.c
 
 The client is **read-only** (it wraps the API's `GET` endpoints only; creating and updating data is not supported yet) and currently supports:
 
-- **Reading shop receipts** — a page of the shop's receipts (`getMultiple`) or a single receipt by id (`getOneById`). Each receipt carries the full order: buyer and address fields, the money totals (grandtotal, subtotal, shipping, tax, VAT, discount, gift wrap), and its nested transactions, refunds, and shipments.
+- **Reading shop receipts** — a page of the shop's receipts (`getMultiple`), a page plus the shop's total receipt count so you can walk the whole set (`getPage`), or a single receipt by id (`getOneById`). Each receipt carries the full order: buyer and address fields, the money totals (grandtotal, subtotal, shipping, tax, VAT, discount, gift wrap), and its nested transactions, refunds, and shipments.
 
 ### Supported endpoints
 
 | Resource | Client | Endpoint(s) | Returns |
 | --- | --- | --- | --- |
-| Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptInterface` |
+| Shop receipts | `getShopReceiptApi()` | `GET /shops/{shop_id}/receipts`, `GET /shops/{shop_id}/receipts/{receipt_id}` | `ReceiptInterface[]` / `ReceiptPageInterface` / `ReceiptInterface` |
 | Shop receipt transactions | `getShopReceiptTransactionApi()` | `GET /shops/{shop_id}/transactions/{transaction_id}`, `GET /shops/{shop_id}/receipts/{receipt_id}/transactions`, `GET /shops/{shop_id}/listings/{listing_id}/transactions`, `GET /shops/{shop_id}/transactions` | `TransactionInterface` / `TransactionInterface[]` |
 | Payments | `getPaymentApi()` | `GET /shops/{shop_id}/payments`, `GET /shops/{shop_id}/receipts/{receipt_id}/payments`, `GET /shops/{shop_id}/payment-account/ledger-entries/payments` | `PaymentInterface[]` |
 | Ledger entries | `getLedgerEntryApi()` | `GET /shops/{shop_id}/payment-account/ledger-entries`, `GET /shops/{shop_id}/payment-account/ledger-entries/{ledger_entry_id}` | `PaymentAccountLedgerEntryInterface[]` / `PaymentAccountLedgerEntryInterface` |
@@ -112,6 +112,34 @@ $receipt = $shopReceiptApi->getOneById(1234567890);   // ReceiptInterface
 echo $receipt->getStatus() ?? 'unknown', "\n";
 ```
 
+`getMultiple()` hands back just the receipts on the page, which is enough when you
+only want the most recent orders. To walk *every* receipt, use `getPage()` instead:
+it returns a `ReceiptPageInterface` carrying the shop's total receipt count
+alongside the page, so the loop knows when to stop without having to guess from a
+short page.
+
+```php
+$limit = 100;
+$offset = 0;
+$soldPerListing = [];
+
+do {
+    $page = $shopReceiptApi->getPage(limit: $limit, offset: $offset);   // ReceiptPageInterface
+
+    foreach ($page->getReceipts() as $receipt) {
+        foreach ($receipt->getTransactions() as $transaction) {
+            $listingId = $transaction->getListingId();
+            if ($listingId === null) {
+                continue;
+            }
+            $soldPerListing[$listingId] = ($soldPerListing[$listingId] ?? 0) + ($transaction->getQuantity() ?? 0);
+        }
+    }
+
+    $offset += $limit;
+} while ($offset < $page->getCount());
+```
+
 ## :rotating_light: Error handling
 
 Everything this library throws implements `ChristianBrown\Etsy\Exception\ExceptionInterface`, so a single `catch` covers it all:
@@ -145,6 +173,7 @@ use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
+use ChristianBrown\Etsy\Transformer\ReceiptPageTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
 use ChristianBrown\Etsy\Transformer\RefundsTransformer;
@@ -181,7 +210,8 @@ $credentials = new Credentials($refreshTokenManager, $keystring);
 
 // Receipt transformer chain. The single Money transformer is shared across every
 // money field; the singular Receipt transformer is wrapped by ReceiptsTransformer
-// for the list endpoint and used directly for getOneById().
+// for the list endpoint (and by ReceiptPageTransformer for getPage()) and used
+// directly for getOneById().
 $moneyTransformer = new MoneyTransformer();
 
 $transactionTransformer = new TransactionTransformer(
@@ -197,10 +227,13 @@ $receiptTransformer = new ReceiptTransformer(
     new ShipmentsTransformer(new ShipmentTransformer())
 );
 
+$receiptsTransformer = new ReceiptsTransformer($receiptTransformer);
+
 $shopReceiptApi = new ShopReceiptApi(
     $requestSender,
     $receiptTransformer,
-    new ReceiptsTransformer($receiptTransformer),
+    $receiptsTransformer,
+    new ReceiptPageTransformer($receiptsTransformer),
     $credentials,
     $shopId
 );

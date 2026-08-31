@@ -9,6 +9,8 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
+use ChristianBrown\Etsy\Model\ReceiptPageInterface;
+use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
 
@@ -24,19 +26,26 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     private CredentialsInterface $credentials;
 
     /**
+     * @var array<string, ReceiptPageInterface>
+     */
+    private array $pageCache = [];
+
+    /**
      * @var array<int, ReceiptInterface>
      */
     private array $receiptCache = [];
+    private ReceiptPageTransformerInterface $receiptPageTransformer;
     private ReceiptsTransformerInterface $receiptsTransformer;
     private ReceiptTransformerInterface $receiptTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->receiptTransformer = $receiptTransformer;
         $this->receiptsTransformer = $receiptsTransformer;
+        $this->receiptPageTransformer = $receiptPageTransformer;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -93,6 +102,31 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         $this->receiptCache[$receiptId] = $receipt;
 
         return $receipt;
+    }
+
+    /**
+     * @throws RequestExceptionInterface
+     * @throws UnexpectedResponseException
+     */
+    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false): ReceiptPageInterface
+    {
+        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        if (!$skipCache) {
+            if (isset($this->pageCache[$cacheKey])) {
+                return $this->pageCache[$cacheKey];
+            }
+        }
+
+        $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId);
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+
+        if (empty($data)) {
+            throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
+        }
+        $page = $this->receiptPageTransformer->transform($data);
+        $this->pageCache[$cacheKey] = $page;
+
+        return $page;
     }
 
     /**
