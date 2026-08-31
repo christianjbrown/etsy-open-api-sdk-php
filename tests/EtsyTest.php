@@ -60,6 +60,36 @@ use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopReadinessStateDefinitionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileDestinationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileUpgradeRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductOfferingRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductPropertyValueRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ListingTranslationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ListingVariationImageRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionOptionRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ShopReturnPolicyRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingInventoryRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingPersonalizationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingPropertyRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopReadinessStateDefinitionRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileDestinationRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileUpgradeRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateVariationImagesRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingFileRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingImageRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UploadListingVideoRequestSerializer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertiesTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertyTransformer;
 use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodesTransformer;
@@ -175,6 +205,36 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(UserApi::class)]
 #[UsesClass(UserAddressApi::class)]
 #[UsesClass(Credentials::class)]
+#[UsesClass(CreateDraftListingRequestSerializer::class)]
+#[UsesClass(CreateReceiptShipmentRequestSerializer::class)]
+#[UsesClass(CreateShopReadinessStateDefinitionRequestSerializer::class)]
+#[UsesClass(CreateShopShippingProfileDestinationRequestSerializer::class)]
+#[UsesClass(CreateShopShippingProfileRequestSerializer::class)]
+#[UsesClass(CreateShopShippingProfileUpgradeRequestSerializer::class)]
+#[UsesClass(ListingInventoryProductOfferingRequestsSerializer::class)]
+#[UsesClass(ListingInventoryProductPropertyValueRequestsSerializer::class)]
+#[UsesClass(ListingInventoryProductRequestSerializer::class)]
+#[UsesClass(ListingInventoryProductRequestsSerializer::class)]
+#[UsesClass(ListingTranslationRequestSerializer::class)]
+#[UsesClass(ListingVariationImageRequestsSerializer::class)]
+#[UsesClass(PersonalizationQuestionOptionRequestsSerializer::class)]
+#[UsesClass(PersonalizationQuestionRequestSerializer::class)]
+#[UsesClass(PersonalizationQuestionRequestsSerializer::class)]
+#[UsesClass(ReceiptShipmentCustomsItemRequestsSerializer::class)]
+#[UsesClass(ShopReturnPolicyRequestSerializer::class)]
+#[UsesClass(UpdateListingInventoryRequestSerializer::class)]
+#[UsesClass(UpdateListingPersonalizationRequestSerializer::class)]
+#[UsesClass(UpdateListingPropertyRequestSerializer::class)]
+#[UsesClass(UpdateListingRequestSerializer::class)]
+#[UsesClass(UpdateShopReadinessStateDefinitionRequestSerializer::class)]
+#[UsesClass(UpdateShopReceiptRequestSerializer::class)]
+#[UsesClass(UpdateShopShippingProfileDestinationRequestSerializer::class)]
+#[UsesClass(UpdateShopShippingProfileRequestSerializer::class)]
+#[UsesClass(UpdateShopShippingProfileUpgradeRequestSerializer::class)]
+#[UsesClass(UpdateVariationImagesRequestSerializer::class)]
+#[UsesClass(UploadListingFileRequestSerializer::class)]
+#[UsesClass(UploadListingImageRequestSerializer::class)]
+#[UsesClass(UploadListingVideoRequestSerializer::class)]
 #[UsesClass(ListingBuyerPriceTransformer::class)]
 #[UsesClass(ListingFilesTransformer::class)]
 #[UsesClass(ListingImagesTransformer::class)]
