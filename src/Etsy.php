@@ -152,6 +152,7 @@ use ChristianBrown\Etsy\Transformer\UserAddressesTransformer;
 use ChristianBrown\Etsy\Transformer\UserAddressTransformer;
 use ChristianBrown\Etsy\Transformer\UserTransformer;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
+use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
 use ChristianBrown\OAuth2Client\RefreshTokenManager;
 use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
 use Psr\Container\ContainerExceptionInterface;
@@ -161,13 +162,13 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class Etsy implements EtsyInterface
 {
-    private KeyValueStoreInterface $accessTokenStore;
+    private TtlAwareKeyValueStoreInterface $accessTokenStore;
     private ContainerBuilder $container;
     private string $key;
     private KeyValueStoreInterface $refreshTokenStore;
     private int $shopId;
 
-    public function __construct(int $shopId, string $key, KeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
+    public function __construct(int $shopId, string $key, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
     {
         $this->shopId = $shopId;
         $this->key = $key;

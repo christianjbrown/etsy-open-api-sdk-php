@@ -44,7 +44,8 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
 `ChristianBrown\Etsy\` → `src/`, `ChristianBrown\Etsy\Tests\` → `tests/`.
 
 - **`Etsy`** (`src/Etsy.php`) — the facade/entry point. Constructed with `(int $shopId, string $key,
-  KeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)`, it builds a
+  TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)` (the
+  access token store must be TTL-aware because that is what `RefreshTokenManager` takes), it builds a
   `ContainerBuilder`, registers the core services, every transformer chain, then every resource
   client (service ids are `SERVICE_*` constants on `EtsyInterface`), and exposes `getShopReceiptApi()`
   etc. Getters are PHPStan-safe: assign `$this->container->get(...)` to a local `$service` with a
