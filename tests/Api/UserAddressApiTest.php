@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests\Api;
 
+use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
@@ -219,14 +220,31 @@ final class UserAddressApiTest extends TestCase
         self::assertSame($address, $api->getOneById(99));
     }
 
+    public function testDeleteCallsApiRequestSender(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('delete')
+            ->with(
+                sprintf(UserAddressApiInterface::API_URL_ONE_SPRINTF, 99),
+                [],
+                $headers,
+            );
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), self::createStub(UserAddressTransformerInterface::class), self::createStub(UserAddressesTransformerInterface::class), $apiRequestSender);
+
+        $api->delete(99);
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer): UserAddressApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, ?ApiRequestSenderInterface $apiRequestSender = null): UserAddressApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new UserAddressApi($requestSender, $userAddressTransformer, $userAddressesTransformer, $credentials);
+        return new UserAddressApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $userAddressTransformer, $userAddressesTransformer, $credentials);
     }
 }

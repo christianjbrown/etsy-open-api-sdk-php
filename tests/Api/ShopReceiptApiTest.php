@@ -9,8 +9,12 @@ use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
+use ChristianBrown\Etsy\Model\CreateReceiptShipmentRequestInterface;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
 use ChristianBrown\Etsy\Model\ReceiptPageInterface;
+use ChristianBrown\Etsy\Model\UpdateShopReceiptRequestInterface;
+use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializerInterface;
+use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
@@ -313,14 +317,115 @@ final class ShopReceiptApiTest extends TestCase
         self::assertSame($page, $api->getPage());
     }
 
+    public function testCreateReceiptShipmentReturnsReceipt(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $receiptData = ['receipt-self'];
+        $receipt = self::createStub(ReceiptInterface::class);
+        $serializedBody = ['tracking_code' => 'abc'];
+
+        $request = self::createStub(CreateReceiptShipmentRequestInterface::class);
+        $requestSerializer = self::createMock(CreateReceiptShipmentRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('post')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_TRACKING_SPRINTF, self::SHOP_ID, 77),
+                [ShopReceiptApiInterface::KEY_LEGACY => 'true'],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($receiptData);
+
+        $receiptTransformer = self::createMock(ReceiptTransformerInterface::class);
+        $receiptTransformer->expects(self::once())->method('transform')
+            ->with($receiptData)
+            ->willReturn($receipt);
+
+        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class), $requestSerializer);
+
+        self::assertSame($receipt, $api->createReceiptShipment(77, $request, true));
+    }
+
+    public function testCreateReceiptShipmentThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('post')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->createReceiptShipment(77, self::createStub(CreateReceiptShipmentRequestInterface::class));
+    }
+
+    public function testUpdateShopReceiptReturnsReceipt(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $receiptData = ['receipt-self'];
+        $receipt = self::createStub(ReceiptInterface::class);
+        $serializedBody = ['was_shipped' => 'true'];
+
+        $request = self::createStub(UpdateShopReceiptRequestInterface::class);
+        $requestSerializer = self::createMock(UpdateShopReceiptRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedBody);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('putForm')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_ONE_SPRINTF, self::SHOP_ID, 77),
+                [],
+                $headers,
+                $serializedBody,
+            )
+            ->willReturn($receiptData);
+
+        $receiptTransformer = self::createMock(ReceiptTransformerInterface::class);
+        $receiptTransformer->expects(self::once())->method('transform')
+            ->with($receiptData)
+            ->willReturn($receipt);
+
+        $api = $this->buildApi($headers, $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class), null, $requestSerializer);
+
+        self::assertSame($receipt, $api->updateShopReceipt(77, $request));
+    }
+
+    public function testUpdateShopReceiptThrowsWhenEmpty(): void
+    {
+        $requestSender = self::createStub(JsonApiRequestSenderInterface::class);
+        $requestSender->method('putForm')->willReturn([]);
+
+        $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
+
+        $this->expectException(UnexpectedResponseException::class);
+        $this->expectExceptionMessage(ShopReceiptApiInterface::UNEXPECTED_RESPONSE);
+
+        $api->updateShopReceipt(77, self::createStub(UpdateShopReceiptRequestInterface::class));
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer): ShopReceiptApi
+    private function buildApi(array $headers, JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, ?CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer = null, ?UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer = null): ShopReceiptApi
     {
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopReceiptApi($requestSender, $receiptTransformer, $receiptsTransformer, $receiptPageTransformer, $credentials, self::SHOP_ID);
+        return new ShopReceiptApi(
+            $requestSender,
+            $receiptTransformer,
+            $receiptsTransformer,
+            $receiptPageTransformer,
+            $createReceiptShipmentRequestSerializer ?? self::createStub(CreateReceiptShipmentRequestSerializerInterface::class),
+            $updateShopReceiptRequestSerializer ?? self::createStub(UpdateShopReceiptRequestSerializerInterface::class),
+            $credentials,
+            self::SHOP_ID,
+        );
     }
 }
