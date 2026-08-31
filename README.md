@@ -66,7 +66,7 @@ You supply four things to the `Etsy` entry point:
 
 - your numeric **shop id**,
 - your app **keystring** (which Etsy also uses as the OAuth `client_id`),
-- a **`KeyValueStoreInterface`** to hold the current access token (an in-memory store is fine — it's re-fetched as needed),
+- a **`TtlAwareKeyValueStoreInterface`** to hold the current access token (an in-memory store is fine — it's re-fetched as needed),
 - a **`KeyValueStoreInterface`** holding your refresh token. This one must **persist** (a database, secret store, etc.), because Etsy rotates the refresh token on every refresh and the client writes the new value back. Seed it once with a refresh token obtained from Etsy's [OAuth authorization flow](https://developers.etsy.com/documentation/essentials/authentication).
 
 ```php
