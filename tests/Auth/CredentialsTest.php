@@ -19,6 +19,7 @@ final class CredentialsTest extends TestCase
     public function testToHeaders(): void
     {
         $key = 'test-keystring';
+        $sharedSecret = 'test-shared-secret';
 
         $accessToken = self::createStub(AccessTokenInterface::class);
         $accessToken->method('getAccessToken')->willReturn('test-access-token');
@@ -28,10 +29,10 @@ final class CredentialsTest extends TestCase
             ->with($key)
             ->willReturn($accessToken);
 
-        $credentials = new Credentials($refreshTokenManager, $key);
+        $credentials = new Credentials($refreshTokenManager, $key, $sharedSecret);
 
         $expected = [
-            CredentialsInterface::HEADER_KEY_API_KEY => $key,
+            CredentialsInterface::HEADER_KEY_API_KEY => sprintf(CredentialsInterface::API_KEY_HEADER_VALUE_SPRINTF, $key, $sharedSecret),
             CredentialsInterface::HEADER_KEY_AUTHORIZATION => sprintf(CredentialsInterface::AUTHORIZATION_HEADER_VALUE_SPRINTF, 'test-access-token'),
         ];
 

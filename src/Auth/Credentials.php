@@ -13,11 +13,13 @@ final class Credentials implements CredentialsInterface
 {
     private string $key;
     private RefreshTokenManagerInterface $refreshTokenManager;
+    private string $sharedSecret;
 
-    public function __construct(RefreshTokenManagerInterface $refreshTokenManager, string $key)
+    public function __construct(RefreshTokenManagerInterface $refreshTokenManager, string $key, string $sharedSecret)
     {
         $this->refreshTokenManager = $refreshTokenManager;
         $this->key = $key;
+        $this->sharedSecret = $sharedSecret;
     }
 
     /**
@@ -32,7 +34,7 @@ final class Credentials implements CredentialsInterface
         $accessToken = $this->refreshTokenManager->getAccessToken($this->key);
 
         return [
-            self::HEADER_KEY_API_KEY => $this->key,
+            self::HEADER_KEY_API_KEY => sprintf(self::API_KEY_HEADER_VALUE_SPRINTF, $this->key, $this->sharedSecret),
             self::HEADER_KEY_AUTHORIZATION => sprintf(self::AUTHORIZATION_HEADER_VALUE_SPRINTF, $accessToken->getAccessToken()),
         ];
     }
