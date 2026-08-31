@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": "^8.5",
-        "christianjbrown/api-client": "dev-main",
+        "christianjbrown/api-client": "dev-feature/put-patch-delete-verbs as dev-main",
         "christianjbrown/key-value-store": "dev-main",
         "christianjbrown/oauth2-client": "dev-main",
         "psr/container": "^2.0",
