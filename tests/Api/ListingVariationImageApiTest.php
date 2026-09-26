@@ -62,8 +62,11 @@ final class ListingVariationImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $variationsTransformer);
 
-        self::assertSame($variations, $api->getMultiple(self::LISTING_ID, true));
-        self::assertSame($variations, $api->getMultiple(self::LISTING_ID, true));
+        $first = $api->getMultiple(self::LISTING_ID, true);
+        $second = $api->getMultiple(self::LISTING_ID, true);
+
+        self::assertSame($variations, $first);
+        self::assertSame($variations, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -131,8 +134,11 @@ final class ListingVariationImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $variationsTransformer);
 
-        self::assertSame($variations, $api->getMultiple(self::LISTING_ID));
-        self::assertSame($variations, $api->getMultiple(self::LISTING_ID));
+        $first = $api->getMultiple(self::LISTING_ID);
+        $second = $api->getMultiple(self::LISTING_ID);
+
+        self::assertSame($variations, $first);
+        self::assertSame($variations, $second);
     }
 
     public function testUpdateReturnsVariationImages(): void

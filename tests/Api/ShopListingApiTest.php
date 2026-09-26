@@ -132,8 +132,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->findActiveByShop(25, 0, true));
-        self::assertSame($listings, $api->findActiveByShop(25, 0, true));
+        $first = $api->findActiveByShop(25, 0, true);
+        $second = $api->findActiveByShop(25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testFindActiveByShopUsesCacheOnSecondCall(): void
@@ -149,8 +152,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->findActiveByShop());
-        self::assertSame($listings, $api->findActiveByShop());
+        $first = $api->findActiveByShop();
+        $second = $api->findActiveByShop();
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testFindActiveReturnsListings(): void
@@ -195,8 +201,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->findActive(null, 25, 0, true));
-        self::assertSame($listings, $api->findActive(null, 25, 0, true));
+        $first = $api->findActive(null, 25, 0, true);
+        $second = $api->findActive(null, 25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testFindActiveUsesCacheOnSecondCall(): void
@@ -212,8 +221,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->findActive());
-        self::assertSame($listings, $api->findActive());
+        $first = $api->findActive();
+        $second = $api->findActive();
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testFindActiveWithoutKeywordsOmitsKeywordsQuery(): void
@@ -279,8 +291,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingTransformer);
 
-        self::assertSame($listing, $api->getById(500, true));
-        self::assertSame($listing, $api->getById(500, true));
+        $first = $api->getById(500, true);
+        $second = $api->getById(500, true);
+
+        self::assertSame($listing, $first);
+        self::assertSame($listing, $second);
     }
 
     public function testGetByIdSkipCacheThrowsWhenEmpty(): void
@@ -322,8 +337,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingTransformer);
 
-        self::assertSame($listing, $api->getById(500));
-        self::assertSame($listing, $api->getById(500));
+        $first = $api->getById(500);
+        $second = $api->getById(500);
+
+        self::assertSame($listing, $first);
+        self::assertSame($listing, $second);
     }
 
     public function testGetByListingIdsReturnsListings(): void
@@ -366,8 +384,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByListingIds([1, 2, 3], true));
-        self::assertSame($listings, $api->getByListingIds([1, 2, 3], true));
+        $first = $api->getByListingIds([1, 2, 3], true);
+        $second = $api->getByListingIds([1, 2, 3], true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByListingIdsUsesCacheOnSecondCall(): void
@@ -383,8 +404,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByListingIds([1, 2, 3]));
-        self::assertSame($listings, $api->getByListingIds([1, 2, 3]));
+        $first = $api->getByListingIds([1, 2, 3]);
+        $second = $api->getByListingIds([1, 2, 3]);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByReceiptReturnsListings(): void
@@ -428,8 +452,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByReceipt(77, 25, 0, true));
-        self::assertSame($listings, $api->getByReceipt(77, 25, 0, true));
+        $first = $api->getByReceipt(77, 25, 0, true);
+        $second = $api->getByReceipt(77, 25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByReceiptUsesCacheOnSecondCall(): void
@@ -445,8 +472,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByReceipt(77));
-        self::assertSame($listings, $api->getByReceipt(77));
+        $first = $api->getByReceipt(77);
+        $second = $api->getByReceipt(77);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByReturnPolicyReturnsListings(): void
@@ -487,8 +517,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByReturnPolicy(55, true));
-        self::assertSame($listings, $api->getByReturnPolicy(55, true));
+        $first = $api->getByReturnPolicy(55, true);
+        $second = $api->getByReturnPolicy(55, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByReturnPolicyUsesCacheOnSecondCall(): void
@@ -504,8 +537,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByReturnPolicy(55));
-        self::assertSame($listings, $api->getByReturnPolicy(55));
+        $first = $api->getByReturnPolicy(55);
+        $second = $api->getByReturnPolicy(55);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByShopReturnsListings(): void
@@ -579,8 +615,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByShopSectionIds([7, 8], 25, 0, true));
-        self::assertSame($listings, $api->getByShopSectionIds([7, 8], 25, 0, true));
+        $first = $api->getByShopSectionIds([7, 8], 25, 0, true);
+        $second = $api->getByShopSectionIds([7, 8], 25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByShopSectionIdsUsesCacheOnSecondCall(): void
@@ -596,8 +635,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByShopSectionIds([7, 8]));
-        self::assertSame($listings, $api->getByShopSectionIds([7, 8]));
+        $first = $api->getByShopSectionIds([7, 8]);
+        $second = $api->getByShopSectionIds([7, 8]);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByShopSkipCacheRefetches(): void
@@ -613,8 +655,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByShop(null, 25, 0, true));
-        self::assertSame($listings, $api->getByShop(null, 25, 0, true));
+        $first = $api->getByShop(null, 25, 0, true);
+        $second = $api->getByShop(null, 25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByShopThrowsWhenResultsMissing(): void
@@ -656,8 +701,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getByShop());
-        self::assertSame($listings, $api->getByShop());
+        $first = $api->getByShop();
+        $second = $api->getByShop();
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetByShopWithoutStateOmitsStateQuery(): void
@@ -726,8 +774,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getFeaturedByShop(25, 0, true));
-        self::assertSame($listings, $api->getFeaturedByShop(25, 0, true));
+        $first = $api->getFeaturedByShop(25, 0, true);
+        $second = $api->getFeaturedByShop(25, 0, true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetFeaturedByShopUsesCacheOnSecondCall(): void
@@ -743,8 +794,11 @@ final class ShopListingApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, null, $listingsTransformer);
 
-        self::assertSame($listings, $api->getFeaturedByShop());
-        self::assertSame($listings, $api->getFeaturedByShop());
+        $first = $api->getFeaturedByShop();
+        $second = $api->getFeaturedByShop();
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testUpdateReturnsListing(): void

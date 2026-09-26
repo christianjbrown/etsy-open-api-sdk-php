@@ -117,8 +117,11 @@ final class ShopSectionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopSectionTransformerInterface::class), $sectionsTransformer);
 
-        self::assertSame($sections, $api->getMultiple(true));
-        self::assertSame($sections, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($sections, $first);
+        self::assertSame($sections, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -186,8 +189,11 @@ final class ShopSectionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopSectionTransformerInterface::class), $sectionsTransformer);
 
-        self::assertSame($sections, $api->getMultiple());
-        self::assertSame($sections, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($sections, $first);
+        self::assertSame($sections, $second);
     }
 
     public function testGetOneByIdReturnsSection(): void
@@ -228,8 +234,11 @@ final class ShopSectionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $sectionTransformer, self::createStub(ShopSectionsTransformerInterface::class));
 
-        self::assertSame($section, $api->getOneById(77, true));
-        self::assertSame($section, $api->getOneById(77, true));
+        $first = $api->getOneById(77, true);
+        $second = $api->getOneById(77, true);
+
+        self::assertSame($section, $first);
+        self::assertSame($section, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -271,8 +280,11 @@ final class ShopSectionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $sectionTransformer, self::createStub(ShopSectionsTransformerInterface::class));
 
-        self::assertSame($section, $api->getOneById(77));
-        self::assertSame($section, $api->getOneById(77));
+        $first = $api->getOneById(77);
+        $second = $api->getOneById(77);
+
+        self::assertSame($section, $first);
+        self::assertSame($section, $second);
     }
 
     public function testUpdateReturnsSection(): void

@@ -80,8 +80,11 @@ final class ListingPersonalizationApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $personalizationTransformer);
 
-        self::assertSame($personalization, $api->get(self::LISTING_ID, true));
-        self::assertSame($personalization, $api->get(self::LISTING_ID, true));
+        $first = $api->get(self::LISTING_ID, true);
+        $second = $api->get(self::LISTING_ID, true);
+
+        self::assertSame($personalization, $first);
+        self::assertSame($personalization, $second);
     }
 
     public function testGetSkipCacheThrowsWhenEmpty(): void
@@ -123,8 +126,11 @@ final class ListingPersonalizationApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $personalizationTransformer);
 
-        self::assertSame($personalization, $api->get(self::LISTING_ID));
-        self::assertSame($personalization, $api->get(self::LISTING_ID));
+        $first = $api->get(self::LISTING_ID);
+        $second = $api->get(self::LISTING_ID);
+
+        self::assertSame($personalization, $first);
+        self::assertSame($personalization, $second);
     }
 
     public function testUpdateReturnsPersonalization(): void

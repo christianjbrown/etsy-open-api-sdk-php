@@ -7,8 +7,33 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# A newer push to a pull request makes the older run's answer irrelevant, so it is cancelled.
+# Pushes to main are grouped by commit, so they never cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # On a push to main, every job below is skipped when the pull request it came from already
+  # passed this workflow on the identical tree. Any doubt, or this job failing, runs them all as
+  # before. See christianjbrown/ci-already-tested.
+  tested:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    outputs:
+      tested: ${{ steps.check.outputs.tested }}
+    steps:
+      - name: Already passed on the pull request
+        id: check
+        uses: christianjbrown/ci-already-tested@main
+
   build:
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.tested != 'true' }}
     runs-on: ubuntu-latest
 
     steps:

@@ -65,8 +65,11 @@ final class LedgerEntryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(PaymentAccountLedgerEntryTransformerInterface::class), $entriesTransformer);
 
-        self::assertSame($entries, $api->getMultiple(null, null, 25, 0, true));
-        self::assertSame($entries, $api->getMultiple(null, null, 25, 0, true));
+        $first = $api->getMultiple(null, null, 25, 0, true);
+        $second = $api->getMultiple(null, null, 25, 0, true);
+
+        self::assertSame($entries, $first);
+        self::assertSame($entries, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -134,8 +137,11 @@ final class LedgerEntryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(PaymentAccountLedgerEntryTransformerInterface::class), $entriesTransformer);
 
-        self::assertSame($entries, $api->getMultiple());
-        self::assertSame($entries, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($entries, $first);
+        self::assertSame($entries, $second);
     }
 
     public function testGetMultipleWithMaxCreatedOnly(): void
@@ -226,8 +232,11 @@ final class LedgerEntryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $entryTransformer, self::createStub(PaymentAccountLedgerEntriesTransformerInterface::class));
 
-        self::assertSame($entry, $api->getOneById(99, true));
-        self::assertSame($entry, $api->getOneById(99, true));
+        $first = $api->getOneById(99, true);
+        $second = $api->getOneById(99, true);
+
+        self::assertSame($entry, $first);
+        self::assertSame($entry, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -269,8 +278,11 @@ final class LedgerEntryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $entryTransformer, self::createStub(PaymentAccountLedgerEntriesTransformerInterface::class));
 
-        self::assertSame($entry, $api->getOneById(99));
-        self::assertSame($entry, $api->getOneById(99));
+        $first = $api->getOneById(99);
+        $second = $api->getOneById(99);
+
+        self::assertSame($entry, $first);
+        self::assertSame($entry, $second);
     }
 
     /**

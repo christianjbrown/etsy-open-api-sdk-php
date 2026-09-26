@@ -63,8 +63,11 @@ final class ReviewApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $reviewsTransformer);
 
-        self::assertSame($reviews, $api->getByListing(self::LISTING_ID, 25, 0, true));
-        self::assertSame($reviews, $api->getByListing(self::LISTING_ID, 25, 0, true));
+        $first = $api->getByListing(self::LISTING_ID, 25, 0, true);
+        $second = $api->getByListing(self::LISTING_ID, 25, 0, true);
+
+        self::assertSame($reviews, $first);
+        self::assertSame($reviews, $second);
     }
 
     public function testGetByListingSkipCacheThrowsWhenResultsMissing(): void
@@ -132,8 +135,11 @@ final class ReviewApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $reviewsTransformer);
 
-        self::assertSame($reviews, $api->getByListing(self::LISTING_ID));
-        self::assertSame($reviews, $api->getByListing(self::LISTING_ID));
+        $first = $api->getByListing(self::LISTING_ID);
+        $second = $api->getByListing(self::LISTING_ID);
+
+        self::assertSame($reviews, $first);
+        self::assertSame($reviews, $second);
     }
 
     public function testGetByShopReturnsReviewsWithMinAndMaxCreated(): void
@@ -179,8 +185,11 @@ final class ReviewApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $reviewsTransformer);
 
-        self::assertSame($reviews, $api->getByShop(null, null, 25, 0, true));
-        self::assertSame($reviews, $api->getByShop(null, null, 25, 0, true));
+        $first = $api->getByShop(null, null, 25, 0, true);
+        $second = $api->getByShop(null, null, 25, 0, true);
+
+        self::assertSame($reviews, $first);
+        self::assertSame($reviews, $second);
     }
 
     public function testGetByShopSkipCacheThrowsWhenResultsMissing(): void
@@ -248,8 +257,11 @@ final class ReviewApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $reviewsTransformer);
 
-        self::assertSame($reviews, $api->getByShop());
-        self::assertSame($reviews, $api->getByShop());
+        $first = $api->getByShop();
+        $second = $api->getByShop();
+
+        self::assertSame($reviews, $first);
+        self::assertSame($reviews, $second);
     }
 
     public function testGetByShopWithMaxCreatedOnly(): void

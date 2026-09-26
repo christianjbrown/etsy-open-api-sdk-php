@@ -59,8 +59,11 @@ final class ShopProductionPartnerApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $partnersTransformer);
 
-        self::assertSame($partners, $api->getMultiple(true));
-        self::assertSame($partners, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($partners, $first);
+        self::assertSame($partners, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -128,8 +131,11 @@ final class ShopProductionPartnerApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $partnersTransformer);
 
-        self::assertSame($partners, $api->getMultiple());
-        self::assertSame($partners, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($partners, $first);
+        self::assertSame($partners, $second);
     }
 
     /**

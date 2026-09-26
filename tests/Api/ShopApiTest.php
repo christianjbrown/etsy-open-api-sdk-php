@@ -66,8 +66,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopTransformerInterface::class), $shopsTransformer);
 
-        self::assertSame($shops, $api->findByName('CoolShop', 25, 0, true));
-        self::assertSame($shops, $api->findByName('CoolShop', 25, 0, true));
+        $first = $api->findByName('CoolShop', 25, 0, true);
+        $second = $api->findByName('CoolShop', 25, 0, true);
+
+        self::assertSame($shops, $first);
+        self::assertSame($shops, $second);
     }
 
     public function testFindByNameSkipCacheThrowsWhenResultsMissing(): void
@@ -135,8 +138,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopTransformerInterface::class), $shopsTransformer);
 
-        self::assertSame($shops, $api->findByName('CoolShop'));
-        self::assertSame($shops, $api->findByName('CoolShop'));
+        $first = $api->findByName('CoolShop');
+        $second = $api->findByName('CoolShop');
+
+        self::assertSame($shops, $first);
+        self::assertSame($shops, $second);
     }
 
     public function testGetByOwnerUserIdReturnsShop(): void
@@ -177,8 +183,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $shopTransformer, self::createStub(ShopsTransformerInterface::class));
 
-        self::assertSame($shop, $api->getByOwnerUserId(77, true));
-        self::assertSame($shop, $api->getByOwnerUserId(77, true));
+        $first = $api->getByOwnerUserId(77, true);
+        $second = $api->getByOwnerUserId(77, true);
+
+        self::assertSame($shop, $first);
+        self::assertSame($shop, $second);
     }
 
     public function testGetByOwnerUserIdSkipCacheThrowsWhenEmpty(): void
@@ -220,8 +229,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $shopTransformer, self::createStub(ShopsTransformerInterface::class));
 
-        self::assertSame($shop, $api->getByOwnerUserId(77));
-        self::assertSame($shop, $api->getByOwnerUserId(77));
+        $first = $api->getByOwnerUserId(77);
+        $second = $api->getByOwnerUserId(77);
+
+        self::assertSame($shop, $first);
+        self::assertSame($shop, $second);
     }
 
     public function testGetShopReturnsShop(): void
@@ -262,8 +274,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $shopTransformer, self::createStub(ShopsTransformerInterface::class));
 
-        self::assertSame($shop, $api->getShop(true));
-        self::assertSame($shop, $api->getShop(true));
+        $first = $api->getShop(true);
+        $second = $api->getShop(true);
+
+        self::assertSame($shop, $first);
+        self::assertSame($shop, $second);
     }
 
     public function testGetShopSkipCacheThrowsWhenEmpty(): void
@@ -305,8 +320,11 @@ final class ShopApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $shopTransformer, self::createStub(ShopsTransformerInterface::class));
 
-        self::assertSame($shop, $api->getShop());
-        self::assertSame($shop, $api->getShop());
+        $first = $api->getShop();
+        $second = $api->getShop();
+
+        self::assertSame($shop, $first);
+        self::assertSame($shop, $second);
     }
 
     public function testUpdateShopReturnsShop(): void

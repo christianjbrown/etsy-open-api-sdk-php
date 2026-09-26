@@ -168,8 +168,11 @@ final class ShopReturnPolicyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopReturnPolicyTransformerInterface::class), $policiesTransformer);
 
-        self::assertSame($policies, $api->getMultiple(true));
-        self::assertSame($policies, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($policies, $first);
+        self::assertSame($policies, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -237,8 +240,11 @@ final class ShopReturnPolicyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopReturnPolicyTransformerInterface::class), $policiesTransformer);
 
-        self::assertSame($policies, $api->getMultiple());
-        self::assertSame($policies, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($policies, $first);
+        self::assertSame($policies, $second);
     }
 
     public function testGetOneByIdReturnsPolicy(): void
@@ -279,8 +285,11 @@ final class ShopReturnPolicyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $policyTransformer, self::createStub(ShopReturnPoliciesTransformerInterface::class));
 
-        self::assertSame($policy, $api->getOneById(77, true));
-        self::assertSame($policy, $api->getOneById(77, true));
+        $first = $api->getOneById(77, true);
+        $second = $api->getOneById(77, true);
+
+        self::assertSame($policy, $first);
+        self::assertSame($policy, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -322,8 +331,11 @@ final class ShopReturnPolicyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $policyTransformer, self::createStub(ShopReturnPoliciesTransformerInterface::class));
 
-        self::assertSame($policy, $api->getOneById(77));
-        self::assertSame($policy, $api->getOneById(77));
+        $first = $api->getOneById(77);
+        $second = $api->getOneById(77);
+
+        self::assertSame($policy, $first);
+        self::assertSame($policy, $second);
     }
 
     public function testUpdateReturnsPolicy(): void

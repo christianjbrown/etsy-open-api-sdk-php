@@ -115,8 +115,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
 
-        self::assertSame($receipts, $api->getMultiple(100, 0, true));
-        self::assertSame($receipts, $api->getMultiple(100, 0, true));
+        $first = $api->getMultiple(100, 0, true);
+        $second = $api->getMultiple(100, 0, true);
+
+        self::assertSame($receipts, $first);
+        self::assertSame($receipts, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -184,8 +187,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
 
-        self::assertSame($receipts, $api->getMultiple());
-        self::assertSame($receipts, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($receipts, $first);
+        self::assertSame($receipts, $second);
     }
 
     public function testGetOneByIdReturnsReceipt(): void
@@ -226,8 +232,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
-        self::assertSame($receipt, $api->getOneById(99, true));
-        self::assertSame($receipt, $api->getOneById(99, true));
+        $first = $api->getOneById(99, true);
+        $second = $api->getOneById(99, true);
+
+        self::assertSame($receipt, $first);
+        self::assertSame($receipt, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -269,8 +278,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $receiptTransformer, self::createStub(ReceiptsTransformerInterface::class), self::createStub(ReceiptPageTransformerInterface::class));
 
-        self::assertSame($receipt, $api->getOneById(99));
-        self::assertSame($receipt, $api->getOneById(99));
+        $first = $api->getOneById(99);
+        $second = $api->getOneById(99);
+
+        self::assertSame($receipt, $first);
+        self::assertSame($receipt, $second);
     }
 
     public function testGetPageReturnsPage(): void
@@ -316,8 +328,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
 
-        self::assertSame($page, $api->getPage(100, 0, true));
-        self::assertSame($page, $api->getPage(100, 0, true));
+        $first = $api->getPage(100, 0, true);
+        $second = $api->getPage(100, 0, true);
+
+        self::assertSame($page, $first);
+        self::assertSame($page, $second);
     }
 
     public function testGetPageSkipCacheThrowsWhenEmpty(): void
@@ -359,8 +374,11 @@ final class ShopReceiptApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
 
-        self::assertSame($page, $api->getPage());
-        self::assertSame($page, $api->getPage());
+        $first = $api->getPage();
+        $second = $api->getPage();
+
+        self::assertSame($page, $first);
+        self::assertSame($page, $second);
     }
 
     public function testUpdateShopReceiptReturnsReceipt(): void

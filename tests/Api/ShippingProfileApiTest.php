@@ -271,8 +271,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, carriersTransformer: $carriersTransformer);
 
-        self::assertSame($carriers, $api->getCarriers('US', true));
-        self::assertSame($carriers, $api->getCarriers('US', true));
+        $first = $api->getCarriers('US', true);
+        $second = $api->getCarriers('US', true);
+
+        self::assertSame($carriers, $first);
+        self::assertSame($carriers, $second);
     }
 
     public function testGetCarriersSkipCacheThrowsWhenResultsMissing(): void
@@ -340,8 +343,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, carriersTransformer: $carriersTransformer);
 
-        self::assertSame($carriers, $api->getCarriers('US'));
-        self::assertSame($carriers, $api->getCarriers('US'));
+        $first = $api->getCarriers('US');
+        $second = $api->getCarriers('US');
+
+        self::assertSame($carriers, $first);
+        self::assertSame($carriers, $second);
     }
 
     public function testGetDestinationsReturnsDestinations(): void
@@ -385,8 +391,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, destinationsTransformer: $destinationsTransformer);
 
-        self::assertSame($destinations, $api->getDestinations(self::PROFILE_ID, 25, 0, true));
-        self::assertSame($destinations, $api->getDestinations(self::PROFILE_ID, 25, 0, true));
+        $first = $api->getDestinations(self::PROFILE_ID, 25, 0, true);
+        $second = $api->getDestinations(self::PROFILE_ID, 25, 0, true);
+
+        self::assertSame($destinations, $first);
+        self::assertSame($destinations, $second);
     }
 
     public function testGetDestinationsSkipCacheThrowsWhenResultsMissing(): void
@@ -454,8 +463,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, destinationsTransformer: $destinationsTransformer);
 
-        self::assertSame($destinations, $api->getDestinations(self::PROFILE_ID));
-        self::assertSame($destinations, $api->getDestinations(self::PROFILE_ID));
+        $first = $api->getDestinations(self::PROFILE_ID);
+        $second = $api->getDestinations(self::PROFILE_ID);
+
+        self::assertSame($destinations, $first);
+        self::assertSame($destinations, $second);
     }
 
     public function testGetMultipleReturnsProfiles(): void
@@ -496,8 +508,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, profilesTransformer: $profilesTransformer);
 
-        self::assertSame($profiles, $api->getMultiple(true));
-        self::assertSame($profiles, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($profiles, $first);
+        self::assertSame($profiles, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -565,8 +580,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, profilesTransformer: $profilesTransformer);
 
-        self::assertSame($profiles, $api->getMultiple());
-        self::assertSame($profiles, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($profiles, $first);
+        self::assertSame($profiles, $second);
     }
 
     public function testGetOneByIdReturnsProfile(): void
@@ -606,8 +624,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, profileTransformer: $profileTransformer);
 
-        self::assertSame($profile, $api->getOneById(self::PROFILE_ID, true));
-        self::assertSame($profile, $api->getOneById(self::PROFILE_ID, true));
+        $first = $api->getOneById(self::PROFILE_ID, true);
+        $second = $api->getOneById(self::PROFILE_ID, true);
+
+        self::assertSame($profile, $first);
+        self::assertSame($profile, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -648,8 +669,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, profileTransformer: $profileTransformer);
 
-        self::assertSame($profile, $api->getOneById(self::PROFILE_ID));
-        self::assertSame($profile, $api->getOneById(self::PROFILE_ID));
+        $first = $api->getOneById(self::PROFILE_ID);
+        $second = $api->getOneById(self::PROFILE_ID);
+
+        self::assertSame($profile, $first);
+        self::assertSame($profile, $second);
     }
 
     public function testGetUpgradesReturnsUpgrades(): void
@@ -690,8 +714,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, upgradesTransformer: $upgradesTransformer);
 
-        self::assertSame($upgrades, $api->getUpgrades(self::PROFILE_ID, true));
-        self::assertSame($upgrades, $api->getUpgrades(self::PROFILE_ID, true));
+        $first = $api->getUpgrades(self::PROFILE_ID, true);
+        $second = $api->getUpgrades(self::PROFILE_ID, true);
+
+        self::assertSame($upgrades, $first);
+        self::assertSame($upgrades, $second);
     }
 
     public function testGetUpgradesSkipCacheThrowsWhenResultsMissing(): void
@@ -759,8 +786,11 @@ final class ShippingProfileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, upgradesTransformer: $upgradesTransformer);
 
-        self::assertSame($upgrades, $api->getUpgrades(self::PROFILE_ID));
-        self::assertSame($upgrades, $api->getUpgrades(self::PROFILE_ID));
+        $first = $api->getUpgrades(self::PROFILE_ID);
+        $second = $api->getUpgrades(self::PROFILE_ID);
+
+        self::assertSame($upgrades, $first);
+        self::assertSame($upgrades, $second);
     }
 
     public function testUpdateDestinationReturnsDestination(): void
