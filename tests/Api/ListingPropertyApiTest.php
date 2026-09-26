@@ -81,8 +81,11 @@ final class ListingPropertyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingPropertyValueTransformerInterface::class), $valuesTransformer);
 
-        self::assertSame($properties, $api->getMultiple(self::LISTING_ID, true));
-        self::assertSame($properties, $api->getMultiple(self::LISTING_ID, true));
+        $first = $api->getMultiple(self::LISTING_ID, true);
+        $second = $api->getMultiple(self::LISTING_ID, true);
+
+        self::assertSame($properties, $first);
+        self::assertSame($properties, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -150,8 +153,11 @@ final class ListingPropertyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingPropertyValueTransformerInterface::class), $valuesTransformer);
 
-        self::assertSame($properties, $api->getMultiple(self::LISTING_ID));
-        self::assertSame($properties, $api->getMultiple(self::LISTING_ID));
+        $first = $api->getMultiple(self::LISTING_ID);
+        $second = $api->getMultiple(self::LISTING_ID);
+
+        self::assertSame($properties, $first);
+        self::assertSame($properties, $second);
     }
 
     public function testGetOneByIdReturnsPropertyValue(): void
@@ -192,8 +198,11 @@ final class ListingPropertyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $valueTransformer, self::createStub(ListingPropertyValuesTransformerInterface::class));
 
-        self::assertSame($property, $api->getOneById(self::LISTING_ID, 99, true));
-        self::assertSame($property, $api->getOneById(self::LISTING_ID, 99, true));
+        $first = $api->getOneById(self::LISTING_ID, 99, true);
+        $second = $api->getOneById(self::LISTING_ID, 99, true);
+
+        self::assertSame($property, $first);
+        self::assertSame($property, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -235,8 +244,11 @@ final class ListingPropertyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $valueTransformer, self::createStub(ListingPropertyValuesTransformerInterface::class));
 
-        self::assertSame($property, $api->getOneById(self::LISTING_ID, 99));
-        self::assertSame($property, $api->getOneById(self::LISTING_ID, 99));
+        $first = $api->getOneById(self::LISTING_ID, 99);
+        $second = $api->getOneById(self::LISTING_ID, 99);
+
+        self::assertSame($property, $first);
+        self::assertSame($property, $second);
     }
 
     public function testUpdateReturnsPropertyValue(): void

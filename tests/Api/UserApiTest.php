@@ -57,8 +57,11 @@ final class UserApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $userTransformer);
 
-        self::assertSame($user, $api->getById(88, true));
-        self::assertSame($user, $api->getById(88, true));
+        $first = $api->getById(88, true);
+        $second = $api->getById(88, true);
+
+        self::assertSame($user, $first);
+        self::assertSame($user, $second);
     }
 
     public function testGetByIdSkipCacheThrowsWhenEmpty(): void
@@ -100,8 +103,11 @@ final class UserApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $userTransformer);
 
-        self::assertSame($user, $api->getById(88));
-        self::assertSame($user, $api->getById(88));
+        $first = $api->getById(88);
+        $second = $api->getById(88);
+
+        self::assertSame($user, $first);
+        self::assertSame($user, $second);
     }
 
     public function testGetMeReturnsUser(): void
@@ -138,8 +144,11 @@ final class UserApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $userTransformer);
 
-        self::assertSame($user, $api->getMe(true));
-        self::assertSame($user, $api->getMe(true));
+        $first = $api->getMe(true);
+        $second = $api->getMe(true);
+
+        self::assertSame($user, $first);
+        self::assertSame($user, $second);
     }
 
     public function testGetMeSkipCacheThrowsWhenEmpty(): void
@@ -181,8 +190,11 @@ final class UserApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $userTransformer);
 
-        self::assertSame($user, $api->getMe());
-        self::assertSame($user, $api->getMe());
+        $first = $api->getMe();
+        $second = $api->getMe();
+
+        self::assertSame($user, $first);
+        self::assertSame($user, $second);
     }
 
     /**

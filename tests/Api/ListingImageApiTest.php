@@ -83,8 +83,11 @@ final class ListingImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingImageTransformerInterface::class), $imagesTransformer);
 
-        self::assertSame($images, $api->getMultiple(self::LISTING_ID, true));
-        self::assertSame($images, $api->getMultiple(self::LISTING_ID, true));
+        $first = $api->getMultiple(self::LISTING_ID, true);
+        $second = $api->getMultiple(self::LISTING_ID, true);
+
+        self::assertSame($images, $first);
+        self::assertSame($images, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -152,8 +155,11 @@ final class ListingImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingImageTransformerInterface::class), $imagesTransformer);
 
-        self::assertSame($images, $api->getMultiple(self::LISTING_ID));
-        self::assertSame($images, $api->getMultiple(self::LISTING_ID));
+        $first = $api->getMultiple(self::LISTING_ID);
+        $second = $api->getMultiple(self::LISTING_ID);
+
+        self::assertSame($images, $first);
+        self::assertSame($images, $second);
     }
 
     public function testGetOneByIdReturnsImage(): void
@@ -194,8 +200,11 @@ final class ListingImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $imageTransformer, self::createStub(ListingImagesTransformerInterface::class));
 
-        self::assertSame($image, $api->getOneById(self::LISTING_ID, 99, true));
-        self::assertSame($image, $api->getOneById(self::LISTING_ID, 99, true));
+        $first = $api->getOneById(self::LISTING_ID, 99, true);
+        $second = $api->getOneById(self::LISTING_ID, 99, true);
+
+        self::assertSame($image, $first);
+        self::assertSame($image, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -237,8 +246,11 @@ final class ListingImageApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $imageTransformer, self::createStub(ListingImagesTransformerInterface::class));
 
-        self::assertSame($image, $api->getOneById(self::LISTING_ID, 99));
-        self::assertSame($image, $api->getOneById(self::LISTING_ID, 99));
+        $first = $api->getOneById(self::LISTING_ID, 99);
+        $second = $api->getOneById(self::LISTING_ID, 99);
+
+        self::assertSame($image, $first);
+        self::assertSame($image, $second);
     }
 
     public function testUploadReturnsImage(): void

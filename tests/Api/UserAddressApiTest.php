@@ -79,8 +79,11 @@ final class UserAddressApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(UserAddressTransformerInterface::class), $addressesTransformer);
 
-        self::assertSame($addresses, $api->getMultiple(25, 0, true));
-        self::assertSame($addresses, $api->getMultiple(25, 0, true));
+        $first = $api->getMultiple(25, 0, true);
+        $second = $api->getMultiple(25, 0, true);
+
+        self::assertSame($addresses, $first);
+        self::assertSame($addresses, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -148,8 +151,11 @@ final class UserAddressApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(UserAddressTransformerInterface::class), $addressesTransformer);
 
-        self::assertSame($addresses, $api->getMultiple());
-        self::assertSame($addresses, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($addresses, $first);
+        self::assertSame($addresses, $second);
     }
 
     public function testGetOneByIdReturnsUserAddress(): void
@@ -190,8 +196,11 @@ final class UserAddressApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $addressTransformer, self::createStub(UserAddressesTransformerInterface::class));
 
-        self::assertSame($address, $api->getOneById(99, true));
-        self::assertSame($address, $api->getOneById(99, true));
+        $first = $api->getOneById(99, true);
+        $second = $api->getOneById(99, true);
+
+        self::assertSame($address, $first);
+        self::assertSame($address, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -233,8 +242,11 @@ final class UserAddressApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $addressTransformer, self::createStub(UserAddressesTransformerInterface::class));
 
-        self::assertSame($address, $api->getOneById(99));
-        self::assertSame($address, $api->getOneById(99));
+        $first = $api->getOneById(99);
+        $second = $api->getOneById(99);
+
+        self::assertSame($address, $first);
+        self::assertSame($address, $second);
     }
 
     /**

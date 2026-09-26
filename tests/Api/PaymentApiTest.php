@@ -59,8 +59,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByLedgerEntryIds([7, 8], true));
-        self::assertSame($payments, $api->getByLedgerEntryIds([7, 8], true));
+        $first = $api->getByLedgerEntryIds([7, 8], true);
+        $second = $api->getByLedgerEntryIds([7, 8], true);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     public function testGetByLedgerEntryIdsUsesCacheOnSecondCall(): void
@@ -76,8 +79,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByLedgerEntryIds([7, 8]));
-        self::assertSame($payments, $api->getByLedgerEntryIds([7, 8]));
+        $first = $api->getByLedgerEntryIds([7, 8]);
+        $second = $api->getByLedgerEntryIds([7, 8]);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     public function testGetByPaymentIdsReturnsPayments(): void
@@ -118,8 +124,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByPaymentIds([1, 2], true));
-        self::assertSame($payments, $api->getByPaymentIds([1, 2], true));
+        $first = $api->getByPaymentIds([1, 2], true);
+        $second = $api->getByPaymentIds([1, 2], true);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     public function testGetByPaymentIdsSkipCacheThrowsWhenResultsMissing(): void
@@ -161,8 +170,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByPaymentIds([1, 2]));
-        self::assertSame($payments, $api->getByPaymentIds([1, 2]));
+        $first = $api->getByPaymentIds([1, 2]);
+        $second = $api->getByPaymentIds([1, 2]);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     public function testGetByReceiptReturnsPayments(): void
@@ -203,8 +215,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByReceipt(88, true));
-        self::assertSame($payments, $api->getByReceipt(88, true));
+        $first = $api->getByReceipt(88, true);
+        $second = $api->getByReceipt(88, true);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     public function testGetByReceiptUsesCacheOnSecondCall(): void
@@ -220,8 +235,11 @@ final class PaymentApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $paymentsTransformer);
 
-        self::assertSame($payments, $api->getByReceipt(88));
-        self::assertSame($payments, $api->getByReceipt(88));
+        $first = $api->getByReceipt(88);
+        $second = $api->getByReceipt(88);
+
+        self::assertSame($payments, $first);
+        self::assertSame($payments, $second);
     }
 
     /**

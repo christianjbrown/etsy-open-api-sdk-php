@@ -76,8 +76,11 @@ final class ShopHolidayPreferenceApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $preferencesTransformer);
 
-        self::assertSame($preferences, $api->getMultiple(true));
-        self::assertSame($preferences, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($preferences, $first);
+        self::assertSame($preferences, $second);
     }
 
     public function testGetMultipleUsesCacheOnSecondCall(): void
@@ -93,8 +96,11 @@ final class ShopHolidayPreferenceApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $preferencesTransformer);
 
-        self::assertSame($preferences, $api->getMultiple());
-        self::assertSame($preferences, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($preferences, $first);
+        self::assertSame($preferences, $second);
     }
 
     public function testUpdateHolidayPreferenceReturnsPreference(): void

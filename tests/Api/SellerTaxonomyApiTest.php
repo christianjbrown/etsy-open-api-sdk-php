@@ -57,8 +57,11 @@ final class SellerTaxonomyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $nodesTransformer, self::createStub(TaxonomyNodePropertiesTransformerInterface::class));
 
-        self::assertSame($nodes, $api->getNodes(true));
-        self::assertSame($nodes, $api->getNodes(true));
+        $first = $api->getNodes(true);
+        $second = $api->getNodes(true);
+
+        self::assertSame($nodes, $first);
+        self::assertSame($nodes, $second);
     }
 
     public function testGetNodesSkipCacheThrowsWhenResultsMissing(): void
@@ -126,8 +129,11 @@ final class SellerTaxonomyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $nodesTransformer, self::createStub(TaxonomyNodePropertiesTransformerInterface::class));
 
-        self::assertSame($nodes, $api->getNodes());
-        self::assertSame($nodes, $api->getNodes());
+        $first = $api->getNodes();
+        $second = $api->getNodes();
+
+        self::assertSame($nodes, $first);
+        self::assertSame($nodes, $second);
     }
 
     public function testGetPropertiesReturnsProperties(): void
@@ -164,8 +170,11 @@ final class SellerTaxonomyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(SellerTaxonomyNodesTransformerInterface::class), $propertiesTransformer);
 
-        self::assertSame($properties, $api->getProperties(self::TAXONOMY_ID, true));
-        self::assertSame($properties, $api->getProperties(self::TAXONOMY_ID, true));
+        $first = $api->getProperties(self::TAXONOMY_ID, true);
+        $second = $api->getProperties(self::TAXONOMY_ID, true);
+
+        self::assertSame($properties, $first);
+        self::assertSame($properties, $second);
     }
 
     public function testGetPropertiesSkipCacheThrowsWhenResultsMissing(): void
@@ -233,8 +242,11 @@ final class SellerTaxonomyApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(SellerTaxonomyNodesTransformerInterface::class), $propertiesTransformer);
 
-        self::assertSame($properties, $api->getProperties(self::TAXONOMY_ID));
-        self::assertSame($properties, $api->getProperties(self::TAXONOMY_ID));
+        $first = $api->getProperties(self::TAXONOMY_ID);
+        $second = $api->getProperties(self::TAXONOMY_ID);
+
+        self::assertSame($properties, $first);
+        self::assertSame($properties, $second);
     }
 
     /**

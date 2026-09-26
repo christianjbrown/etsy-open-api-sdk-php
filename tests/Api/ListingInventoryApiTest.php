@@ -67,8 +67,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $inventoryTransformer, self::createStub(ListingInventoryProductTransformerInterface::class), self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
 
-        self::assertSame($inventory, $api->getByListingId(self::LISTING_ID, true));
-        self::assertSame($inventory, $api->getByListingId(self::LISTING_ID, true));
+        $first = $api->getByListingId(self::LISTING_ID, true);
+        $second = $api->getByListingId(self::LISTING_ID, true);
+
+        self::assertSame($inventory, $first);
+        self::assertSame($inventory, $second);
     }
 
     public function testGetByListingIdSkipCacheThrowsWhenEmpty(): void
@@ -110,8 +113,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $inventoryTransformer, self::createStub(ListingInventoryProductTransformerInterface::class), self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
 
-        self::assertSame($inventory, $api->getByListingId(self::LISTING_ID));
-        self::assertSame($inventory, $api->getByListingId(self::LISTING_ID));
+        $first = $api->getByListingId(self::LISTING_ID);
+        $second = $api->getByListingId(self::LISTING_ID);
+
+        self::assertSame($inventory, $first);
+        self::assertSame($inventory, $second);
     }
 
     public function testGetOfferingReturnsOffering(): void
@@ -152,8 +158,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), self::createStub(ListingInventoryProductTransformerInterface::class), $offeringTransformer);
 
-        self::assertSame($offering, $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID, true));
-        self::assertSame($offering, $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID, true));
+        $first = $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID, true);
+        $second = $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID, true);
+
+        self::assertSame($offering, $first);
+        self::assertSame($offering, $second);
     }
 
     public function testGetOfferingSkipCacheThrowsWhenEmpty(): void
@@ -195,8 +204,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), self::createStub(ListingInventoryProductTransformerInterface::class), $offeringTransformer);
 
-        self::assertSame($offering, $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID));
-        self::assertSame($offering, $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID));
+        $first = $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID);
+        $second = $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID);
+
+        self::assertSame($offering, $first);
+        self::assertSame($offering, $second);
     }
 
     public function testGetProductReturnsProduct(): void
@@ -237,8 +249,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), $productTransformer, self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
 
-        self::assertSame($product, $api->getProduct(self::LISTING_ID, self::PRODUCT_ID, true));
-        self::assertSame($product, $api->getProduct(self::LISTING_ID, self::PRODUCT_ID, true));
+        $first = $api->getProduct(self::LISTING_ID, self::PRODUCT_ID, true);
+        $second = $api->getProduct(self::LISTING_ID, self::PRODUCT_ID, true);
+
+        self::assertSame($product, $first);
+        self::assertSame($product, $second);
     }
 
     public function testGetProductSkipCacheThrowsWhenEmpty(): void
@@ -280,8 +295,11 @@ final class ListingInventoryApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingInventoryTransformerInterface::class), $productTransformer, self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
 
-        self::assertSame($product, $api->getProduct(self::LISTING_ID, self::PRODUCT_ID));
-        self::assertSame($product, $api->getProduct(self::LISTING_ID, self::PRODUCT_ID));
+        $first = $api->getProduct(self::LISTING_ID, self::PRODUCT_ID);
+        $second = $api->getProduct(self::LISTING_ID, self::PRODUCT_ID);
+
+        self::assertSame($product, $first);
+        self::assertSame($product, $second);
     }
 
     public function testUpdateReturnsInventory(): void

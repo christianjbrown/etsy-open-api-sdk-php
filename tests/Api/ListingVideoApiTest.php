@@ -83,8 +83,11 @@ final class ListingVideoApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingVideoTransformerInterface::class), $videosTransformer);
 
-        self::assertSame($videos, $api->getMultiple(self::LISTING_ID, true));
-        self::assertSame($videos, $api->getMultiple(self::LISTING_ID, true));
+        $first = $api->getMultiple(self::LISTING_ID, true);
+        $second = $api->getMultiple(self::LISTING_ID, true);
+
+        self::assertSame($videos, $first);
+        self::assertSame($videos, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -152,8 +155,11 @@ final class ListingVideoApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingVideoTransformerInterface::class), $videosTransformer);
 
-        self::assertSame($videos, $api->getMultiple(self::LISTING_ID));
-        self::assertSame($videos, $api->getMultiple(self::LISTING_ID));
+        $first = $api->getMultiple(self::LISTING_ID);
+        $second = $api->getMultiple(self::LISTING_ID);
+
+        self::assertSame($videos, $first);
+        self::assertSame($videos, $second);
     }
 
     public function testGetOneByIdReturnsVideo(): void
@@ -194,8 +200,11 @@ final class ListingVideoApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $videoTransformer, self::createStub(ListingVideosTransformerInterface::class));
 
-        self::assertSame($video, $api->getOneById(self::LISTING_ID, 99, true));
-        self::assertSame($video, $api->getOneById(self::LISTING_ID, 99, true));
+        $first = $api->getOneById(self::LISTING_ID, 99, true);
+        $second = $api->getOneById(self::LISTING_ID, 99, true);
+
+        self::assertSame($video, $first);
+        self::assertSame($video, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -237,8 +246,11 @@ final class ListingVideoApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $videoTransformer, self::createStub(ListingVideosTransformerInterface::class));
 
-        self::assertSame($video, $api->getOneById(self::LISTING_ID, 99));
-        self::assertSame($video, $api->getOneById(self::LISTING_ID, 99));
+        $first = $api->getOneById(self::LISTING_ID, 99);
+        $second = $api->getOneById(self::LISTING_ID, 99);
+
+        self::assertSame($video, $first);
+        self::assertSame($video, $second);
     }
 
     public function testUploadReturnsVideo(): void

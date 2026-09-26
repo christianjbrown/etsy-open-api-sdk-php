@@ -128,8 +128,11 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), $definitionsTransformer);
 
-        self::assertSame($definitions, $api->getMultiple(true));
-        self::assertSame($definitions, $api->getMultiple(true));
+        $first = $api->getMultiple(true);
+        $second = $api->getMultiple(true);
+
+        self::assertSame($definitions, $first);
+        self::assertSame($definitions, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -197,8 +200,11 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), $definitionsTransformer);
 
-        self::assertSame($definitions, $api->getMultiple());
-        self::assertSame($definitions, $api->getMultiple());
+        $first = $api->getMultiple();
+        $second = $api->getMultiple();
+
+        self::assertSame($definitions, $first);
+        self::assertSame($definitions, $second);
     }
 
     public function testGetOneByIdReturnsDefinition(): void
@@ -239,8 +245,11 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $definitionTransformer, self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class));
 
-        self::assertSame($definition, $api->getOneById(77, true));
-        self::assertSame($definition, $api->getOneById(77, true));
+        $first = $api->getOneById(77, true);
+        $second = $api->getOneById(77, true);
+
+        self::assertSame($definition, $first);
+        self::assertSame($definition, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -282,8 +291,11 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $definitionTransformer, self::createStub(ShopReadinessStateDefinitionsTransformerInterface::class));
 
-        self::assertSame($definition, $api->getOneById(77));
-        self::assertSame($definition, $api->getOneById(77));
+        $first = $api->getOneById(77);
+        $second = $api->getOneById(77);
+
+        self::assertSame($definition, $first);
+        self::assertSame($definition, $second);
     }
 
     public function testUpdateReturnsDefinition(): void

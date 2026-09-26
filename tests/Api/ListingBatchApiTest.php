@@ -59,8 +59,11 @@ final class ListingBatchApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingsTransformer);
 
-        self::assertSame($listings, $api->getInventoryByListingIds([1, 2, 3], true));
-        self::assertSame($listings, $api->getInventoryByListingIds([1, 2, 3], true));
+        $first = $api->getInventoryByListingIds([1, 2, 3], true);
+        $second = $api->getInventoryByListingIds([1, 2, 3], true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetInventoryByListingIdsSkipCacheThrowsWhenResultsNotArray(): void
@@ -102,8 +105,11 @@ final class ListingBatchApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingsTransformer);
 
-        self::assertSame($listings, $api->getInventoryByListingIds([1, 2, 3]));
-        self::assertSame($listings, $api->getInventoryByListingIds([1, 2, 3]));
+        $first = $api->getInventoryByListingIds([1, 2, 3]);
+        $second = $api->getInventoryByListingIds([1, 2, 3]);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetShippingByListingIdsReturnsListings(): void
@@ -146,8 +152,11 @@ final class ListingBatchApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingsTransformer);
 
-        self::assertSame($listings, $api->getShippingByListingIds([1, 2, 3], true));
-        self::assertSame($listings, $api->getShippingByListingIds([1, 2, 3], true));
+        $first = $api->getShippingByListingIds([1, 2, 3], true);
+        $second = $api->getShippingByListingIds([1, 2, 3], true);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     public function testGetShippingByListingIdsUsesCacheOnSecondCall(): void
@@ -163,8 +172,11 @@ final class ListingBatchApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $listingsTransformer);
 
-        self::assertSame($listings, $api->getShippingByListingIds([1, 2, 3]));
-        self::assertSame($listings, $api->getShippingByListingIds([1, 2, 3]));
+        $first = $api->getShippingByListingIds([1, 2, 3]);
+        $second = $api->getShippingByListingIds([1, 2, 3]);
+
+        self::assertSame($listings, $first);
+        self::assertSame($listings, $second);
     }
 
     /**

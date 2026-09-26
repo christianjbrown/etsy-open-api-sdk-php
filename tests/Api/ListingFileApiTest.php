@@ -83,8 +83,11 @@ final class ListingFileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingFileTransformerInterface::class), $filesTransformer);
 
-        self::assertSame($files, $api->getMultiple(self::LISTING_ID, true));
-        self::assertSame($files, $api->getMultiple(self::LISTING_ID, true));
+        $first = $api->getMultiple(self::LISTING_ID, true);
+        $second = $api->getMultiple(self::LISTING_ID, true);
+
+        self::assertSame($files, $first);
+        self::assertSame($files, $second);
     }
 
     public function testGetMultipleSkipCacheThrowsWhenResultsMissing(): void
@@ -152,8 +155,11 @@ final class ListingFileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, self::createStub(ListingFileTransformerInterface::class), $filesTransformer);
 
-        self::assertSame($files, $api->getMultiple(self::LISTING_ID));
-        self::assertSame($files, $api->getMultiple(self::LISTING_ID));
+        $first = $api->getMultiple(self::LISTING_ID);
+        $second = $api->getMultiple(self::LISTING_ID);
+
+        self::assertSame($files, $first);
+        self::assertSame($files, $second);
     }
 
     public function testGetOneByIdReturnsFile(): void
@@ -194,8 +200,11 @@ final class ListingFileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $fileTransformer, self::createStub(ListingFilesTransformerInterface::class));
 
-        self::assertSame($file, $api->getOneById(self::LISTING_ID, 99, true));
-        self::assertSame($file, $api->getOneById(self::LISTING_ID, 99, true));
+        $first = $api->getOneById(self::LISTING_ID, 99, true);
+        $second = $api->getOneById(self::LISTING_ID, 99, true);
+
+        self::assertSame($file, $first);
+        self::assertSame($file, $second);
     }
 
     public function testGetOneByIdSkipCacheThrowsWhenEmpty(): void
@@ -237,8 +246,11 @@ final class ListingFileApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $fileTransformer, self::createStub(ListingFilesTransformerInterface::class));
 
-        self::assertSame($file, $api->getOneById(self::LISTING_ID, 99));
-        self::assertSame($file, $api->getOneById(self::LISTING_ID, 99));
+        $first = $api->getOneById(self::LISTING_ID, 99);
+        $second = $api->getOneById(self::LISTING_ID, 99);
+
+        self::assertSame($file, $first);
+        self::assertSame($file, $second);
     }
 
     public function testUploadReturnsFile(): void

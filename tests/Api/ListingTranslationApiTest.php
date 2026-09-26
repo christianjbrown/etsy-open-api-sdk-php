@@ -110,8 +110,11 @@ final class ListingTranslationApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $translationTransformer);
 
-        self::assertSame($translation, $api->getByLanguage(self::LISTING_ID, self::LANGUAGE, true));
-        self::assertSame($translation, $api->getByLanguage(self::LISTING_ID, self::LANGUAGE, true));
+        $first = $api->getByLanguage(self::LISTING_ID, self::LANGUAGE, true);
+        $second = $api->getByLanguage(self::LISTING_ID, self::LANGUAGE, true);
+
+        self::assertSame($translation, $first);
+        self::assertSame($translation, $second);
     }
 
     public function testGetByLanguageSkipCacheThrowsWhenEmpty(): void
@@ -153,8 +156,11 @@ final class ListingTranslationApiTest extends TestCase
 
         $api = $this->buildApi([], $requestSender, $translationTransformer);
 
-        self::assertSame($translation, $api->getByLanguage(self::LISTING_ID, self::LANGUAGE));
-        self::assertSame($translation, $api->getByLanguage(self::LISTING_ID, self::LANGUAGE));
+        $first = $api->getByLanguage(self::LISTING_ID, self::LANGUAGE);
+        $second = $api->getByLanguage(self::LISTING_ID, self::LANGUAGE);
+
+        self::assertSame($translation, $first);
+        self::assertSame($translation, $second);
     }
 
     public function testUpdateReturnsTranslation(): void
