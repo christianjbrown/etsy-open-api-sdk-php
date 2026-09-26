@@ -7,6 +7,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# A newer push to a pull request makes the older run's answer irrelevant, so it is cancelled.
+# Pushes to main are grouped by commit, so they never cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # On a push to main, every job below is skipped when the pull request it came from already
   # passed this workflow on the identical tree. Any doubt, or this job failing, runs them all as
