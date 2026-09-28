@@ -8,16 +8,19 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\TransactionInterface;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\TransactionTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopReceiptTransactionApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopReceiptTransactionApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -348,6 +351,6 @@ final class ShopReceiptTransactionApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopReceiptTransactionApi($requestSender, $transactionTransformer, $transactionsTransformer, $credentials, self::SHOP_ID);
+        return new ShopReceiptTransactionApi($requestSender, $transactionTransformer, $transactionsTransformer, new ResponseCache(), new ResponseCache(), new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

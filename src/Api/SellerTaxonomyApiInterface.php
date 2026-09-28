@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\SellerTaxonomyNodeInterface;
 use ChristianBrown\Etsy\Model\TaxonomyNodePropertyInterface;
 
-interface SellerTaxonomyApiInterface extends ApiInterface
+interface SellerTaxonomyApiInterface
 {
     public const string API_URL_NODES = 'https://openapi.etsy.com/v3/application/seller-taxonomy/nodes';
     public const string API_URL_PROPERTIES_SPRINTF = 'https://openapi.etsy.com/v3/application/seller-taxonomy/nodes/%d/properties';

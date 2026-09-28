@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilderInterface;
 use ChristianBrown\Etsy\Model\ListingVideoInterface;
@@ -25,26 +26,18 @@ use function sprintf;
 final class ListingVideoApi implements ListingVideoApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, array<int, ListingVideoInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private JsonToArrayTransformerInterface $jsonToArrayTransformer;
     private ListingVideosTransformerInterface $listingVideosTransformer;
     private ListingVideoTransformerInterface $listingVideoTransformer;
     private MultipartFormDataBuilderInterface $multipartFormDataBuilder;
-
-    /**
-     * @var array<string, ListingVideoInterface>
-     */
-    private array $oneCache = [];
+    private ResponseCacheInterface $oneCache;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingVideoTransformerInterface $listingVideoTransformer, ListingVideosTransformerInterface $listingVideosTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingVideoTransformerInterface $listingVideoTransformer, ListingVideosTransformerInterface $listingVideosTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -53,6 +46,8 @@ final class ListingVideoApi implements ListingVideoApiInterface
         $this->multipartFormDataBuilder = $multipartFormDataBuilder;
         $this->jsonToArrayTransformer = $jsonToArrayTransformer;
         $this->uploadListingVideoRequestSerializer = $uploadListingVideoRequestSerializer;
+        $this->cache = $cache;
+        $this->oneCache = $oneCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -65,7 +60,8 @@ final class ListingVideoApi implements ListingVideoApiInterface
         $url = sprintf(self::API_URL_WRITE_ONE_SPRINTF, $this->shopId, $listingId, $videoId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $videoId)]);
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->delete(sprintf('%d:%d', $listingId, $videoId));
     }
 
     /**
@@ -77,8 +73,13 @@ final class ListingVideoApi implements ListingVideoApiInterface
     public function getMultiple(int $listingId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var array<int, ListingVideoInterface> $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -92,7 +93,7 @@ final class ListingVideoApi implements ListingVideoApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $listingVideos = $this->listingVideosTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $listingVideos;
+        $this->cache->set((string) $listingId, $listingVideos);
 
         return $listingVideos;
     }
@@ -105,8 +106,13 @@ final class ListingVideoApi implements ListingVideoApiInterface
     {
         $cacheKey = sprintf('%d:%d', $listingId, $videoId);
         if (!$skipCache) {
-            if (isset($this->oneCache[$cacheKey])) {
-                return $this->oneCache[$cacheKey];
+            if ($this->oneCache->has($cacheKey)) {
+                /**
+                 * @var ListingVideoInterface $cached
+                 */
+                $cached = $this->oneCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -117,7 +123,7 @@ final class ListingVideoApi implements ListingVideoApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingVideo = $this->listingVideoTransformer->transform($data);
-        $this->oneCache[$cacheKey] = $listingVideo;
+        $this->oneCache->set($cacheKey, $listingVideo);
 
         return $listingVideo;
     }
@@ -139,8 +145,8 @@ final class ListingVideoApi implements ListingVideoApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingVideo = $this->listingVideoTransformer->transform($data);
-        unset($this->cache[$listingId]);
-        $this->oneCache[sprintf('%d:%d', $listingId, $listingVideo->getVideoId())] = $listingVideo;
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->set(sprintf('%d:%d', $listingId, $listingVideo->getVideoId()), $listingVideo);
 
         return $listingVideo;
     }

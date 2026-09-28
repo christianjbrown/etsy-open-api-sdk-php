@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ListingWithAssociationsInterface;
 
-interface ListingBatchApiInterface extends ApiInterface
+interface ListingBatchApiInterface
 {
     public const string API_URL_INVENTORY = 'https://openapi.etsy.com/v3/application/listings/batch/inventory';
     public const string API_URL_SHIPPING = 'https://openapi.etsy.com/v3/application/listings/batch/shipping';

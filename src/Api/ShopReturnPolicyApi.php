@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyInterface;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyRequestInterface;
@@ -21,30 +22,24 @@ use function sprintf;
 final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var null|array<int, ShopReturnPolicyInterface>
-     */
-    private ?array $cache = null;
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private JsonApiRequestSenderInterface $requestSender;
-
-    /**
-     * @var array<int, ShopReturnPolicyInterface>
-     */
-    private array $returnPolicyCache = [];
+    private ResponseCacheInterface $returnPolicyCache;
     private int $shopId;
     private ShopReturnPoliciesTransformerInterface $shopReturnPoliciesTransformer;
     private ShopReturnPolicyRequestSerializerInterface $shopReturnPolicyRequestSerializer;
     private ShopReturnPolicyTransformerInterface $shopReturnPolicyTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopReturnPolicyTransformerInterface $shopReturnPolicyTransformer, ShopReturnPoliciesTransformerInterface $shopReturnPoliciesTransformer, ShopReturnPolicyRequestSerializerInterface $shopReturnPolicyRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopReturnPolicyTransformerInterface $shopReturnPolicyTransformer, ShopReturnPoliciesTransformerInterface $shopReturnPoliciesTransformer, ShopReturnPolicyRequestSerializerInterface $shopReturnPolicyRequestSerializer, ResponseCacheInterface $returnPolicyCache, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
         $this->shopReturnPolicyTransformer = $shopReturnPolicyTransformer;
         $this->shopReturnPoliciesTransformer = $shopReturnPoliciesTransformer;
         $this->shopReturnPolicyRequestSerializer = $shopReturnPolicyRequestSerializer;
+        $this->returnPolicyCache = $returnPolicyCache;
+        $this->cache = $cache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -66,9 +61,9 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReturnPolicy = $this->shopReturnPolicyTransformer->transform($data);
-        $this->cache = null;
-        unset($this->returnPolicyCache[$sourceReturnPolicyId]);
-        $this->returnPolicyCache[$destinationReturnPolicyId] = $shopReturnPolicy;
+        $this->cache->clear();
+        $this->returnPolicyCache->delete((string) $sourceReturnPolicyId);
+        $this->returnPolicyCache->set((string) $destinationReturnPolicyId, $shopReturnPolicy);
 
         return $shopReturnPolicy;
     }
@@ -86,7 +81,7 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReturnPolicy = $this->shopReturnPolicyTransformer->transform($data);
-        $this->cache = null;
+        $this->cache->clear();
 
         return $shopReturnPolicy;
     }
@@ -99,8 +94,8 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
         $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $returnPolicyId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        $this->cache = null;
-        unset($this->returnPolicyCache[$returnPolicyId]);
+        $this->cache->clear();
+        $this->returnPolicyCache->delete((string) $returnPolicyId);
     }
 
     /**
@@ -112,8 +107,13 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
     public function getMultiple(bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (null !== $this->cache) {
-                return $this->cache;
+            if ($this->cache->has('all')) {
+                /**
+                 * @var array<int, ShopReturnPolicyInterface> $cached
+                 */
+                $cached = $this->cache->get('all');
+
+                return $cached;
             }
         }
 
@@ -127,7 +127,7 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $shopReturnPolicies = $this->shopReturnPoliciesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache = $shopReturnPolicies;
+        $this->cache->set('all', $shopReturnPolicies);
 
         return $shopReturnPolicies;
     }
@@ -139,8 +139,13 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
     public function getOneById(int $returnPolicyId, bool $skipCache = false): ShopReturnPolicyInterface
     {
         if (!$skipCache) {
-            if (isset($this->returnPolicyCache[$returnPolicyId])) {
-                return $this->returnPolicyCache[$returnPolicyId];
+            if ($this->returnPolicyCache->has((string) $returnPolicyId)) {
+                /**
+                 * @var ShopReturnPolicyInterface $cached
+                 */
+                $cached = $this->returnPolicyCache->get((string) $returnPolicyId);
+
+                return $cached;
             }
         }
 
@@ -151,7 +156,7 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReturnPolicy = $this->shopReturnPolicyTransformer->transform($data);
-        $this->returnPolicyCache[$returnPolicyId] = $shopReturnPolicy;
+        $this->returnPolicyCache->set((string) $returnPolicyId, $shopReturnPolicy);
 
         return $shopReturnPolicy;
     }
@@ -169,8 +174,8 @@ final class ShopReturnPolicyApi implements ShopReturnPolicyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReturnPolicy = $this->shopReturnPolicyTransformer->transform($data);
-        $this->cache = null;
-        $this->returnPolicyCache[$returnPolicyId] = $shopReturnPolicy;
+        $this->cache->clear();
+        $this->returnPolicyCache->set((string) $returnPolicyId, $shopReturnPolicy);
 
         return $shopReturnPolicy;
     }

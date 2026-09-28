@@ -8,7 +8,7 @@ use ChristianBrown\Etsy\Model\CreateShopReadinessStateDefinitionRequestInterface
 use ChristianBrown\Etsy\Model\ShopReadinessStateDefinitionInterface;
 use ChristianBrown\Etsy\Model\UpdateShopReadinessStateDefinitionRequestInterface;
 
-interface ShopReadinessStateDefinitionApiInterface extends ApiInterface
+interface ShopReadinessStateDefinitionApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/readiness-state-definitions';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/readiness-state-definitions/%d';

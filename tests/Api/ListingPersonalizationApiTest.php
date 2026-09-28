@@ -9,17 +9,20 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingPersonalizationInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPersonalizationRequestInterface;
 use ChristianBrown\Etsy\Serializer\UpdateListingPersonalizationRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingPersonalizationApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingPersonalizationApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -192,6 +195,7 @@ final class ListingPersonalizationApiTest extends TestCase
             $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class),
             $personalizationTransformer,
             $updateListingPersonalizationRequestSerializer ?? self::createStub(UpdateListingPersonalizationRequestSerializerInterface::class),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

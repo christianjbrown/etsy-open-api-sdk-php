@@ -59,7 +59,33 @@ use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\DependencyInjection\ContainerFactory;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ApiClientsRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\BuyerTaxonomyTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\CoreServiceRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\LedgerTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingInventoryTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingMediaTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingPersonalizationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTranslationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingWithAssociationsTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentAdjustmentTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PingTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ReceiptTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\RequestSerializersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ReviewTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\SellerTaxonomyTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShippingProfileTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopConfigurationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\UserAddressTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\UserTransformersRegistrar;
 use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\Host\EtsyHost;
+use ChristianBrown\Etsy\Http\HostRewritingApiRequestSender;
+use ChristianBrown\Etsy\Http\HostRewritingJsonApiRequestSender;
 use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
 use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
 use ChristianBrown\Etsy\Serializer\CreateShopReadinessStateDefinitionRequestSerializer;
@@ -177,6 +203,32 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Etsy::class)]
+#[CoversClass(ApiClientsRegistrar::class)]
+#[CoversClass(CoreServiceRegistrar::class)]
+#[UsesClass(ContainerFactory::class)]
+#[CoversClass(BuyerTaxonomyTransformersRegistrar::class)]
+#[CoversClass(LedgerTransformersRegistrar::class)]
+#[CoversClass(ListingInventoryTransformersRegistrar::class)]
+#[CoversClass(ListingMediaTransformersRegistrar::class)]
+#[CoversClass(ListingPersonalizationTransformersRegistrar::class)]
+#[CoversClass(ListingTransformersRegistrar::class)]
+#[CoversClass(ListingTranslationTransformersRegistrar::class)]
+#[CoversClass(ListingWithAssociationsTransformersRegistrar::class)]
+#[CoversClass(PaymentAdjustmentTransformersRegistrar::class)]
+#[CoversClass(PaymentTransformersRegistrar::class)]
+#[CoversClass(PingTransformersRegistrar::class)]
+#[CoversClass(ReceiptTransformersRegistrar::class)]
+#[CoversClass(RequestSerializersRegistrar::class)]
+#[CoversClass(ReviewTransformersRegistrar::class)]
+#[CoversClass(SellerTaxonomyTransformersRegistrar::class)]
+#[CoversClass(ShippingProfileTransformersRegistrar::class)]
+#[CoversClass(ShopConfigurationTransformersRegistrar::class)]
+#[CoversClass(ShopTransformersRegistrar::class)]
+#[CoversClass(UserAddressTransformersRegistrar::class)]
+#[CoversClass(UserTransformersRegistrar::class)]
+#[UsesClass(EtsyHost::class)]
+#[UsesClass(HostRewritingApiRequestSender::class)]
+#[UsesClass(HostRewritingJsonApiRequestSender::class)]
 #[UsesClass(BuyerTaxonomyApi::class)]
 #[UsesClass(SellerTaxonomyApi::class)]
 #[UsesClass(ListingFileApi::class)]

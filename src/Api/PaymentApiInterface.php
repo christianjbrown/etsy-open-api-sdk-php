@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\PaymentInterface;
 
-interface PaymentApiInterface extends ApiInterface
+interface PaymentApiInterface
 {
     public const string API_URL_BY_LEDGER_ENTRY_IDS_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/payment-account/ledger-entries/payments';
     public const string API_URL_BY_PAYMENT_IDS_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/payments';

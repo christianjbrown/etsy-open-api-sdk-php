@@ -4,35 +4,17 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy;
 
-use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
-use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
-use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
-use ChristianBrown\Etsy\Api\ListingFileApiInterface;
-use ChristianBrown\Etsy\Api\ListingImageApiInterface;
-use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
-use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
-use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
-use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
-use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
-use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
-use ChristianBrown\Etsy\Api\PaymentApiInterface;
-use ChristianBrown\Etsy\Api\PingApiInterface;
-use ChristianBrown\Etsy\Api\ReviewApiInterface;
-use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
-use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
-use ChristianBrown\Etsy\Api\ShopApiInterface;
-use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
-use ChristianBrown\Etsy\Api\ShopListingApiInterface;
-use ChristianBrown\Etsy\Api\ShopProductionPartnerApiInterface;
-use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApiInterface;
-use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
-use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
-use ChristianBrown\Etsy\Api\ShopReturnPolicyApiInterface;
-use ChristianBrown\Etsy\Api\ShopSectionApiInterface;
-use ChristianBrown\Etsy\Api\UserAddressApiInterface;
-use ChristianBrown\Etsy\Api\UserApiInterface;
+use ChristianBrown\Etsy\Role\EtsyListingsAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyPaymentsAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyPingAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyReceiptsAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyReviewsAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyShippingAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyShopAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyTaxonomyAwareInterface;
+use ChristianBrown\Etsy\Role\EtsyUsersAwareInterface;
 
-interface EtsyInterface
+interface EtsyInterface extends EtsyListingsAwareInterface, EtsyPaymentsAwareInterface, EtsyPingAwareInterface, EtsyReceiptsAwareInterface, EtsyReviewsAwareInterface, EtsyShippingAwareInterface, EtsyShopAwareInterface, EtsyTaxonomyAwareInterface, EtsyUsersAwareInterface
 {
     public const string OAUTH_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token';
     public const string SERVICE_ACCESS_TOKEN_TRANSFORMER = 'etsy.oauth.access_token_transformer';
@@ -198,58 +180,4 @@ interface EtsyInterface
     public const string SERVICE_USER_ADDRESSES_TRANSFORMER = 'etsy.transformer.user_addresses_transformer';
     public const string SERVICE_USER_API = 'etsy.api.user_api';
     public const string SERVICE_USER_TRANSFORMER = 'etsy.transformer.user_transformer';
-
-    public function getBuyerTaxonomyApi(): BuyerTaxonomyApiInterface;
-
-    public function getLedgerEntryApi(): LedgerEntryApiInterface;
-
-    public function getListingBatchApi(): ListingBatchApiInterface;
-
-    public function getListingFileApi(): ListingFileApiInterface;
-
-    public function getListingImageApi(): ListingImageApiInterface;
-
-    public function getListingInventoryApi(): ListingInventoryApiInterface;
-
-    public function getListingPersonalizationApi(): ListingPersonalizationApiInterface;
-
-    public function getListingPropertyApi(): ListingPropertyApiInterface;
-
-    public function getListingTranslationApi(): ListingTranslationApiInterface;
-
-    public function getListingVariationImageApi(): ListingVariationImageApiInterface;
-
-    public function getListingVideoApi(): ListingVideoApiInterface;
-
-    public function getPaymentApi(): PaymentApiInterface;
-
-    public function getPingApi(): PingApiInterface;
-
-    public function getReviewApi(): ReviewApiInterface;
-
-    public function getSellerTaxonomyApi(): SellerTaxonomyApiInterface;
-
-    public function getShippingProfileApi(): ShippingProfileApiInterface;
-
-    public function getShopApi(): ShopApiInterface;
-
-    public function getShopHolidayPreferenceApi(): ShopHolidayPreferenceApiInterface;
-
-    public function getShopListingApi(): ShopListingApiInterface;
-
-    public function getShopProductionPartnerApi(): ShopProductionPartnerApiInterface;
-
-    public function getShopReadinessStateDefinitionApi(): ShopReadinessStateDefinitionApiInterface;
-
-    public function getShopReceiptApi(): ShopReceiptApiInterface;
-
-    public function getShopReceiptTransactionApi(): ShopReceiptTransactionApiInterface;
-
-    public function getShopReturnPolicyApi(): ShopReturnPolicyApiInterface;
-
-    public function getShopSectionApi(): ShopSectionApiInterface;
-
-    public function getUserAddressApi(): UserAddressApiInterface;
-
-    public function getUserApi(): UserApiInterface;
 }

@@ -8,16 +8,19 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\PaymentAccountLedgerEntryInterface;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(LedgerEntryApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class LedgerEntryApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -293,6 +296,6 @@ final class LedgerEntryApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new LedgerEntryApi($requestSender, $entryTransformer, $entriesTransformer, $credentials, self::SHOP_ID);
+        return new LedgerEntryApi($requestSender, $entryTransformer, $entriesTransformer, new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

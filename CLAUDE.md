@@ -35,7 +35,8 @@ Style tooling comes from the `christianjbrown/code-quality-scripts` dev dependen
 lints with **PHP_CodeSniffer 4** using the **`ChristianBrown` standard**, and **php-cs-fixer**
 (`@PhpCsFixer`/`@Symfony`) handles formatting. Static analysis is **PHPStan at `level: max`**
 (`phpstan.neon.dist`). The **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) runs style,
-PHPStan, and the PHPUnit suite with coverage on every push/PR. Always run `composer fix-style` first,
+PHPStan, and the PHPUnit suite with coverage on every push/PR, then fails the build with
+`bin/php-coverage-check` if line, path, method, or branch coverage drops below 100%. Always run `composer fix-style` first,
 then `composer check-style`, then `composer stan`, then `composer test` before finishing.
 
 ## Architecture
@@ -43,25 +44,50 @@ then `composer check-style`, then `composer stan`, then `composer test` before f
 Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` facade. PSR-4:
 `ChristianBrown\Etsy\` → `src/`, `ChristianBrown\Etsy\Tests\` → `tests/`.
 
-- **`Etsy`** (`src/Etsy.php`) — the facade/entry point. Constructed with `(int $shopId, string $key,
-  TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)` (the
-  access token store must be TTL-aware because that is what `RefreshTokenManager` takes), it builds a
-  `ContainerBuilder`, registers the core services, every transformer chain, then every resource
-  client (service ids are `SERVICE_*` constants on `EtsyInterface`), and exposes `getShopReceiptApi()`
+- **`Etsy`** (`src/Etsy.php`) — the facade/entry point and composition root. Constructed with
+  `(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore,
+  KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host = new EtsyHost())` (the access
+  token store must be TTL-aware because that is what `RefreshTokenManager` takes), the constructor
+  builds the list of `ServiceRegistrarInterface` registrars in dependency order, hands them to a
+  `ContainerFactory`, and keeps the `ContainerBuilder` it returns. It exposes `getShopReceiptApi()`
   etc. Getters are PHPStan-safe: assign `$this->container->get(...)` to a local `$service` with a
-  `/** @var XApiInterface $service */` docblock, then return it.
+  `/** @var XApiInterface $service */` docblock, then return it. `Etsy` itself is the only place in
+  the library allowed to `new` a registrar or a default `EtsyHost` — everywhere else takes its
+  collaborators through the constructor.
+- **`DependencyInjection/`** — `ServiceRegistrarInterface` (`register(ContainerBuilder $container): void`)
+  and `ContainerFactory` (`create(): ContainerBuilder`, runs every registrar it was given, in order,
+  against one container). `DependencyInjection/Registrar/` holds one registrar per resource group or
+  concern (e.g. `ReceiptTransformersRegistrar`, `ApiClientsRegistrar`), each a direct, mechanical
+  extraction of what used to be a private `Etsy::register*()` method — same `SERVICE_*` ids, same
+  `setArguments()`/`getDefinition()` calls, just against the container the factory passes in instead
+  of `$this->container`. `CoreServiceRegistrar` and `ApiClientsRegistrar` take constructor arguments
+  (`$key`/`$sharedSecret`/the token stores/the host, and `$shopId`, respectively); every other
+  registrar takes none. Adding a resource group means adding a registrar and listing it in `Etsy`'s
+  constructor, not editing a shared method.
+- **`Host/`** — `EtsyHostInterface` (`getApiBaseUrl()`, `getOAuthTokenUrl()`) and `EtsyHost`, a plain
+  value object defaulting to Etsy's production hosts. `CoreServiceRegistrar` passes it to
+  `RefreshTokenManager` for the OAuth token URL, and wraps the raw request senders from
+  `ApiClient` in `Http\HostRewritingJsonApiRequestSender`/`HostRewritingApiRequestSender`, which
+  rewrite `EtsyHostInterface::PRODUCTION_API_BASE_URL` to the configured host's base URL on every
+  call. This keeps every `Api/` class's `API_URL*_SPRINTF` constant — still rooted at the production
+  host, kept for BC — working unmodified: the decorator is a no-op when the host is still production.
+- **`Role/`** — narrow `Etsy*AwareInterface`s, one per resource domain (listings, shop, receipts,
+  taxonomy, users, payments, reviews, shipping, ping), each declaring only the `getXApi()` getters
+  for that domain. `EtsyInterface` extends all of them, so a consumer that only needs, say, receipts
+  can type-hint `EtsyReceiptsAwareInterface` instead of the full facade.
 - **`Auth/`** — `Credentials` (a value object over the OAuth `RefreshTokenManager` + keystring). Its
   `toHeaders()` returns the **two** headers every request needs: `x-api-key` (the keystring) and
   `Authorization: Bearer <access_token>` (a cached or freshly-refreshed OAuth2 token). This is the
   Etsy analog of SmartThings' `Token`/MetOffice's `ApiKey` — the difference is Etsy needs two headers
   and a dynamic, self-refreshing token.
 - **`Api/`** — one `final` resource client per Etsy resource group (`ShopReceiptApi`, …), each
-  implementing its interface which `extends ApiInterface`. Constructor order: the
+  implementing its interface. Constructor order: the
   `JsonApiRequestSenderInterface` (from `christianjbrown/api-client` — no Guzzle/PSR-18 used
   directly), then `ApiRequestSenderInterface` if the client has any `DELETE` or multipart-upload
   method (see "Writes" below), then its transformer(s), then any `MultipartFormDataBuilderInterface`
   and `JsonToArrayTransformerInterface` an upload method needs, then its request serializer(s), then
-  the `CredentialsInterface`, then the injected `int $shopId` (shop_id is constructor-level;
+  one `Cache\ResponseCacheInterface` per cache the class needs (see below), then the
+  `CredentialsInterface`, then the injected `int $shopId` (shop_id is constructor-level;
   per-resource ids like `receipt_id` are method arguments).
   Read methods: build headers via `$this->credentials->toHeaders()`, call
   `$this->requestSender->get($url, $query, $headers)`, defensively validate the response shape
@@ -77,6 +103,21 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   Full URLs live in `API_URL*_SPRINTF` constants on the interface (the base host is
   `https://openapi.etsy.com`; note the OAuth token endpoint is on a different host,
   `https://api.etsy.com`, held as `EtsyInterface::OAUTH_TOKEN_URL`).
+- **`Cache/`** — `ResponseCacheInterface` (`has`/`get`/`set`/`delete`/`clear`, keyed by `string`) and
+  `ResponseCache`, its plain in-memory implementation. An `Api` class that caches gets one
+  `ResponseCacheInterface` constructor parameter per cache it needs — `ShopReceiptApi` has three
+  (a list cache, a page cache, a by-id cache), each independently invalidated — rather than a
+  private array per cache the way it worked before this was extracted. A read checks
+  `has($key)`/`get($key)` before calling out, narrowing the `mixed` return with a
+  `/** @var X $cached */` docblock exactly like a container getter does; a write calls `set($key,
+  $value)`; invalidation calls `clear()` (drop everything this cache holds) or `delete($key)` (drop
+  one entry — `ResponseCache::get()`/`has()` treat a deleted or never-set key identically, both via
+  `isset()`, matching the old array's behaviour when a key was `unset()`). Cache keys are always
+  `string`: an endpoint keyed by a single numeric id casts it with `(string) $id` before calling the
+  cache; a compound key (limit+offset, several ids) is built with `sprintf()` as before. The
+  container gives each `Api` client its own fresh `ResponseCache` instances (see
+  `DependencyInjection\Registrar\ApiClientsRegistrar`); nothing is shared between clients or between
+  two `Etsy` instances.
 - **Writes** — `create`/`update` methods serialize a `Model\XRequest` through its `Serializer\XRequestSerializer`
   and call `$this->requestSender->postForm()`/`putForm()`/`patchForm()` (form-urlencoded body — most
   write endpoints) or `->post()`/`->put()` (JSON body — endpoints whose spec `requestBody` is
@@ -200,10 +241,11 @@ For a read (`GET`) endpoint:
 2. Add the `Transformer`(s) + interfaces, with `KEY_*`/`*_SPRINTF`/`ARRAY_NAME` constants on the
    interface. Reuse the shared `MoneyTransformer` and other existing leaf transformers where the
    schema overlaps.
-3. Add the `Api` client + interface (`API_URL*` constants, `extends ApiInterface`), taking the
+3. Add the `Api` client + interface (`API_URL*` constants), taking the
    request sender, its transformer(s), the `CredentialsInterface`, and `int $shopId` (if shop-scoped).
-4. Register the transformer chain and the client in `Etsy::init()` with new `SERVICE_*` ids on
-   `EtsyInterface`, and add the `getXApi()` getter.
+4. Register the transformer chain and the client with a `ServiceRegistrarInterface` registrar (see
+   `DependencyInjection/`) with new `SERVICE_*` ids on `EtsyInterface`, and add the `getXApi()`
+   getter. Add its interface to the narrow role interface it belongs with in `EtsyInterface.php`.
 5. Add matching `#[CoversClass]` tests under `tests/<Layer>/`, plus the endpoint to the README table.
 6. Run `composer fix-style`, then `composer check-style`, `composer stan`, and `composer test`, and
    **confirm the coverage report is 100%** on lines, paths, methods, and branches.
@@ -225,7 +267,8 @@ For a write (`POST`/`PUT`/`PATCH`/`DELETE`) endpoint, additionally:
 4. Register the new `Serializer` (and `Http\FormValueEncoderInterface`/
    `Http\MultipartFormDataBuilderInterface`/the raw `ApiRequestSenderInterface`/api-client's
    `JsonToArrayTransformer` if this is the first write on that client) with new `SERVICE_*` ids on
-   `EtsyInterface`, and add them to the client's constructor args in `Etsy::registerApiClients()`.
+   `EtsyInterface`, and add them to the client's constructor args in
+   `DependencyInjection\Registrar\ApiClientsRegistrar::register()`.
 5. Add matching `#[CoversClass]` tests, plus the endpoint to the README table with its HTTP verb and
    required OAuth scope.
 6. Run the same `composer fix-style` → `check-style` → `stan` → `test` gate and confirm 100% coverage.

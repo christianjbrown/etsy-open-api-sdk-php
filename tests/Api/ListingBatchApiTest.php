@@ -8,15 +8,18 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingBatchApi;
 use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingWithAssociationsInterface;
 use ChristianBrown\Etsy\Transformer\ListingsWithAssociationsTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingBatchApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingBatchApiTest extends TestCase
 {
     public function testGetInventoryByListingIdsReturnsListings(): void
@@ -190,6 +193,8 @@ final class ListingBatchApiTest extends TestCase
         return new ListingBatchApi(
             $requestSender,
             $listingsTransformer ?? self::createStub(ListingsWithAssociationsTransformerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
         );
     }

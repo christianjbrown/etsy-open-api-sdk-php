@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyInterface;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyRequestInterface;
 
-interface ShopReturnPolicyApiInterface extends ApiInterface
+interface ShopReturnPolicyApiInterface
 {
     public const string API_URL_CONSOLIDATE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/policies/return/consolidate';
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/policies/return';

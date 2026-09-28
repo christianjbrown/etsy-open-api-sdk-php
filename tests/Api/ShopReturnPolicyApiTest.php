@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopReturnPolicyApi;
 use ChristianBrown\Etsy\Api\ShopReturnPolicyApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyInterface;
 use ChristianBrown\Etsy\Model\ShopReturnPolicyRequestInterface;
@@ -16,11 +17,13 @@ use ChristianBrown\Etsy\Serializer\ShopReturnPolicyRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopReturnPolicyApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopReturnPolicyApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -398,6 +401,8 @@ final class ShopReturnPolicyApiTest extends TestCase
             $shopReturnPolicyTransformer,
             $shopReturnPoliciesTransformer,
             $shopReturnPolicyRequestSerializer ?? self::createStub(ShopReturnPolicyRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

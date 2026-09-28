@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingVariationImageInterface;
 use ChristianBrown\Etsy\Model\UpdateVariationImagesRequestInterface;
@@ -18,21 +19,19 @@ use function sprintf;
 
 final class ListingVariationImageApi implements ListingVariationImageApiInterface
 {
-    /**
-     * @var array<int, array<int, ListingVariationImageInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private ListingVariationImagesTransformerInterface $listingVariationImagesTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UpdateVariationImagesRequestSerializerInterface $updateVariationImagesRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingVariationImagesTransformerInterface $listingVariationImagesTransformer, UpdateVariationImagesRequestSerializerInterface $updateVariationImagesRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingVariationImagesTransformerInterface $listingVariationImagesTransformer, UpdateVariationImagesRequestSerializerInterface $updateVariationImagesRequestSerializer, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->listingVariationImagesTransformer = $listingVariationImagesTransformer;
         $this->updateVariationImagesRequestSerializer = $updateVariationImagesRequestSerializer;
+        $this->cache = $cache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -46,8 +45,13 @@ final class ListingVariationImageApi implements ListingVariationImageApiInterfac
     public function getMultiple(int $listingId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var array<int, ListingVariationImageInterface> $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -61,7 +65,7 @@ final class ListingVariationImageApi implements ListingVariationImageApiInterfac
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $variationImages = $this->listingVariationImagesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $variationImages;
+        $this->cache->set((string) $listingId, $variationImages);
 
         return $variationImages;
     }
@@ -84,7 +88,7 @@ final class ListingVariationImageApi implements ListingVariationImageApiInterfac
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $variationImages = $this->listingVariationImagesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $variationImages;
+        $this->cache->set((string) $listingId, $variationImages);
 
         return $variationImages;
     }

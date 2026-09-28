@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateShopShippingProfileDestinationRequestInterface;
 use ChristianBrown\Etsy\Model\CreateShopShippingProfileRequestInterface;
@@ -39,30 +40,14 @@ use function sprintf;
 final class ShippingProfileApi implements ShippingProfileApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<string, array<int, ShippingCarrierInterface>>
-     */
-    private array $carriersCache = [];
+    private ResponseCacheInterface $carriersCache;
     private CreateShopShippingProfileDestinationRequestSerializerInterface $createShopShippingProfileDestinationRequestSerializer;
     private CreateShopShippingProfileRequestSerializerInterface $createShopShippingProfileRequestSerializer;
     private CreateShopShippingProfileUpgradeRequestSerializerInterface $createShopShippingProfileUpgradeRequestSerializer;
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<string, array<int, ShopShippingProfileDestinationInterface>>
-     */
-    private array $destinationsCache = [];
-
-    /**
-     * @var array<int, ShopShippingProfileInterface>
-     */
-    private array $profileCache = [];
-
-    /**
-     * @var null|array<int, ShopShippingProfileInterface>
-     */
-    private ?array $profilesCache = null;
+    private ResponseCacheInterface $destinationsCache;
+    private ResponseCacheInterface $profileCache;
+    private ResponseCacheInterface $profilesCache;
     private JsonApiRequestSenderInterface $requestSender;
     private ShippingCarriersTransformerInterface $shippingCarriersTransformer;
     private int $shopId;
@@ -75,13 +60,9 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     private UpdateShopShippingProfileDestinationRequestSerializerInterface $updateShopShippingProfileDestinationRequestSerializer;
     private UpdateShopShippingProfileRequestSerializerInterface $updateShopShippingProfileRequestSerializer;
     private UpdateShopShippingProfileUpgradeRequestSerializerInterface $updateShopShippingProfileUpgradeRequestSerializer;
+    private ResponseCacheInterface $upgradesCache;
 
-    /**
-     * @var array<int, array<int, ShopShippingProfileUpgradeInterface>>
-     */
-    private array $upgradesCache = [];
-
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopShippingProfileTransformerInterface $shopShippingProfileTransformer, ShopShippingProfilesTransformerInterface $shopShippingProfilesTransformer, ShopShippingProfileDestinationTransformerInterface $shopShippingProfileDestinationTransformer, ShopShippingProfileDestinationsTransformerInterface $shopShippingProfileDestinationsTransformer, ShopShippingProfileUpgradeTransformerInterface $shopShippingProfileUpgradeTransformer, ShopShippingProfileUpgradesTransformerInterface $shopShippingProfileUpgradesTransformer, ShippingCarriersTransformerInterface $shippingCarriersTransformer, CreateShopShippingProfileRequestSerializerInterface $createShopShippingProfileRequestSerializer, CreateShopShippingProfileDestinationRequestSerializerInterface $createShopShippingProfileDestinationRequestSerializer, CreateShopShippingProfileUpgradeRequestSerializerInterface $createShopShippingProfileUpgradeRequestSerializer, UpdateShopShippingProfileRequestSerializerInterface $updateShopShippingProfileRequestSerializer, UpdateShopShippingProfileDestinationRequestSerializerInterface $updateShopShippingProfileDestinationRequestSerializer, UpdateShopShippingProfileUpgradeRequestSerializerInterface $updateShopShippingProfileUpgradeRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopShippingProfileTransformerInterface $shopShippingProfileTransformer, ShopShippingProfilesTransformerInterface $shopShippingProfilesTransformer, ShopShippingProfileDestinationTransformerInterface $shopShippingProfileDestinationTransformer, ShopShippingProfileDestinationsTransformerInterface $shopShippingProfileDestinationsTransformer, ShopShippingProfileUpgradeTransformerInterface $shopShippingProfileUpgradeTransformer, ShopShippingProfileUpgradesTransformerInterface $shopShippingProfileUpgradesTransformer, ShippingCarriersTransformerInterface $shippingCarriersTransformer, CreateShopShippingProfileRequestSerializerInterface $createShopShippingProfileRequestSerializer, CreateShopShippingProfileDestinationRequestSerializerInterface $createShopShippingProfileDestinationRequestSerializer, CreateShopShippingProfileUpgradeRequestSerializerInterface $createShopShippingProfileUpgradeRequestSerializer, UpdateShopShippingProfileRequestSerializerInterface $updateShopShippingProfileRequestSerializer, UpdateShopShippingProfileDestinationRequestSerializerInterface $updateShopShippingProfileDestinationRequestSerializer, UpdateShopShippingProfileUpgradeRequestSerializerInterface $updateShopShippingProfileUpgradeRequestSerializer, ResponseCacheInterface $carriersCache, ResponseCacheInterface $destinationsCache, ResponseCacheInterface $profileCache, ResponseCacheInterface $upgradesCache, ResponseCacheInterface $profilesCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -98,6 +79,11 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
         $this->updateShopShippingProfileRequestSerializer = $updateShopShippingProfileRequestSerializer;
         $this->updateShopShippingProfileDestinationRequestSerializer = $updateShopShippingProfileDestinationRequestSerializer;
         $this->updateShopShippingProfileUpgradeRequestSerializer = $updateShopShippingProfileUpgradeRequestSerializer;
+        $this->carriersCache = $carriersCache;
+        $this->destinationsCache = $destinationsCache;
+        $this->profileCache = $profileCache;
+        $this->upgradesCache = $upgradesCache;
+        $this->profilesCache = $profilesCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -115,7 +101,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopShippingProfile = $this->shopShippingProfileTransformer->transform($data);
-        $this->profilesCache = null;
+        $this->profilesCache->clear();
 
         return $shopShippingProfile;
     }
@@ -133,7 +119,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $destination = $this->shopShippingProfileDestinationTransformer->transform($data);
-        $this->destinationsCache = [];
+        $this->destinationsCache->clear();
 
         return $destination;
     }
@@ -151,7 +137,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $upgrade = $this->shopShippingProfileUpgradeTransformer->transform($data);
-        unset($this->upgradesCache[$shippingProfileId]);
+        $this->upgradesCache->delete((string) $shippingProfileId);
 
         return $upgrade;
     }
@@ -164,10 +150,10 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
         $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $shippingProfileId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        $this->profilesCache = null;
-        unset($this->profileCache[$shippingProfileId]);
-        $this->destinationsCache = [];
-        unset($this->upgradesCache[$shippingProfileId]);
+        $this->profilesCache->clear();
+        $this->profileCache->delete((string) $shippingProfileId);
+        $this->destinationsCache->clear();
+        $this->upgradesCache->delete((string) $shippingProfileId);
     }
 
     /**
@@ -178,7 +164,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
         $url = sprintf(self::API_URL_DESTINATION_SPRINTF, $this->shopId, $shippingProfileId, $shippingProfileDestinationId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        $this->destinationsCache = [];
+        $this->destinationsCache->clear();
     }
 
     /**
@@ -189,7 +175,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
         $url = sprintf(self::API_URL_UPGRADE_SPRINTF, $this->shopId, $shippingProfileId, $upgradeId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->upgradesCache[$shippingProfileId]);
+        $this->upgradesCache->delete((string) $shippingProfileId);
     }
 
     /**
@@ -201,8 +187,13 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     public function getCarriers(string $originCountryIso, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->carriersCache[$originCountryIso])) {
-                return $this->carriersCache[$originCountryIso];
+            if ($this->carriersCache->has($originCountryIso)) {
+                /**
+                 * @var array<int, ShippingCarrierInterface> $cached
+                 */
+                $cached = $this->carriersCache->get($originCountryIso);
+
+                return $cached;
             }
         }
 
@@ -215,7 +206,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $shippingCarriers = $this->shippingCarriersTransformer->transform($data[self::KEY_RESULTS]);
-        $this->carriersCache[$originCountryIso] = $shippingCarriers;
+        $this->carriersCache->set($originCountryIso, $shippingCarriers);
 
         return $shippingCarriers;
     }
@@ -230,8 +221,13 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     {
         $cacheKey = sprintf('%d:%d:%d', $shippingProfileId, $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->destinationsCache[$cacheKey])) {
-                return $this->destinationsCache[$cacheKey];
+            if ($this->destinationsCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ShopShippingProfileDestinationInterface> $cached
+                 */
+                $cached = $this->destinationsCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -245,7 +241,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $destinations = $this->shopShippingProfileDestinationsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->destinationsCache[$cacheKey] = $destinations;
+        $this->destinationsCache->set($cacheKey, $destinations);
 
         return $destinations;
     }
@@ -259,8 +255,13 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     public function getMultiple(bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (null !== $this->profilesCache) {
-                return $this->profilesCache;
+            if ($this->profilesCache->has('all')) {
+                /**
+                 * @var array<int, ShopShippingProfileInterface> $cached
+                 */
+                $cached = $this->profilesCache->get('all');
+
+                return $cached;
             }
         }
 
@@ -274,7 +275,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $shippingProfiles = $this->shopShippingProfilesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->profilesCache = $shippingProfiles;
+        $this->profilesCache->set('all', $shippingProfiles);
 
         return $shippingProfiles;
     }
@@ -286,8 +287,13 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     public function getOneById(int $shippingProfileId, bool $skipCache = false): ShopShippingProfileInterface
     {
         if (!$skipCache) {
-            if (isset($this->profileCache[$shippingProfileId])) {
-                return $this->profileCache[$shippingProfileId];
+            if ($this->profileCache->has((string) $shippingProfileId)) {
+                /**
+                 * @var ShopShippingProfileInterface $cached
+                 */
+                $cached = $this->profileCache->get((string) $shippingProfileId);
+
+                return $cached;
             }
         }
 
@@ -298,7 +304,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shippingProfile = $this->shopShippingProfileTransformer->transform($data);
-        $this->profileCache[$shippingProfileId] = $shippingProfile;
+        $this->profileCache->set((string) $shippingProfileId, $shippingProfile);
 
         return $shippingProfile;
     }
@@ -312,8 +318,13 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
     public function getUpgrades(int $shippingProfileId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->upgradesCache[$shippingProfileId])) {
-                return $this->upgradesCache[$shippingProfileId];
+            if ($this->upgradesCache->has((string) $shippingProfileId)) {
+                /**
+                 * @var array<int, ShopShippingProfileUpgradeInterface> $cached
+                 */
+                $cached = $this->upgradesCache->get((string) $shippingProfileId);
+
+                return $cached;
             }
         }
 
@@ -327,7 +338,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $upgrades = $this->shopShippingProfileUpgradesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->upgradesCache[$shippingProfileId] = $upgrades;
+        $this->upgradesCache->set((string) $shippingProfileId, $upgrades);
 
         return $upgrades;
     }
@@ -345,8 +356,8 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopShippingProfile = $this->shopShippingProfileTransformer->transform($data);
-        $this->profilesCache = null;
-        $this->profileCache[$shippingProfileId] = $shopShippingProfile;
+        $this->profilesCache->clear();
+        $this->profileCache->set((string) $shippingProfileId, $shopShippingProfile);
 
         return $shopShippingProfile;
     }
@@ -364,7 +375,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $destination = $this->shopShippingProfileDestinationTransformer->transform($data);
-        $this->destinationsCache = [];
+        $this->destinationsCache->clear();
 
         return $destination;
     }
@@ -382,7 +393,7 @@ final class ShippingProfileApi implements ShippingProfileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $upgrade = $this->shopShippingProfileUpgradeTransformer->transform($data);
-        unset($this->upgradesCache[$shippingProfileId]);
+        $this->upgradesCache->delete((string) $shippingProfileId);
 
         return $upgrade;
     }

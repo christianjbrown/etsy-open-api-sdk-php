@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateReceiptShipmentRequestInterface;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
@@ -23,22 +24,11 @@ use function sprintf;
 
 final class ShopReceiptApi implements ShopReceiptApiInterface
 {
-    /**
-     * @var array<string, array<int, ReceiptInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer;
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<string, ReceiptPageInterface>
-     */
-    private array $pageCache = [];
-
-    /**
-     * @var array<int, ReceiptInterface>
-     */
-    private array $receiptCache = [];
+    private ResponseCacheInterface $pageCache;
+    private ResponseCacheInterface $receiptCache;
     private ReceiptPageTransformerInterface $receiptPageTransformer;
     private ReceiptsTransformerInterface $receiptsTransformer;
     private ReceiptTransformerInterface $receiptTransformer;
@@ -46,7 +36,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     private int $shopId;
     private UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer, UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReceiptTransformerInterface $receiptTransformer, ReceiptsTransformerInterface $receiptsTransformer, ReceiptPageTransformerInterface $receiptPageTransformer, CreateReceiptShipmentRequestSerializerInterface $createReceiptShipmentRequestSerializer, UpdateShopReceiptRequestSerializerInterface $updateShopReceiptRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $pageCache, ResponseCacheInterface $receiptCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->receiptTransformer = $receiptTransformer;
@@ -54,6 +44,9 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         $this->receiptPageTransformer = $receiptPageTransformer;
         $this->createReceiptShipmentRequestSerializer = $createReceiptShipmentRequestSerializer;
         $this->updateShopReceiptRequestSerializer = $updateShopReceiptRequestSerializer;
+        $this->cache = $cache;
+        $this->pageCache = $pageCache;
+        $this->receiptCache = $receiptCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -71,9 +64,9 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $receipt = $this->receiptTransformer->transform($data);
-        $this->cache = [];
-        $this->pageCache = [];
-        $this->receiptCache[$receiptId] = $receipt;
+        $this->cache->clear();
+        $this->pageCache->clear();
+        $this->receiptCache->set((string) $receiptId, $receipt);
 
         return $receipt;
     }
@@ -88,8 +81,13 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->cache[$cacheKey])) {
-                return $this->cache[$cacheKey];
+            if ($this->cache->has($cacheKey)) {
+                /**
+                 * @var array<int, ReceiptInterface> $cached
+                 */
+                $cached = $this->cache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -103,7 +101,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $receipts = $this->receiptsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$cacheKey] = $receipts;
+        $this->cache->set($cacheKey, $receipts);
 
         return $receipts;
     }
@@ -115,8 +113,13 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     public function getOneById(int $receiptId, bool $skipCache = false): ReceiptInterface
     {
         if (!$skipCache) {
-            if (isset($this->receiptCache[$receiptId])) {
-                return $this->receiptCache[$receiptId];
+            if ($this->receiptCache->has((string) $receiptId)) {
+                /**
+                 * @var ReceiptInterface $cached
+                 */
+                $cached = $this->receiptCache->get((string) $receiptId);
+
+                return $cached;
             }
         }
 
@@ -127,7 +130,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $receipt = $this->receiptTransformer->transform($data);
-        $this->receiptCache[$receiptId] = $receipt;
+        $this->receiptCache->set((string) $receiptId, $receipt);
 
         return $receipt;
     }
@@ -140,8 +143,13 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->pageCache[$cacheKey])) {
-                return $this->pageCache[$cacheKey];
+            if ($this->pageCache->has($cacheKey)) {
+                /**
+                 * @var ReceiptPageInterface $cached
+                 */
+                $cached = $this->pageCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -152,7 +160,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $page = $this->receiptPageTransformer->transform($data);
-        $this->pageCache[$cacheKey] = $page;
+        $this->pageCache->set($cacheKey, $page);
 
         return $page;
     }
@@ -170,9 +178,9 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $receipt = $this->receiptTransformer->transform($data);
-        $this->cache = [];
-        $this->pageCache = [];
-        $this->receiptCache[$receiptId] = $receipt;
+        $this->cache->clear();
+        $this->pageCache->clear();
+        $this->receiptCache->set((string) $receiptId, $receipt);
 
         return $receipt;
     }

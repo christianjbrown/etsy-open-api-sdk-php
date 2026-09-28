@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\PingInterface;
 use ChristianBrown\Etsy\Model\ScopesInterface;
 
-interface PingApiInterface extends ApiInterface
+interface PingApiInterface
 {
     public const string API_URL = 'https://openapi.etsy.com/v3/application/openapi-ping';
     public const string API_URL_SCOPES = 'https://openapi.etsy.com/v3/application/scopes';

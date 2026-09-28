@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingPropertyApi;
 use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingPropertyValueInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPropertyRequestInterface;
@@ -16,11 +17,13 @@ use ChristianBrown\Etsy\Serializer\UpdateListingPropertyRequestSerializerInterfa
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingPropertyApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingPropertyApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -305,6 +308,6 @@ final class ListingPropertyApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ListingPropertyApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $valueTransformer, $valuesTransformer, $updateListingPropertyRequestSerializer ?? self::createStub(UpdateListingPropertyRequestSerializerInterface::class), $credentials, self::SHOP_ID);
+        return new ListingPropertyApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $valueTransformer, $valuesTransformer, $updateListingPropertyRequestSerializer ?? self::createStub(UpdateListingPropertyRequestSerializerInterface::class), new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

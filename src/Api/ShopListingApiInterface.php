@@ -8,7 +8,7 @@ use ChristianBrown\Etsy\Model\CreateDraftListingRequestInterface;
 use ChristianBrown\Etsy\Model\ListingInterface;
 use ChristianBrown\Etsy\Model\UpdateListingRequestInterface;
 
-interface ShopListingApiInterface extends ApiInterface
+interface ShopListingApiInterface
 {
     public const string API_URL_ACTIVE = 'https://openapi.etsy.com/v3/application/listings/active';
     public const string API_URL_ACTIVE_BY_SHOP_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/active';

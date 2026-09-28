@@ -9,16 +9,19 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\UserAddressInterface;
 use ChristianBrown\Etsy\Transformer\UserAddressesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\UserAddressTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(UserAddressApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class UserAddressApiTest extends TestCase
 {
     public function testDeleteCallsApiRequestSender(): void
@@ -257,6 +260,6 @@ final class UserAddressApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new UserAddressApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $userAddressTransformer, $userAddressesTransformer, $credentials);
+        return new UserAddressApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $userAddressTransformer, $userAddressesTransformer, new ResponseCache(), new ResponseCache(), $credentials);
     }
 }

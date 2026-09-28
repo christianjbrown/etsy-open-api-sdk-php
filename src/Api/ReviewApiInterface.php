@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ReviewInterface;
 
-interface ReviewApiInterface extends ApiInterface
+interface ReviewApiInterface
 {
     public const string API_URL_BY_LISTING_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/reviews';
     public const string API_URL_BY_SHOP_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/reviews';

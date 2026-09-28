@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ListingImageInterface;
 use ChristianBrown\Etsy\Model\UploadListingImageRequestInterface;
 
-interface ListingImageApiInterface extends ApiInterface
+interface ListingImageApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/images';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/images/%d';

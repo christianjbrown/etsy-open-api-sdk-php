@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilderInterface;
 use ChristianBrown\Etsy\Model\ListingImageInterface;
@@ -25,26 +26,18 @@ use function sprintf;
 final class ListingImageApi implements ListingImageApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, array<int, ListingImageInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private JsonToArrayTransformerInterface $jsonToArrayTransformer;
     private ListingImagesTransformerInterface $listingImagesTransformer;
     private ListingImageTransformerInterface $listingImageTransformer;
     private MultipartFormDataBuilderInterface $multipartFormDataBuilder;
-
-    /**
-     * @var array<string, ListingImageInterface>
-     */
-    private array $oneCache = [];
+    private ResponseCacheInterface $oneCache;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UploadListingImageRequestSerializerInterface $uploadListingImageRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingImageTransformerInterface $listingImageTransformer, ListingImagesTransformerInterface $listingImagesTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingImageRequestSerializerInterface $uploadListingImageRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingImageTransformerInterface $listingImageTransformer, ListingImagesTransformerInterface $listingImagesTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingImageRequestSerializerInterface $uploadListingImageRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -53,6 +46,8 @@ final class ListingImageApi implements ListingImageApiInterface
         $this->multipartFormDataBuilder = $multipartFormDataBuilder;
         $this->jsonToArrayTransformer = $jsonToArrayTransformer;
         $this->uploadListingImageRequestSerializer = $uploadListingImageRequestSerializer;
+        $this->cache = $cache;
+        $this->oneCache = $oneCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -65,7 +60,8 @@ final class ListingImageApi implements ListingImageApiInterface
         $url = sprintf(self::API_URL_WRITE_ONE_SPRINTF, $this->shopId, $listingId, $listingImageId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $listingImageId)]);
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->delete(sprintf('%d:%d', $listingId, $listingImageId));
     }
 
     /**
@@ -77,8 +73,13 @@ final class ListingImageApi implements ListingImageApiInterface
     public function getMultiple(int $listingId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var array<int, ListingImageInterface> $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -92,7 +93,7 @@ final class ListingImageApi implements ListingImageApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $listingImages = $this->listingImagesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $listingImages;
+        $this->cache->set((string) $listingId, $listingImages);
 
         return $listingImages;
     }
@@ -105,8 +106,13 @@ final class ListingImageApi implements ListingImageApiInterface
     {
         $cacheKey = sprintf('%d:%d', $listingId, $listingImageId);
         if (!$skipCache) {
-            if (isset($this->oneCache[$cacheKey])) {
-                return $this->oneCache[$cacheKey];
+            if ($this->oneCache->has($cacheKey)) {
+                /**
+                 * @var ListingImageInterface $cached
+                 */
+                $cached = $this->oneCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -117,7 +123,7 @@ final class ListingImageApi implements ListingImageApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingImage = $this->listingImageTransformer->transform($data);
-        $this->oneCache[$cacheKey] = $listingImage;
+        $this->oneCache->set($cacheKey, $listingImage);
 
         return $listingImage;
     }
@@ -139,8 +145,8 @@ final class ListingImageApi implements ListingImageApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingImage = $this->listingImageTransformer->transform($data);
-        unset($this->cache[$listingId]);
-        $this->oneCache[sprintf('%d:%d', $listingId, $listingImage->getListingImageId())] = $listingImage;
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->set(sprintf('%d:%d', $listingId, $listingImage->getListingImageId()), $listingImage);
 
         return $listingImage;
     }

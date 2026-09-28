@@ -8,17 +8,20 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingVariationImageApi;
 use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingVariationImageInterface;
 use ChristianBrown\Etsy\Model\UpdateVariationImagesRequestInterface;
 use ChristianBrown\Etsy\Serializer\UpdateVariationImagesRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingVariationImageApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingVariationImageApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -208,6 +211,6 @@ final class ListingVariationImageApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ListingVariationImageApi($requestSender, $variationsTransformer, $updateVariationImagesRequestSerializer ?? self::createStub(UpdateVariationImagesRequestSerializerInterface::class), $credentials, self::SHOP_ID);
+        return new ListingVariationImageApi($requestSender, $variationsTransformer, $updateVariationImagesRequestSerializer ?? self::createStub(UpdateVariationImagesRequestSerializerInterface::class), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

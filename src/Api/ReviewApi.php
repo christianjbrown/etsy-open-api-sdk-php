@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ReviewInterface;
 use ChristianBrown\Etsy\Transformer\ReviewsTransformerInterface;
@@ -17,24 +18,18 @@ use function sprintf;
 final class ReviewApi implements ReviewApiInterface
 {
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<string, array<int, ReviewInterface>>
-     */
-    private array $listingCache = [];
+    private ResponseCacheInterface $listingCache;
     private JsonApiRequestSenderInterface $requestSender;
     private ReviewsTransformerInterface $reviewsTransformer;
-
-    /**
-     * @var array<string, array<int, ReviewInterface>>
-     */
-    private array $shopCache = [];
+    private ResponseCacheInterface $shopCache;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ReviewsTransformerInterface $reviewsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReviewsTransformerInterface $reviewsTransformer, ResponseCacheInterface $listingCache, ResponseCacheInterface $shopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->reviewsTransformer = $reviewsTransformer;
+        $this->listingCache = $listingCache;
+        $this->shopCache = $shopCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -49,8 +44,13 @@ final class ReviewApi implements ReviewApiInterface
     {
         $cacheKey = sprintf('%d:%d:%d', $listingId, $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->listingCache[$cacheKey])) {
-                return $this->listingCache[$cacheKey];
+            if ($this->listingCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ReviewInterface> $cached
+                 */
+                $cached = $this->listingCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -64,7 +64,7 @@ final class ReviewApi implements ReviewApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $reviews = $this->reviewsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->listingCache[$cacheKey] = $reviews;
+        $this->listingCache->set($cacheKey, $reviews);
 
         return $reviews;
     }
@@ -79,8 +79,13 @@ final class ReviewApi implements ReviewApiInterface
     {
         $cacheKey = sprintf('%s:%s:%d:%d', $minCreated ?? '', $maxCreated ?? '', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->shopCache[$cacheKey])) {
-                return $this->shopCache[$cacheKey];
+            if ($this->shopCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ReviewInterface> $cached
+                 */
+                $cached = $this->shopCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -94,7 +99,7 @@ final class ReviewApi implements ReviewApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $reviews = $this->reviewsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->shopCache[$cacheKey] = $reviews;
+        $this->shopCache->set($cacheKey, $reviews);
 
         return $reviews;
     }

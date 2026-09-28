@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ListingPersonalizationInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPersonalizationRequestInterface;
 
-interface ListingPersonalizationApiInterface extends ApiInterface
+interface ListingPersonalizationApiInterface
 {
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/personalization';
     public const string API_URL_WRITE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/%d/personalization';

@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ShopSectionInterface;
 
-interface ShopSectionApiInterface extends ApiInterface
+interface ShopSectionApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/sections';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/sections/%d';

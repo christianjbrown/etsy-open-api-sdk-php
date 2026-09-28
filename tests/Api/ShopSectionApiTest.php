@@ -9,16 +9,19 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopSectionApi;
 use ChristianBrown\Etsy\Api\ShopSectionApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ShopSectionInterface;
 use ChristianBrown\Etsy\Transformer\ShopSectionsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopSectionTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopSectionApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopSectionApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -334,6 +337,6 @@ final class ShopSectionApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopSectionApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $shopSectionTransformer, $shopSectionsTransformer, $credentials, self::SHOP_ID);
+        return new ShopSectionApi($requestSender, $apiRequestSender ?? self::createStub(ApiRequestSenderInterface::class), $shopSectionTransformer, $shopSectionsTransformer, new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

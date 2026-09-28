@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Api\ListingImageApi;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilderInterface;
 use ChristianBrown\Etsy\Model\ListingImageInterface;
@@ -18,11 +19,13 @@ use ChristianBrown\Etsy\Serializer\UploadListingImageRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingImagesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingImageTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingImageApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingImageApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -331,6 +334,8 @@ final class ListingImageApiTest extends TestCase
             $multipartFormDataBuilder ?? self::createStub(MultipartFormDataBuilderInterface::class),
             $jsonToArrayTransformer ?? self::createStub(JsonToArrayTransformerInterface::class),
             $uploadListingImageRequestSerializer ?? self::createStub(UploadListingImageRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

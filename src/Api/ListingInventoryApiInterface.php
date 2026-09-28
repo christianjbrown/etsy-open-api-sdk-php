@@ -9,7 +9,7 @@ use ChristianBrown\Etsy\Model\ListingInventoryProductInterface;
 use ChristianBrown\Etsy\Model\ListingInventoryProductOfferingInterface;
 use ChristianBrown\Etsy\Model\UpdateListingInventoryRequestInterface;
 
-interface ListingInventoryApiInterface extends ApiInterface
+interface ListingInventoryApiInterface
 {
     public const string API_URL_BY_LISTING_ID_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/inventory';
     public const string API_URL_OFFERING_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/products/%d/offerings/%d';

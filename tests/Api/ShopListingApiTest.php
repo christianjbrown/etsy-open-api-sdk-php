@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateDraftListingRequestInterface;
 use ChristianBrown\Etsy\Model\ListingInterface;
@@ -18,11 +19,13 @@ use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopListingApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopListingApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -862,6 +865,15 @@ final class ShopListingApiTest extends TestCase
             $listingsTransformer ?? self::createStub(ListingsTransformerInterface::class),
             $createDraftListingRequestSerializer ?? self::createStub(CreateDraftListingRequestSerializerInterface::class),
             $updateListingRequestSerializer ?? self::createStub(UpdateListingRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

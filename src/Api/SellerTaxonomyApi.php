@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\SellerTaxonomyNodeInterface;
 use ChristianBrown\Etsy\Model\TaxonomyNodePropertyInterface;
@@ -19,25 +20,19 @@ use function sprintf;
 final class SellerTaxonomyApi implements SellerTaxonomyApiInterface
 {
     private CredentialsInterface $credentials;
-
-    /**
-     * @var null|array<int, SellerTaxonomyNodeInterface>
-     */
-    private ?array $nodesCache = null;
-
-    /**
-     * @var array<int, array<int, TaxonomyNodePropertyInterface>>
-     */
-    private array $propertiesCache = [];
+    private ResponseCacheInterface $nodesCache;
+    private ResponseCacheInterface $propertiesCache;
     private JsonApiRequestSenderInterface $requestSender;
     private SellerTaxonomyNodesTransformerInterface $sellerTaxonomyNodesTransformer;
     private TaxonomyNodePropertiesTransformerInterface $taxonomyNodePropertiesTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, SellerTaxonomyNodesTransformerInterface $sellerTaxonomyNodesTransformer, TaxonomyNodePropertiesTransformerInterface $taxonomyNodePropertiesTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, SellerTaxonomyNodesTransformerInterface $sellerTaxonomyNodesTransformer, TaxonomyNodePropertiesTransformerInterface $taxonomyNodePropertiesTransformer, ResponseCacheInterface $propertiesCache, ResponseCacheInterface $nodesCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->sellerTaxonomyNodesTransformer = $sellerTaxonomyNodesTransformer;
         $this->taxonomyNodePropertiesTransformer = $taxonomyNodePropertiesTransformer;
+        $this->propertiesCache = $propertiesCache;
+        $this->nodesCache = $nodesCache;
         $this->credentials = $credentials;
     }
 
@@ -50,8 +45,13 @@ final class SellerTaxonomyApi implements SellerTaxonomyApiInterface
     public function getNodes(bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (null !== $this->nodesCache) {
-                return $this->nodesCache;
+            if ($this->nodesCache->has('all')) {
+                /**
+                 * @var array<int, SellerTaxonomyNodeInterface> $cached
+                 */
+                $cached = $this->nodesCache->get('all');
+
+                return $cached;
             }
         }
 
@@ -64,7 +64,7 @@ final class SellerTaxonomyApi implements SellerTaxonomyApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $nodes = $this->sellerTaxonomyNodesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->nodesCache = $nodes;
+        $this->nodesCache->set('all', $nodes);
 
         return $nodes;
     }
@@ -78,8 +78,13 @@ final class SellerTaxonomyApi implements SellerTaxonomyApiInterface
     public function getProperties(int $taxonomyId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->propertiesCache[$taxonomyId])) {
-                return $this->propertiesCache[$taxonomyId];
+            if ($this->propertiesCache->has((string) $taxonomyId)) {
+                /**
+                 * @var array<int, TaxonomyNodePropertyInterface> $cached
+                 */
+                $cached = $this->propertiesCache->get((string) $taxonomyId);
+
+                return $cached;
             }
         }
 
@@ -93,7 +98,7 @@ final class SellerTaxonomyApi implements SellerTaxonomyApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $properties = $this->taxonomyNodePropertiesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->propertiesCache[$taxonomyId] = $properties;
+        $this->propertiesCache->set((string) $taxonomyId, $properties);
 
         return $properties;
     }

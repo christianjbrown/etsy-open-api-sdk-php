@@ -9,7 +9,7 @@ use ChristianBrown\Etsy\Model\ReceiptInterface;
 use ChristianBrown\Etsy\Model\ReceiptPageInterface;
 use ChristianBrown\Etsy\Model\UpdateShopReceiptRequestInterface;
 
-interface ShopReceiptApiInterface extends ApiInterface
+interface ShopReceiptApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/receipts';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/receipts/%d';
