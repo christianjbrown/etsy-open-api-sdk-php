@@ -19,6 +19,9 @@ use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
 
+use function array_filter;
+use function array_map;
+use function implode;
 use function is_array;
 use function sprintf;
 
@@ -77,9 +80,9 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
      *
      * @return array<int, ReceiptInterface>
      */
-    public function getMultiple(int $limit = 100, int $offset = 0, bool $skipCache = false): array
+    public function getMultiple(int $limit = 100, int $offset = 0, bool $skipCache = false, ?int $minCreated = null, ?int $maxCreated = null, ?int $minLastModified = null, ?int $maxLastModified = null, ?string $sortOn = null, ?string $sortOrder = null, ?bool $wasPaid = null, ?bool $wasShipped = null, ?bool $wasDelivered = null, ?bool $wasCanceled = null): array
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = self::buildCacheKey($limit, $offset, $minCreated, $maxCreated, $minLastModified, $maxLastModified, $sortOn, $sortOrder, $wasPaid, $wasShipped, $wasDelivered, $wasCanceled);
         if (!$skipCache) {
             if ($this->cache->has($cacheKey)) {
                 /**
@@ -92,7 +95,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         }
 
         $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $minCreated, $maxCreated, $minLastModified, $maxLastModified, $sortOn, $sortOrder, $wasPaid, $wasShipped, $wasDelivered, $wasCanceled), $this->credentials->toHeaders());
 
         if (empty($data[self::KEY_RESULTS])) {
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
@@ -139,9 +142,9 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false): ReceiptPageInterface
+    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false, ?int $minCreated = null, ?int $maxCreated = null, ?int $minLastModified = null, ?int $maxLastModified = null, ?string $sortOn = null, ?string $sortOrder = null, ?bool $wasPaid = null, ?bool $wasShipped = null, ?bool $wasDelivered = null, ?bool $wasCanceled = null): ReceiptPageInterface
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = self::buildCacheKey($limit, $offset, $minCreated, $maxCreated, $minLastModified, $maxLastModified, $sortOn, $sortOrder, $wasPaid, $wasShipped, $wasDelivered, $wasCanceled);
         if (!$skipCache) {
             if ($this->pageCache->has($cacheKey)) {
                 /**
@@ -154,7 +157,7 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         }
 
         $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $minCreated, $maxCreated, $minLastModified, $maxLastModified, $sortOn, $sortOrder, $wasPaid, $wasShipped, $wasDelivered, $wasCanceled), $this->credentials->toHeaders());
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
@@ -185,6 +188,44 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         return $receipt;
     }
 
+    private static function buildCacheKey(int $limit, int $offset, ?int $minCreated, ?int $maxCreated, ?int $minLastModified, ?int $maxLastModified, ?string $sortOn, ?string $sortOrder, ?bool $wasPaid, ?bool $wasShipped, ?bool $wasDelivered, ?bool $wasCanceled): string
+    {
+        $parts = [
+            (string) $limit,
+            (string) $offset,
+            self::encodeOptionalInt($minCreated),
+            self::encodeOptionalInt($maxCreated),
+            self::encodeOptionalInt($minLastModified),
+            self::encodeOptionalInt($maxLastModified),
+            $sortOn,
+            $sortOrder,
+            self::encodeOptionalBool($wasPaid),
+            self::encodeOptionalBool($wasShipped),
+            self::encodeOptionalBool($wasDelivered),
+            self::encodeOptionalBool($wasCanceled),
+        ];
+
+        return implode(':', array_map(static fn (?string $part): string => $part ?? '', $parts));
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return $value ? 'true' : 'false';
+    }
+
+    private static function encodeOptionalInt(?int $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
     /**
      * @return array<string, string>
      */
@@ -200,11 +241,27 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
     /**
      * @return array<string, string>
      */
-    private static function buildQuery(int $limit, int $offset): array
+    private static function buildQuery(int $limit, int $offset, ?int $minCreated = null, ?int $maxCreated = null, ?int $minLastModified = null, ?int $maxLastModified = null, ?string $sortOn = null, ?string $sortOrder = null, ?bool $wasPaid = null, ?bool $wasShipped = null, ?bool $wasDelivered = null, ?bool $wasCanceled = null): array
     {
+        $optional = array_filter(
+            [
+                self::KEY_MIN_CREATED => self::encodeOptionalInt($minCreated),
+                self::KEY_MAX_CREATED => self::encodeOptionalInt($maxCreated),
+                self::KEY_MIN_LAST_MODIFIED => self::encodeOptionalInt($minLastModified),
+                self::KEY_MAX_LAST_MODIFIED => self::encodeOptionalInt($maxLastModified),
+                self::KEY_SORT_ON => $sortOn,
+                self::KEY_SORT_ORDER => $sortOrder,
+                self::KEY_WAS_PAID => self::encodeOptionalBool($wasPaid),
+                self::KEY_WAS_SHIPPED => self::encodeOptionalBool($wasShipped),
+                self::KEY_WAS_DELIVERED => self::encodeOptionalBool($wasDelivered),
+                self::KEY_WAS_CANCELED => self::encodeOptionalBool($wasCanceled),
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
         return [
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
-        ];
+        ] + $optional;
     }
 }

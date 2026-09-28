@@ -197,6 +197,44 @@ final class ShopReceiptApiTest extends TestCase
         self::assertSame($receipts, $second);
     }
 
+    public function testGetMultipleWithFiltersIncludesQuery(): void
+    {
+        $resultsData = [['receipt-1'], ['receipt-2']];
+        $headers = ['x-api-key' => 'key'];
+        $receipts = [self::createStub(ReceiptInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [
+                    ShopReceiptApiInterface::KEY_LIMIT => '10',
+                    ShopReceiptApiInterface::KEY_OFFSET => '5',
+                    ShopReceiptApiInterface::KEY_MIN_CREATED => '1000',
+                    ShopReceiptApiInterface::KEY_MAX_CREATED => '2000',
+                    ShopReceiptApiInterface::KEY_MIN_LAST_MODIFIED => '3000',
+                    ShopReceiptApiInterface::KEY_MAX_LAST_MODIFIED => '4000',
+                    ShopReceiptApiInterface::KEY_SORT_ON => 'created',
+                    ShopReceiptApiInterface::KEY_SORT_ORDER => 'desc',
+                    ShopReceiptApiInterface::KEY_WAS_PAID => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_SHIPPED => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_DELIVERED => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_CANCELED => 'false',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopReceiptApiInterface::KEY_RESULTS => $resultsData]);
+
+        $receiptsTransformer = self::createMock(ReceiptsTransformerInterface::class);
+        $receiptsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($receipts);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ReceiptTransformerInterface::class), $receiptsTransformer, self::createStub(ReceiptPageTransformerInterface::class));
+
+        self::assertSame($receipts, $api->getMultiple(10, 5, false, 1000, 2000, 3000, 4000, 'created', 'desc', true, true, true, false));
+    }
+
     public function testGetOneByIdReturnsReceipt(): void
     {
         $receiptData = ['receipt-99'];
@@ -382,6 +420,46 @@ final class ShopReceiptApiTest extends TestCase
 
         self::assertSame($page, $first);
         self::assertSame($page, $second);
+    }
+
+    public function testGetPageWithFiltersIncludesQuery(): void
+    {
+        $responseData = [
+            ShopReceiptApiInterface::KEY_RESULTS => [['receipt-1']],
+        ];
+        $headers = ['x-api-key' => 'key'];
+        $page = self::createStub(ReceiptPageInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopReceiptApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [
+                    ShopReceiptApiInterface::KEY_LIMIT => '10',
+                    ShopReceiptApiInterface::KEY_OFFSET => '5',
+                    ShopReceiptApiInterface::KEY_MIN_CREATED => '1000',
+                    ShopReceiptApiInterface::KEY_MAX_CREATED => '2000',
+                    ShopReceiptApiInterface::KEY_MIN_LAST_MODIFIED => '3000',
+                    ShopReceiptApiInterface::KEY_MAX_LAST_MODIFIED => '4000',
+                    ShopReceiptApiInterface::KEY_SORT_ON => 'created',
+                    ShopReceiptApiInterface::KEY_SORT_ORDER => 'desc',
+                    ShopReceiptApiInterface::KEY_WAS_PAID => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_SHIPPED => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_DELIVERED => 'true',
+                    ShopReceiptApiInterface::KEY_WAS_CANCELED => 'false',
+                ],
+                $headers,
+            )
+            ->willReturn($responseData);
+
+        $receiptPageTransformer = self::createMock(ReceiptPageTransformerInterface::class);
+        $receiptPageTransformer->expects(self::once())->method('transform')
+            ->with($responseData)
+            ->willReturn($page);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ReceiptTransformerInterface::class), self::createStub(ReceiptsTransformerInterface::class), $receiptPageTransformer);
+
+        self::assertSame($page, $api->getPage(10, 5, false, 1000, 2000, 3000, 4000, 'created', 'desc', true, true, true, false));
     }
 
     public function testUpdateShopReceiptReturnsReceipt(): void
