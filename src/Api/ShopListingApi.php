@@ -18,6 +18,8 @@ use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingTransformerInterface;
 
+use function array_filter;
+use function array_map;
 use function implode;
 use function is_array;
 use function sprintf;
@@ -76,7 +78,7 @@ final class ShopListingApi implements ShopListingApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache->set((string) $listing->getListingId(), $listing);
+        $this->byIdCache->set(self::buildByIdCacheKey($listing->getListingId(), null, null, null), $listing);
         $this->activeByShopCache->clear();
         $this->byShopCache->clear();
         $this->featuredByShopCache->clear();
@@ -109,9 +111,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function findActive(?string $keywords = null, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function findActive(?string $keywords = null, int $limit = 25, int $offset = 0, bool $skipCache = false, ?string $sortOn = null, ?string $sortOrder = null, ?float $minPrice = null, ?float $maxPrice = null, ?int $taxonomyId = null, ?string $shopLocation = null, ?bool $isSafe = null, ?string $currency = null, ?string $buyerCountry = null): array
     {
-        $cacheKey = sprintf('%s:%d:%d', $keywords ?? '', $limit, $offset);
+        $cacheKey = self::buildActiveCacheKey($keywords, $limit, $offset, $sortOn, $sortOrder, $minPrice, $maxPrice, $taxonomyId, $shopLocation, $isSafe, $currency, $buyerCountry);
         if (!$skipCache) {
             if ($this->activeCache->has($cacheKey)) {
                 /**
@@ -123,7 +125,7 @@ final class ShopListingApi implements ShopListingApiInterface
             }
         }
 
-        $data = $this->requestSender->get(self::API_URL_ACTIVE, self::buildActiveQuery($keywords, $limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get(self::API_URL_ACTIVE, self::buildActiveQuery($keywords, $limit, $offset, $sortOn, $sortOrder, $minPrice, $maxPrice, $taxonomyId, $shopLocation, $isSafe, $currency, $buyerCountry), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->activeCache->set($cacheKey, $listings);
@@ -137,9 +139,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function findActiveByShop(int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function findActiveByShop(int $limit = 25, int $offset = 0, bool $skipCache = false, ?string $sortOn = null, ?string $sortOrder = null): array
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = sprintf('%d:%d:%s:%s', $limit, $offset, $sortOn ?? '', $sortOrder ?? '');
         if (!$skipCache) {
             if ($this->activeByShopCache->has($cacheKey)) {
                 /**
@@ -152,7 +154,7 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         $url = sprintf(self::API_URL_ACTIVE_BY_SHOP_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildSortablePaginationQuery($limit, $offset, $sortOn, $sortOrder), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->activeByShopCache->set($cacheKey, $listings);
@@ -164,27 +166,28 @@ final class ShopListingApi implements ShopListingApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function getById(int $listingId, bool $skipCache = false): ListingInterface
+    public function getById(int $listingId, bool $skipCache = false, ?string $includes = null, ?string $language = null, ?bool $allowSuggestedTitle = null): ListingInterface
     {
+        $cacheKey = self::buildByIdCacheKey($listingId, $includes, $language, $allowSuggestedTitle);
         if (!$skipCache) {
-            if ($this->byIdCache->has((string) $listingId)) {
+            if ($this->byIdCache->has($cacheKey)) {
                 /**
                  * @var ListingInterface $cached
                  */
-                $cached = $this->byIdCache->get((string) $listingId);
+                $cached = $this->byIdCache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_BY_ID_SPRINTF, $listingId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildByIdQuery($includes, $language, $allowSuggestedTitle), $this->credentials->toHeaders());
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache->set((string) $listingId, $listing);
+        $this->byIdCache->set($cacheKey, $listing);
 
         return $listing;
     }
@@ -197,9 +200,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getByListingIds(array $listingIds, bool $skipCache = false): array
+    public function getByListingIds(array $listingIds, bool $skipCache = false, ?string $includes = null, ?string $currency = null, ?string $buyerCountry = null, ?bool $legacy = null): array
     {
-        $cacheKey = implode(',', $listingIds);
+        $cacheKey = sprintf('%s:%s:%s:%s:%s', implode(',', $listingIds), $includes ?? '', $currency ?? '', $buyerCountry ?? '', null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->byListingIdsCache->has($cacheKey)) {
                 /**
@@ -211,7 +214,7 @@ final class ShopListingApi implements ShopListingApiInterface
             }
         }
 
-        $data = $this->requestSender->get(self::API_URL_BATCH, self::buildBatchQuery($listingIds), $this->credentials->toHeaders());
+        $data = $this->requestSender->get(self::API_URL_BATCH, self::buildBatchQuery($listingIds, $includes, $currency, $buyerCountry, $legacy), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->byListingIdsCache->set($cacheKey, $listings);
@@ -225,9 +228,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getByReceipt(int $receiptId, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByReceipt(int $receiptId, int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d:%d', $receiptId, $limit, $offset);
+        $cacheKey = sprintf('%d:%d:%d:%s', $receiptId, $limit, $offset, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->byReceiptCache->has($cacheKey)) {
                 /**
@@ -240,7 +243,7 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         $url = sprintf(self::API_URL_BY_RECEIPT_SPRINTF, $this->shopId, $receiptId);
-        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->byReceiptCache->set($cacheKey, $listings);
@@ -254,24 +257,25 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getByReturnPolicy(int $returnPolicyId, bool $skipCache = false): array
+    public function getByReturnPolicy(int $returnPolicyId, bool $skipCache = false, ?bool $legacy = null): array
     {
+        $cacheKey = sprintf('%d:%s', $returnPolicyId, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
-            if ($this->byReturnPolicyCache->has((string) $returnPolicyId)) {
+            if ($this->byReturnPolicyCache->has($cacheKey)) {
                 /**
                  * @var array<int, ListingInterface> $cached
                  */
-                $cached = $this->byReturnPolicyCache->get((string) $returnPolicyId);
+                $cached = $this->byReturnPolicyCache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_BY_RETURN_POLICY_SPRINTF, $this->shopId, $returnPolicyId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byReturnPolicyCache->set((string) $returnPolicyId, $listings);
+        $this->byReturnPolicyCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -282,9 +286,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getByShop(?string $state = null, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByShop(?string $state = null, int $limit = 25, int $offset = 0, bool $skipCache = false, ?string $sortOn = null, ?string $sortOrder = null, ?string $includes = null): array
     {
-        $cacheKey = sprintf('%s:%d:%d', $state ?? '', $limit, $offset);
+        $cacheKey = sprintf('%s:%d:%d:%s:%s:%s', $state ?? '', $limit, $offset, $sortOn ?? '', $sortOrder ?? '', $includes ?? '');
         if (!$skipCache) {
             if ($this->byShopCache->has($cacheKey)) {
                 /**
@@ -297,7 +301,7 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         $url = sprintf(self::API_URL_BY_SHOP_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildShopQuery($state, $limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildShopQuery($state, $limit, $offset, $sortOn, $sortOrder, $includes), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->byShopCache->set($cacheKey, $listings);
@@ -313,9 +317,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getByShopSectionIds(array $shopSectionIds, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByShopSectionIds(array $shopSectionIds, int $limit = 25, int $offset = 0, bool $skipCache = false, ?string $sortOn = null, ?string $sortOrder = null, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%s:%d:%d', implode(',', $shopSectionIds), $limit, $offset);
+        $cacheKey = sprintf('%s:%d:%d:%s:%s:%s', implode(',', $shopSectionIds), $limit, $offset, $sortOn ?? '', $sortOrder ?? '', null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->byShopSectionIdsCache->has($cacheKey)) {
                 /**
@@ -328,7 +332,7 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         $url = sprintf(self::API_URL_SHOP_SECTIONS_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildShopSectionQuery($shopSectionIds, $limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildShopSectionQuery($shopSectionIds, $limit, $offset, $sortOn, $sortOrder, $legacy), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->byShopSectionIdsCache->set($cacheKey, $listings);
@@ -342,9 +346,9 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<int, ListingInterface>
      */
-    public function getFeaturedByShop(int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getFeaturedByShop(int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = sprintf('%d:%d:%s', $limit, $offset, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->featuredByShopCache->has($cacheKey)) {
                 /**
@@ -357,7 +361,7 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         $url = sprintf(self::API_URL_FEATURED_BY_SHOP_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
         $this->featuredByShopCache->set($cacheKey, $listings);
@@ -378,7 +382,7 @@ final class ShopListingApi implements ShopListingApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache->set((string) $listingId, $listing);
+        $this->byIdCache->set(self::buildByIdCacheKey($listingId, null, null, null), $listing);
         $this->activeCache->clear();
         $this->activeByShopCache->clear();
         $this->byShopCache->clear();
@@ -391,20 +395,81 @@ final class ShopListingApi implements ShopListingApiInterface
         return $listing;
     }
 
+    private static function buildActiveCacheKey(?string $keywords, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?float $minPrice, ?float $maxPrice, ?int $taxonomyId, ?string $shopLocation, ?bool $isSafe, ?string $currency, ?string $buyerCountry): string
+    {
+        $parts = [
+            $keywords,
+            (string) $limit,
+            (string) $offset,
+            $sortOn,
+            $sortOrder,
+            self::encodeOptionalFloat($minPrice),
+            self::encodeOptionalFloat($maxPrice),
+            self::encodeOptionalInt($taxonomyId),
+            $shopLocation,
+            self::encodeOptionalBool($isSafe),
+            $currency,
+            $buyerCountry,
+        ];
+
+        return implode(':', array_map(static fn (?string $part): string => $part ?? '', $parts));
+    }
+
     /**
      * @return array<string, string>
      */
-    private static function buildActiveQuery(?string $keywords, int $limit, int $offset): array
+    private static function buildActiveQuery(?string $keywords, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?float $minPrice, ?float $maxPrice, ?int $taxonomyId, ?string $shopLocation, ?bool $isSafe, ?string $currency, ?string $buyerCountry): array
     {
-        $query = [
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_KEYWORDS => $keywords,
+                self::KEY_SORT_ON => $sortOn,
+                self::KEY_SORT_ORDER => $sortOrder,
+                self::KEY_MIN_PRICE => self::encodeOptionalFloat($minPrice),
+                self::KEY_MAX_PRICE => self::encodeOptionalFloat($maxPrice),
+                self::KEY_TAXONOMY_ID => self::encodeOptionalInt($taxonomyId),
+                self::KEY_SHOP_LOCATION => $shopLocation,
+                self::KEY_IS_SAFE => self::encodeOptionalBool($isSafe),
+                self::KEY_CURRENCY => $currency,
+                self::KEY_BUYER_COUNTRY => $buyerCountry,
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return [
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
-        ];
-        if (null !== $keywords) {
-            $query[self::KEY_KEYWORDS] = $keywords;
+        ] + $optional;
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
         }
 
-        return $query;
+        return $value ? 'true' : 'false';
+    }
+
+    private static function encodeOptionalFloat(?float $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
+    private static function encodeOptionalInt(?int $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -412,28 +477,83 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<string, string>
      */
-    private static function buildBatchQuery(array $listingIds): array
+    private static function buildBatchQuery(array $listingIds, ?string $includes, ?string $currency, ?string $buyerCountry, ?bool $legacy): array
     {
-        return [
+        $query = [
             self::KEY_LISTING_IDS => implode(',', $listingIds),
         ];
+        if (null !== $includes) {
+            $query[self::KEY_INCLUDES] = $includes;
+        }
+        if (null !== $currency) {
+            $query[self::KEY_CURRENCY] = $currency;
+        }
+        if (null !== $buyerCountry) {
+            $query[self::KEY_BUYER_COUNTRY] = $buyerCountry;
+        }
+        if (null !== $legacy) {
+            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
+        }
+
+        return $query;
+    }
+
+    private static function buildByIdCacheKey(int $listingId, ?string $includes, ?string $language, ?bool $allowSuggestedTitle): string
+    {
+        return sprintf('%d:%s:%s:%s', $listingId, $includes ?? '', $language ?? '', null === $allowSuggestedTitle ? '' : (int) $allowSuggestedTitle);
     }
 
     /**
      * @return array<string, string>
      */
-    private static function buildPaginationQuery(int $limit, int $offset): array
+    private static function buildByIdQuery(?string $includes, ?string $language, ?bool $allowSuggestedTitle): array
     {
-        return [
+        $query = [];
+        if (null !== $includes) {
+            $query[self::KEY_INCLUDES] = $includes;
+        }
+        if (null !== $language) {
+            $query[self::KEY_LANGUAGE] = $language;
+        }
+        if (null !== $allowSuggestedTitle) {
+            $query[self::KEY_ALLOW_SUGGESTED_TITLE] = $allowSuggestedTitle ? 'true' : 'false';
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildLegacyQuery(?bool $legacy): array
+    {
+        if (null === $legacy) {
+            return [];
+        }
+
+        return [self::KEY_LEGACY => $legacy ? 'true' : 'false'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildPaginationQuery(int $limit, int $offset, ?bool $legacy = null): array
+    {
+        $query = [
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
         ];
+        if (null !== $legacy) {
+            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
+        }
+
+        return $query;
     }
 
     /**
      * @return array<string, string>
      */
-    private static function buildShopQuery(?string $state, int $limit, int $offset): array
+    private static function buildShopQuery(?string $state, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?string $includes): array
     {
         $query = [
             self::KEY_LIMIT => (string) $limit,
@@ -441,6 +561,15 @@ final class ShopListingApi implements ShopListingApiInterface
         ];
         if (null !== $state) {
             $query[self::KEY_STATE] = $state;
+        }
+        if (null !== $sortOn) {
+            $query[self::KEY_SORT_ON] = $sortOn;
+        }
+        if (null !== $sortOrder) {
+            $query[self::KEY_SORT_ORDER] = $sortOrder;
+        }
+        if (null !== $includes) {
+            $query[self::KEY_INCLUDES] = $includes;
         }
 
         return $query;
@@ -451,13 +580,43 @@ final class ShopListingApi implements ShopListingApiInterface
      *
      * @return array<string, string>
      */
-    private static function buildShopSectionQuery(array $shopSectionIds, int $limit, int $offset): array
+    private static function buildShopSectionQuery(array $shopSectionIds, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?bool $legacy = null): array
     {
-        return [
+        $query = [
             self::KEY_SHOP_SECTION_IDS => implode(',', $shopSectionIds),
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
         ];
+        if (null !== $sortOn) {
+            $query[self::KEY_SORT_ON] = $sortOn;
+        }
+        if (null !== $sortOrder) {
+            $query[self::KEY_SORT_ORDER] = $sortOrder;
+        }
+        if (null !== $legacy) {
+            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildSortablePaginationQuery(int $limit, int $offset, ?string $sortOn, ?string $sortOrder): array
+    {
+        $query = [
+            self::KEY_LIMIT => (string) $limit,
+            self::KEY_OFFSET => (string) $offset,
+        ];
+        if (null !== $sortOn) {
+            $query[self::KEY_SORT_ON] = $sortOn;
+        }
+        if (null !== $sortOrder) {
+            $query[self::KEY_SORT_ORDER] = $sortOrder;
+        }
+
+        return $query;
     }
 
     /**
