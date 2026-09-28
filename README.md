@@ -1,6 +1,6 @@
 # Etsy Open API v3 SDK
 
-[![CI](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml)
+[![CI](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/christianjbrown/etsy-open-api-sdk-php/actions/workflows/ci.yml) [![Packagist](https://img.shields.io/packagist/v/christianjbrown/etsy-open-api-sdk)](https://packagist.org/packages/christianjbrown/etsy-open-api-sdk) [![License](https://img.shields.io/packagist/l/christianjbrown/etsy-open-api-sdk)](https://github.com/christianjbrown/etsy-open-api-sdk-php/blob/main/LICENSE) [![PHP](https://img.shields.io/packagist/dependency-v/christianjbrown/etsy-open-api-sdk/php)](https://packagist.org/packages/christianjbrown/etsy-open-api-sdk)
 
 A strongly-typed PHP client for the [Etsy Open API v3](https://developers.etsy.com/documentation/). It reads and writes your shop's data — receipts, listings, shipping profiles, and more — returning plain, typed model objects rather than raw arrays, and taking plain, typed request objects for anything you create or update.
 
