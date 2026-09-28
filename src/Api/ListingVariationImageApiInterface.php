@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ListingVariationImageInterface;
 use ChristianBrown\Etsy\Model\UpdateVariationImagesRequestInterface;
 
-interface ListingVariationImageApiInterface extends ApiInterface
+interface ListingVariationImageApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/%d/variation-images';
     public const string KEY_RESULTS = 'results';

@@ -57,7 +57,7 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   Etsy analog of SmartThings' `Token`/MetOffice's `ApiKey` — the difference is Etsy needs two headers
   and a dynamic, self-refreshing token.
 - **`Api/`** — one `final` resource client per Etsy resource group (`ShopReceiptApi`, …), each
-  implementing its interface which `extends ApiInterface`. Constructor order: the
+  implementing its interface. Constructor order: the
   `JsonApiRequestSenderInterface` (from `christianjbrown/api-client` — no Guzzle/PSR-18 used
   directly), then `ApiRequestSenderInterface` if the client has any `DELETE` or multipart-upload
   method (see "Writes" below), then its transformer(s), then any `MultipartFormDataBuilderInterface`
@@ -201,10 +201,11 @@ For a read (`GET`) endpoint:
 2. Add the `Transformer`(s) + interfaces, with `KEY_*`/`*_SPRINTF`/`ARRAY_NAME` constants on the
    interface. Reuse the shared `MoneyTransformer` and other existing leaf transformers where the
    schema overlaps.
-3. Add the `Api` client + interface (`API_URL*` constants, `extends ApiInterface`), taking the
+3. Add the `Api` client + interface (`API_URL*` constants), taking the
    request sender, its transformer(s), the `CredentialsInterface`, and `int $shopId` (if shop-scoped).
-4. Register the transformer chain and the client in `Etsy::init()` with new `SERVICE_*` ids on
-   `EtsyInterface`, and add the `getXApi()` getter.
+4. Register the transformer chain and the client with a `ServiceRegistrarInterface` registrar (see
+   `DependencyInjection/`) with new `SERVICE_*` ids on `EtsyInterface`, and add the `getXApi()`
+   getter. Add its interface to the narrow role interface it belongs with in `EtsyInterface.php`.
 5. Add matching `#[CoversClass]` tests under `tests/<Layer>/`, plus the endpoint to the README table.
 6. Run `composer fix-style`, then `composer check-style`, `composer stan`, and `composer test`, and
    **confirm the coverage report is 100%** on lines, paths, methods, and branches.

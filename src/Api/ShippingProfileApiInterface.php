@@ -15,7 +15,7 @@ use ChristianBrown\Etsy\Model\UpdateShopShippingProfileDestinationRequestInterfa
 use ChristianBrown\Etsy\Model\UpdateShopShippingProfileRequestInterface;
 use ChristianBrown\Etsy\Model\UpdateShopShippingProfileUpgradeRequestInterface;
 
-interface ShippingProfileApiInterface extends ApiInterface
+interface ShippingProfileApiInterface
 {
     public const string API_URL_CARRIERS = 'https://openapi.etsy.com/v3/application/shipping-carriers';
     public const string API_URL_DESTINATION_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/shipping-profiles/%d/destinations/%d';

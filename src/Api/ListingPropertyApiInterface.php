@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ListingPropertyValueInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPropertyRequestInterface;
 
-interface ListingPropertyApiInterface extends ApiInterface
+interface ListingPropertyApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/%d/properties';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/properties/%d';

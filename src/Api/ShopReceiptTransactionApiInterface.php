@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\TransactionInterface;
 
-interface ShopReceiptTransactionApiInterface extends ApiInterface
+interface ShopReceiptTransactionApiInterface
 {
     public const string API_URL_BY_LISTING_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/listings/%d/transactions';
     public const string API_URL_BY_RECEIPT_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/receipts/%d/transactions';

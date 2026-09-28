@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ShopInterface;
 use ChristianBrown\Etsy\Model\UpdateShopRequestInterface;
 
-interface ShopApiInterface extends ApiInterface
+interface ShopApiInterface
 {
     public const string API_URL_BY_OWNER_SPRINTF = 'https://openapi.etsy.com/v3/application/users/%d/shops';
     public const string API_URL_FIND = 'https://openapi.etsy.com/v3/application/shops';

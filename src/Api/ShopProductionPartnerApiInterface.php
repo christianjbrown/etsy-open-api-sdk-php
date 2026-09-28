@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\ShopProductionPartnerInterface;
 
-interface ShopProductionPartnerApiInterface extends ApiInterface
+interface ShopProductionPartnerApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/production-partners';
     public const string KEY_RESULTS = 'results';

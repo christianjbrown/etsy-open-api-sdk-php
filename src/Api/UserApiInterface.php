@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\UserInterface;
 
-interface UserApiInterface extends ApiInterface
+interface UserApiInterface
 {
     public const string API_URL_ME = 'https://openapi.etsy.com/v3/application/users/me';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/users/%d';

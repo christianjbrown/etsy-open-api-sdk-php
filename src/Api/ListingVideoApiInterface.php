@@ -7,7 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\Etsy\Model\ListingVideoInterface;
 use ChristianBrown\Etsy\Model\UploadListingVideoRequestInterface;
 
-interface ListingVideoApiInterface extends ApiInterface
+interface ListingVideoApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/videos';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/listings/%d/videos/%d';

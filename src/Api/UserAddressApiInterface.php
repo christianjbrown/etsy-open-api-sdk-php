@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\Etsy\Model\UserAddressInterface;
 
-interface UserAddressApiInterface extends ApiInterface
+interface UserAddressApiInterface
 {
     public const string API_URL_MULTIPLE = 'https://openapi.etsy.com/v3/application/user/addresses';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/user/addresses/%d';
