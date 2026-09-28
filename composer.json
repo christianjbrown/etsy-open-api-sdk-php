@@ -63,23 +63,5 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
-    },
-    "repositories": [
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/api-client-php.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/code-quality-scripts-php.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/key-value-store-php.git"
-        },
-        {
-            "type": "github",
-            "url": "git@github.com:christianjbrown/oauth2-client-php.git"
-        }
-    ]
+    }
 }
