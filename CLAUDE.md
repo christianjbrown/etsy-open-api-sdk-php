@@ -46,13 +46,14 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
 
 - **`Etsy`** (`src/Etsy.php`) — the facade/entry point and composition root. Constructed with
   `(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore,
-  KeyValueStoreInterface $refreshTokenStore)` (the access token store must be TTL-aware because that
-  is what `RefreshTokenManager` takes), the constructor builds the list of `ServiceRegistrarInterface`
-  registrars in dependency order, hands them to a `ContainerFactory`, and keeps the `ContainerBuilder`
-  it returns. It exposes `getShopReceiptApi()` etc. Getters are PHPStan-safe: assign
-  `$this->container->get(...)` to a local `$service` with a `/** @var XApiInterface $service */`
-  docblock, then return it. `Etsy` itself is the only place in the library allowed to `new` a
-  registrar — everywhere else takes its collaborators through the constructor.
+  KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host = new EtsyHost())` (the access
+  token store must be TTL-aware because that is what `RefreshTokenManager` takes), the constructor
+  builds the list of `ServiceRegistrarInterface` registrars in dependency order, hands them to a
+  `ContainerFactory`, and keeps the `ContainerBuilder` it returns. It exposes `getShopReceiptApi()`
+  etc. Getters are PHPStan-safe: assign `$this->container->get(...)` to a local `$service` with a
+  `/** @var XApiInterface $service */` docblock, then return it. `Etsy` itself is the only place in
+  the library allowed to `new` a registrar or a default `EtsyHost` — everywhere else takes its
+  collaborators through the constructor.
 - **`DependencyInjection/`** — `ServiceRegistrarInterface` (`register(ContainerBuilder $container): void`)
   and `ContainerFactory` (`create(): ContainerBuilder`, runs every registrar it was given, in order,
   against one container). `DependencyInjection/Registrar/` holds one registrar per resource group or
@@ -60,9 +61,16 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   extraction of what used to be a private `Etsy::register*()` method — same `SERVICE_*` ids, same
   `setArguments()`/`getDefinition()` calls, just against the container the factory passes in instead
   of `$this->container`. `CoreServiceRegistrar` and `ApiClientsRegistrar` take constructor arguments
-  (`$key`/`$sharedSecret`/the token stores, and `$shopId`, respectively); every other registrar takes
-  none. Adding a resource group means adding a registrar and listing it in `Etsy`'s constructor, not
-  editing a shared method.
+  (`$key`/`$sharedSecret`/the token stores/the host, and `$shopId`, respectively); every other
+  registrar takes none. Adding a resource group means adding a registrar and listing it in `Etsy`'s
+  constructor, not editing a shared method.
+- **`Host/`** — `EtsyHostInterface` (`getApiBaseUrl()`, `getOAuthTokenUrl()`) and `EtsyHost`, a plain
+  value object defaulting to Etsy's production hosts. `CoreServiceRegistrar` passes it to
+  `RefreshTokenManager` for the OAuth token URL, and wraps the raw request senders from
+  `ApiClient` in `Http\HostRewritingJsonApiRequestSender`/`HostRewritingApiRequestSender`, which
+  rewrite `EtsyHostInterface::PRODUCTION_API_BASE_URL` to the configured host's base URL on every
+  call. This keeps every `Api/` class's `API_URL*_SPRINTF` constant — still rooted at the production
+  host, kept for BC — working unmodified: the decorator is a no-op when the host is still production.
 - **`Role/`** — narrow `Etsy*AwareInterface`s, one per resource domain (listings, shop, receipts,
   taxonomy, users, payments, reviews, shipping, ping), each declaring only the `getXApi()` getters
   for that domain. `EtsyInterface` extends all of them, so a consumer that only needs, say, receipts

@@ -214,6 +214,28 @@ $shopReturnPolicyApi->delete($policy->getReturnPolicyId());   // void
 
 See "Supported write endpoints" above for the full list of write calls and their required OAuth scopes.
 
+### Pointing at a different host
+
+`Etsy` takes an optional sixth constructor argument, an `EtsyHostInterface`, which defaults to
+Etsy's production hosts. Pass a differently configured `EtsyHost` to point every request, and the
+OAuth token refresh, somewhere else — a test double, a proxy, or a sandbox once Etsy publishes one:
+
+```php
+use ChristianBrown\Etsy\Host\EtsyHost;
+
+$host = new EtsyHost(
+    apiBaseUrl: 'https://openapi.etsy.com',                         // default; every API_URL* constant is rooted here
+    oAuthTokenUrl: 'https://api.etsy.com/v3/public/oauth/token',     // default OAuth2 token endpoint
+);
+
+$etsy = new Etsy(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+```
+
+Etsy's Open API v3 has no published sandbox at the time of writing (unlike, say, eBay's
+`api.sandbox.ebay.com`/`apiz.sandbox.ebay.com`), so the only two hosts this library knows about are
+the production ones above. `EtsyHost` exists so a test double or a future sandbox host can be
+swapped in without editing any `Api/` class.
+
 ## :rotating_light: Error handling
 
 Everything this library throws implements `ChristianBrown\Etsy\Exception\ExceptionInterface`, so a single `catch` covers it all:

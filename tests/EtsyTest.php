@@ -83,6 +83,9 @@ use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopTransformersRegistrar;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\UserAddressTransformersRegistrar;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\UserTransformersRegistrar;
 use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\Host\EtsyHost;
+use ChristianBrown\Etsy\Http\HostRewritingApiRequestSender;
+use ChristianBrown\Etsy\Http\HostRewritingJsonApiRequestSender;
 use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
 use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
 use ChristianBrown\Etsy\Serializer\CreateShopReadinessStateDefinitionRequestSerializer;
@@ -223,6 +226,9 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(ShopTransformersRegistrar::class)]
 #[UsesClass(UserAddressTransformersRegistrar::class)]
 #[UsesClass(UserTransformersRegistrar::class)]
+#[UsesClass(EtsyHost::class)]
+#[UsesClass(HostRewritingApiRequestSender::class)]
+#[UsesClass(HostRewritingJsonApiRequestSender::class)]
 #[UsesClass(BuyerTaxonomyApi::class)]
 #[UsesClass(SellerTaxonomyApi::class)]
 #[UsesClass(ListingFileApi::class)]

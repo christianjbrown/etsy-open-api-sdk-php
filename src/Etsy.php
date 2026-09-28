@@ -54,6 +54,8 @@ use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopConfigurationTransform
 use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopTransformersRegistrar;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\UserAddressTransformersRegistrar;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\UserTransformersRegistrar;
+use ChristianBrown\Etsy\Host\EtsyHost;
+use ChristianBrown\Etsy\Host\EtsyHostInterface;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
 use Psr\Container\ContainerExceptionInterface;
@@ -64,11 +66,11 @@ final class Etsy implements EtsyInterface
 {
     private ContainerBuilder $container;
 
-    public function __construct(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)
+    public function __construct(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host = new EtsyHost())
     {
         $containerFactory = new ContainerFactory(
             [
-                new CoreServiceRegistrar($key, $sharedSecret, $accessTokenStore, $refreshTokenStore),
+                new CoreServiceRegistrar($key, $sharedSecret, $accessTokenStore, $refreshTokenStore, $host),
                 new RequestSerializersRegistrar(),
                 new ReceiptTransformersRegistrar(),
                 new ListingTransformersRegistrar(),
