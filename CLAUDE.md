@@ -51,6 +51,10 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   client (service ids are `SERVICE_*` constants on `EtsyInterface`), and exposes `getShopReceiptApi()`
   etc. Getters are PHPStan-safe: assign `$this->container->get(...)` to a local `$service` with a
   `/** @var XApiInterface $service */` docblock, then return it.
+- **`Role/`** — narrow `Etsy*AwareInterface`s, one per resource domain (listings, shop, receipts,
+  taxonomy, users, payments, reviews, shipping, ping), each declaring only the `getXApi()` getters
+  for that domain. `EtsyInterface` extends all of them, so a consumer that only needs, say, receipts
+  can type-hint `EtsyReceiptsAwareInterface` instead of the full facade.
 - **`Auth/`** — `Credentials` (a value object over the OAuth `RefreshTokenManager` + keystring). Its
   `toHeaders()` returns the **two** headers every request needs: `x-api-key` (the keystring) and
   `Authorization: Bearer <access_token>` (a cached or freshly-refreshed OAuth2 token). This is the
