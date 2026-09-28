@@ -47,9 +47,9 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByListing(int $listingId, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByListing(int $listingId, int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d:%d', $listingId, $limit, $offset);
+        $cacheKey = sprintf('%d:%d:%d:%s', $listingId, $limit, $offset, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->byListingCache->has($cacheKey)) {
                 /**
@@ -62,7 +62,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         }
 
         $url = sprintf(self::API_URL_BY_LISTING_SPRINTF, $this->shopId, $listingId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
         $this->byListingCache->set($cacheKey, $transactions);
@@ -76,24 +76,25 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByReceipt(int $receiptId, bool $skipCache = false): array
+    public function getByReceipt(int $receiptId, bool $skipCache = false, ?bool $legacy = null): array
     {
+        $cacheKey = sprintf('%d:%s', $receiptId, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
-            if ($this->byReceiptCache->has((string) $receiptId)) {
+            if ($this->byReceiptCache->has($cacheKey)) {
                 /**
                  * @var array<int, TransactionInterface> $cached
                  */
-                $cached = $this->byReceiptCache->get((string) $receiptId);
+                $cached = $this->byReceiptCache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_BY_RECEIPT_SPRINTF, $this->shopId, $receiptId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
-        $this->byReceiptCache->set((string) $receiptId, $transactions);
+        $this->byReceiptCache->set($cacheKey, $transactions);
 
         return $transactions;
     }
@@ -104,9 +105,9 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByShop(int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByShop(int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = sprintf('%d:%d:%s', $limit, $offset, null === $legacy ? '' : (int) $legacy);
         if (!$skipCache) {
             if ($this->byShopCache->has($cacheKey)) {
                 /**
@@ -119,7 +120,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         }
 
         $url = sprintf(self::API_URL_BY_SHOP_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
         $this->byShopCache->set($cacheKey, $transactions);
@@ -159,12 +160,29 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     /**
      * @return array<string, string>
      */
-    private static function buildQuery(int $limit, int $offset): array
+    private static function buildLegacyQuery(?bool $legacy): array
     {
-        return [
+        if (null === $legacy) {
+            return [];
+        }
+
+        return [self::KEY_LEGACY => $legacy ? 'true' : 'false'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildQuery(int $limit, int $offset, ?bool $legacy = null): array
+    {
+        $query = [
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
         ];
+        if (null !== $legacy) {
+            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
+        }
+
+        return $query;
     }
 
     /**
