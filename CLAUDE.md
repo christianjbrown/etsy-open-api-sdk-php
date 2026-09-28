@@ -35,7 +35,8 @@ Style tooling comes from the `christianjbrown/code-quality-scripts` dev dependen
 lints with **PHP_CodeSniffer 4** using the **`ChristianBrown` standard**, and **php-cs-fixer**
 (`@PhpCsFixer`/`@Symfony`) handles formatting. Static analysis is **PHPStan at `level: max`**
 (`phpstan.neon.dist`). The **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) runs style,
-PHPStan, and the PHPUnit suite with coverage on every push/PR. Always run `composer fix-style` first,
+PHPStan, and the PHPUnit suite with coverage on every push/PR, then fails the build with
+`bin/php-coverage-check` if line, path, method, or branch coverage drops below 100%. Always run `composer fix-style` first,
 then `composer check-style`, then `composer stan`, then `composer test` before finishing.
 
 ## Architecture
