@@ -59,6 +59,29 @@ use ChristianBrown\Etsy\Api\UserAddressApiInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\DependencyInjection\ContainerFactory;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ApiClientsRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\BuyerTaxonomyTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\CoreServiceRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\LedgerTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingInventoryTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingMediaTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingPersonalizationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTranslationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingWithAssociationsTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentAdjustmentTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\PingTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ReceiptTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\RequestSerializersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ReviewTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\SellerTaxonomyTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShippingProfileTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopConfigurationTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\UserAddressTransformersRegistrar;
+use ChristianBrown\Etsy\DependencyInjection\Registrar\UserTransformersRegistrar;
 use ChristianBrown\Etsy\Etsy;
 use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
 use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
@@ -177,6 +200,29 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Etsy::class)]
+#[UsesClass(ContainerFactory::class)]
+#[UsesClass(ApiClientsRegistrar::class)]
+#[UsesClass(BuyerTaxonomyTransformersRegistrar::class)]
+#[UsesClass(CoreServiceRegistrar::class)]
+#[UsesClass(LedgerTransformersRegistrar::class)]
+#[UsesClass(ListingInventoryTransformersRegistrar::class)]
+#[UsesClass(ListingMediaTransformersRegistrar::class)]
+#[UsesClass(ListingPersonalizationTransformersRegistrar::class)]
+#[UsesClass(ListingTransformersRegistrar::class)]
+#[UsesClass(ListingTranslationTransformersRegistrar::class)]
+#[UsesClass(ListingWithAssociationsTransformersRegistrar::class)]
+#[UsesClass(PaymentAdjustmentTransformersRegistrar::class)]
+#[UsesClass(PaymentTransformersRegistrar::class)]
+#[UsesClass(PingTransformersRegistrar::class)]
+#[UsesClass(ReceiptTransformersRegistrar::class)]
+#[UsesClass(RequestSerializersRegistrar::class)]
+#[UsesClass(ReviewTransformersRegistrar::class)]
+#[UsesClass(SellerTaxonomyTransformersRegistrar::class)]
+#[UsesClass(ShippingProfileTransformersRegistrar::class)]
+#[UsesClass(ShopConfigurationTransformersRegistrar::class)]
+#[UsesClass(ShopTransformersRegistrar::class)]
+#[UsesClass(UserAddressTransformersRegistrar::class)]
+#[UsesClass(UserTransformersRegistrar::class)]
 #[UsesClass(BuyerTaxonomyApi::class)]
 #[UsesClass(SellerTaxonomyApi::class)]
 #[UsesClass(ListingFileApi::class)]

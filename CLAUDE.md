@@ -44,13 +44,25 @@ then `composer check-style`, then `composer stan`, then `composer test` before f
 Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` facade. PSR-4:
 `ChristianBrown\Etsy\` → `src/`, `ChristianBrown\Etsy\Tests\` → `tests/`.
 
-- **`Etsy`** (`src/Etsy.php`) — the facade/entry point. Constructed with `(int $shopId, string $key,
-  TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore)` (the
-  access token store must be TTL-aware because that is what `RefreshTokenManager` takes), it builds a
-  `ContainerBuilder`, registers the core services, every transformer chain, then every resource
-  client (service ids are `SERVICE_*` constants on `EtsyInterface`), and exposes `getShopReceiptApi()`
-  etc. Getters are PHPStan-safe: assign `$this->container->get(...)` to a local `$service` with a
-  `/** @var XApiInterface $service */` docblock, then return it.
+- **`Etsy`** (`src/Etsy.php`) — the facade/entry point and composition root. Constructed with
+  `(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore,
+  KeyValueStoreInterface $refreshTokenStore)` (the access token store must be TTL-aware because that
+  is what `RefreshTokenManager` takes), the constructor builds the list of `ServiceRegistrarInterface`
+  registrars in dependency order, hands them to a `ContainerFactory`, and keeps the `ContainerBuilder`
+  it returns. It exposes `getShopReceiptApi()` etc. Getters are PHPStan-safe: assign
+  `$this->container->get(...)` to a local `$service` with a `/** @var XApiInterface $service */`
+  docblock, then return it. `Etsy` itself is the only place in the library allowed to `new` a
+  registrar — everywhere else takes its collaborators through the constructor.
+- **`DependencyInjection/`** — `ServiceRegistrarInterface` (`register(ContainerBuilder $container): void`)
+  and `ContainerFactory` (`create(): ContainerBuilder`, runs every registrar it was given, in order,
+  against one container). `DependencyInjection/Registrar/` holds one registrar per resource group or
+  concern (e.g. `ReceiptTransformersRegistrar`, `ApiClientsRegistrar`), each a direct, mechanical
+  extraction of what used to be a private `Etsy::register*()` method — same `SERVICE_*` ids, same
+  `setArguments()`/`getDefinition()` calls, just against the container the factory passes in instead
+  of `$this->container`. `CoreServiceRegistrar` and `ApiClientsRegistrar` take constructor arguments
+  (`$key`/`$sharedSecret`/the token stores, and `$shopId`, respectively); every other registrar takes
+  none. Adding a resource group means adding a registrar and listing it in `Etsy`'s constructor, not
+  editing a shared method.
 - **`Role/`** — narrow `Etsy*AwareInterface`s, one per resource domain (listings, shop, receipts,
   taxonomy, users, payments, reviews, shipping, ping), each declaring only the `getXApi()` getters
   for that domain. `EtsyInterface` extends all of them, so a consumer that only needs, say, receipts
@@ -231,7 +243,8 @@ For a write (`POST`/`PUT`/`PATCH`/`DELETE`) endpoint, additionally:
 4. Register the new `Serializer` (and `Http\FormValueEncoderInterface`/
    `Http\MultipartFormDataBuilderInterface`/the raw `ApiRequestSenderInterface`/api-client's
    `JsonToArrayTransformer` if this is the first write on that client) with new `SERVICE_*` ids on
-   `EtsyInterface`, and add them to the client's constructor args in `Etsy::registerApiClients()`.
+   `EtsyInterface`, and add them to the client's constructor args in
+   `DependencyInjection\Registrar\ApiClientsRegistrar::register()`.
 5. Add matching `#[CoversClass]` tests, plus the endpoint to the README table with its HTTP verb and
    required OAuth scope.
 6. Run the same `composer fix-style` → `check-style` → `stan` → `test` gate and confirm 100% coverage.
