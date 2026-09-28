@@ -202,7 +202,7 @@ final class ShopListingApi implements ShopListingApiInterface
      */
     public function getByListingIds(array $listingIds, bool $skipCache = false, ?string $includes = null, ?string $currency = null, ?string $buyerCountry = null, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%s:%s:%s:%s:%s', implode(',', $listingIds), $includes ?? '', $currency ?? '', $buyerCountry ?? '', null === $legacy ? '' : (int) $legacy);
+        $cacheKey = self::buildBatchCacheKey($listingIds, $includes, $currency, $buyerCountry, $legacy);
         if (!$skipCache) {
             if ($this->byListingIdsCache->has($cacheKey)) {
                 /**
@@ -230,7 +230,7 @@ final class ShopListingApi implements ShopListingApiInterface
      */
     public function getByReceipt(int $receiptId, int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d:%d:%s', $receiptId, $limit, $offset, null === $legacy ? '' : (int) $legacy);
+        $cacheKey = self::buildByReceiptCacheKey($receiptId, $limit, $offset, $legacy);
         if (!$skipCache) {
             if ($this->byReceiptCache->has($cacheKey)) {
                 /**
@@ -259,7 +259,7 @@ final class ShopListingApi implements ShopListingApiInterface
      */
     public function getByReturnPolicy(int $returnPolicyId, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%s', $returnPolicyId, null === $legacy ? '' : (int) $legacy);
+        $cacheKey = self::buildByReturnPolicyCacheKey($returnPolicyId, $legacy);
         if (!$skipCache) {
             if ($this->byReturnPolicyCache->has($cacheKey)) {
                 /**
@@ -319,7 +319,7 @@ final class ShopListingApi implements ShopListingApiInterface
      */
     public function getByShopSectionIds(array $shopSectionIds, int $limit = 25, int $offset = 0, bool $skipCache = false, ?string $sortOn = null, ?string $sortOrder = null, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%s:%d:%d:%s:%s:%s', implode(',', $shopSectionIds), $limit, $offset, $sortOn ?? '', $sortOrder ?? '', null === $legacy ? '' : (int) $legacy);
+        $cacheKey = self::buildShopSectionCacheKey($shopSectionIds, $limit, $offset, $sortOn, $sortOrder, $legacy);
         if (!$skipCache) {
             if ($this->byShopSectionIdsCache->has($cacheKey)) {
                 /**
@@ -348,7 +348,7 @@ final class ShopListingApi implements ShopListingApiInterface
      */
     public function getFeaturedByShop(int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d:%s', $limit, $offset, null === $legacy ? '' : (int) $legacy);
+        $cacheKey = self::buildPaginationCacheKey($limit, $offset, $legacy);
         if (!$skipCache) {
             if ($this->featuredByShopCache->has($cacheKey)) {
                 /**
@@ -445,6 +445,188 @@ final class ShopListingApi implements ShopListingApiInterface
         ] + $optional;
     }
 
+    /**
+     * @param array<int, int> $listingIds
+     */
+    private static function buildBatchCacheKey(array $listingIds, ?string $includes, ?string $currency, ?string $buyerCountry, ?bool $legacy): string
+    {
+        return sprintf('%s:%s:%s:%s:%s', implode(',', $listingIds), $includes ?? '', $currency ?? '', $buyerCountry ?? '', self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    /**
+     * @param array<int, int> $listingIds
+     *
+     * @return array<string, string>
+     */
+    private static function buildBatchQuery(array $listingIds, ?string $includes, ?string $currency, ?string $buyerCountry, ?bool $legacy): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_INCLUDES => $includes,
+                self::KEY_CURRENCY => $currency,
+                self::KEY_BUYER_COUNTRY => $buyerCountry,
+                self::KEY_LEGACY => self::encodeOptionalBool($legacy),
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return [
+            self::KEY_LISTING_IDS => implode(',', $listingIds),
+        ] + $optional;
+    }
+
+    private static function buildByIdCacheKey(int $listingId, ?string $includes, ?string $language, ?bool $allowSuggestedTitle): string
+    {
+        return sprintf('%d:%s:%s:%s', $listingId, $includes ?? '', $language ?? '', null === $allowSuggestedTitle ? '' : (int) $allowSuggestedTitle);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildByIdQuery(?string $includes, ?string $language, ?bool $allowSuggestedTitle): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_INCLUDES => $includes,
+                self::KEY_LANGUAGE => $language,
+                self::KEY_ALLOW_SUGGESTED_TITLE => self::encodeOptionalBool($allowSuggestedTitle),
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return $optional;
+    }
+
+    private static function buildByReceiptCacheKey(int $receiptId, int $limit, int $offset, ?bool $legacy): string
+    {
+        return sprintf('%d:%d:%d:%s', $receiptId, $limit, $offset, self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    private static function buildByReturnPolicyCacheKey(int $returnPolicyId, ?bool $legacy): string
+    {
+        return sprintf('%d:%s', $returnPolicyId, self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildLegacyQuery(?bool $legacy): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [self::KEY_LEGACY => self::encodeOptionalBool($legacy)],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return $optional;
+    }
+
+    private static function buildPaginationCacheKey(int $limit, int $offset, ?bool $legacy): string
+    {
+        return sprintf('%d:%d:%s', $limit, $offset, self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildPaginationQuery(int $limit, int $offset, ?bool $legacy = null): array
+    {
+        return [
+            self::KEY_LIMIT => (string) $limit,
+            self::KEY_OFFSET => (string) $offset,
+        ] + self::buildLegacyQuery($legacy);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildShopQuery(?string $state, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?string $includes): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_STATE => $state,
+                self::KEY_SORT_ON => $sortOn,
+                self::KEY_SORT_ORDER => $sortOrder,
+                self::KEY_INCLUDES => $includes,
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return [
+            self::KEY_LIMIT => (string) $limit,
+            self::KEY_OFFSET => (string) $offset,
+        ] + $optional;
+    }
+
+    /**
+     * @param array<int, int> $shopSectionIds
+     */
+    private static function buildShopSectionCacheKey(array $shopSectionIds, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?bool $legacy): string
+    {
+        return sprintf('%s:%d:%d:%s:%s:%s', implode(',', $shopSectionIds), $limit, $offset, $sortOn ?? '', $sortOrder ?? '', self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    /**
+     * @param array<int, int> $shopSectionIds
+     *
+     * @return array<string, string>
+     */
+    private static function buildShopSectionQuery(array $shopSectionIds, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?bool $legacy = null): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_SORT_ON => $sortOn,
+                self::KEY_SORT_ORDER => $sortOrder,
+                self::KEY_LEGACY => self::encodeOptionalBool($legacy),
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return [
+            self::KEY_SHOP_SECTION_IDS => implode(',', $shopSectionIds),
+            self::KEY_LIMIT => (string) $limit,
+            self::KEY_OFFSET => (string) $offset,
+        ] + $optional;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildSortablePaginationQuery(int $limit, int $offset, ?string $sortOn, ?string $sortOrder): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_SORT_ON => $sortOn,
+                self::KEY_SORT_ORDER => $sortOrder,
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        $query = [
+            self::KEY_LIMIT => (string) $limit,
+            self::KEY_OFFSET => (string) $offset,
+        ] + $optional;
+
+        return $query;
+    }
+
     private static function encodeOptionalBool(?bool $value): ?string
     {
         if (null === $value) {
@@ -470,153 +652,6 @@ final class ShopListingApi implements ShopListingApiInterface
         }
 
         return (string) $value;
-    }
-
-    /**
-     * @param array<int, int> $listingIds
-     *
-     * @return array<string, string>
-     */
-    private static function buildBatchQuery(array $listingIds, ?string $includes, ?string $currency, ?string $buyerCountry, ?bool $legacy): array
-    {
-        $query = [
-            self::KEY_LISTING_IDS => implode(',', $listingIds),
-        ];
-        if (null !== $includes) {
-            $query[self::KEY_INCLUDES] = $includes;
-        }
-        if (null !== $currency) {
-            $query[self::KEY_CURRENCY] = $currency;
-        }
-        if (null !== $buyerCountry) {
-            $query[self::KEY_BUYER_COUNTRY] = $buyerCountry;
-        }
-        if (null !== $legacy) {
-            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
-        }
-
-        return $query;
-    }
-
-    private static function buildByIdCacheKey(int $listingId, ?string $includes, ?string $language, ?bool $allowSuggestedTitle): string
-    {
-        return sprintf('%d:%s:%s:%s', $listingId, $includes ?? '', $language ?? '', null === $allowSuggestedTitle ? '' : (int) $allowSuggestedTitle);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function buildByIdQuery(?string $includes, ?string $language, ?bool $allowSuggestedTitle): array
-    {
-        $query = [];
-        if (null !== $includes) {
-            $query[self::KEY_INCLUDES] = $includes;
-        }
-        if (null !== $language) {
-            $query[self::KEY_LANGUAGE] = $language;
-        }
-        if (null !== $allowSuggestedTitle) {
-            $query[self::KEY_ALLOW_SUGGESTED_TITLE] = $allowSuggestedTitle ? 'true' : 'false';
-        }
-
-        return $query;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function buildLegacyQuery(?bool $legacy): array
-    {
-        if (null === $legacy) {
-            return [];
-        }
-
-        return [self::KEY_LEGACY => $legacy ? 'true' : 'false'];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function buildPaginationQuery(int $limit, int $offset, ?bool $legacy = null): array
-    {
-        $query = [
-            self::KEY_LIMIT => (string) $limit,
-            self::KEY_OFFSET => (string) $offset,
-        ];
-        if (null !== $legacy) {
-            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
-        }
-
-        return $query;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function buildShopQuery(?string $state, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?string $includes): array
-    {
-        $query = [
-            self::KEY_LIMIT => (string) $limit,
-            self::KEY_OFFSET => (string) $offset,
-        ];
-        if (null !== $state) {
-            $query[self::KEY_STATE] = $state;
-        }
-        if (null !== $sortOn) {
-            $query[self::KEY_SORT_ON] = $sortOn;
-        }
-        if (null !== $sortOrder) {
-            $query[self::KEY_SORT_ORDER] = $sortOrder;
-        }
-        if (null !== $includes) {
-            $query[self::KEY_INCLUDES] = $includes;
-        }
-
-        return $query;
-    }
-
-    /**
-     * @param array<int, int> $shopSectionIds
-     *
-     * @return array<string, string>
-     */
-    private static function buildShopSectionQuery(array $shopSectionIds, int $limit, int $offset, ?string $sortOn, ?string $sortOrder, ?bool $legacy = null): array
-    {
-        $query = [
-            self::KEY_SHOP_SECTION_IDS => implode(',', $shopSectionIds),
-            self::KEY_LIMIT => (string) $limit,
-            self::KEY_OFFSET => (string) $offset,
-        ];
-        if (null !== $sortOn) {
-            $query[self::KEY_SORT_ON] = $sortOn;
-        }
-        if (null !== $sortOrder) {
-            $query[self::KEY_SORT_ORDER] = $sortOrder;
-        }
-        if (null !== $legacy) {
-            $query[self::KEY_LEGACY] = $legacy ? 'true' : 'false';
-        }
-
-        return $query;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function buildSortablePaginationQuery(int $limit, int $offset, ?string $sortOn, ?string $sortOrder): array
-    {
-        $query = [
-            self::KEY_LIMIT => (string) $limit,
-            self::KEY_OFFSET => (string) $offset,
-        ];
-        if (null !== $sortOn) {
-            $query[self::KEY_SORT_ON] = $sortOn;
-        }
-        if (null !== $sortOrder) {
-            $query[self::KEY_SORT_ORDER] = $sortOrder;
-        }
-
-        return $query;
     }
 
     /**

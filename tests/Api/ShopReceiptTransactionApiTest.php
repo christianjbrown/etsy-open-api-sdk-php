@@ -93,6 +93,35 @@ final class ShopReceiptTransactionApiTest extends TestCase
         self::assertSame($transactions, $second);
     }
 
+    public function testGetByListingWithLegacyFalseIncludesQuery(): void
+    {
+        $resultsData = [['transaction-1'], ['transaction-2']];
+        $headers = ['x-api-key' => 'key'];
+        $transactions = [self::createStub(TransactionInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopReceiptTransactionApiInterface::API_URL_BY_LISTING_SPRINTF, self::SHOP_ID, 77),
+                [
+                    ShopReceiptTransactionApiInterface::KEY_LIMIT => '10',
+                    ShopReceiptTransactionApiInterface::KEY_OFFSET => '5',
+                    ShopReceiptTransactionApiInterface::KEY_LEGACY => 'false',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopReceiptTransactionApiInterface::KEY_RESULTS => $resultsData]);
+
+        $transactionsTransformer = self::createMock(TransactionsTransformerInterface::class);
+        $transactionsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($transactions);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(TransactionTransformerInterface::class), $transactionsTransformer);
+
+        self::assertSame($transactions, $api->getByListing(77, 10, 5, false, false));
+    }
+
     public function testGetByListingWithLegacyIncludesQuery(): void
     {
         $resultsData = [['transaction-1'], ['transaction-2']];

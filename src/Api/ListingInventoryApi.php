@@ -18,6 +18,7 @@ use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformerIn
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryTransformerInterface;
 
+use function array_filter;
 use function sprintf;
 
 final class ListingInventoryApi implements ListingInventoryApiInterface
@@ -81,7 +82,7 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      */
     public function getOffering(int $listingId, int $productId, int $offeringId, bool $skipCache = false, ?bool $legacy = null): ListingInventoryProductOfferingInterface
     {
-        $cacheKey = sprintf('%d:%d:%d:%s', $listingId, $productId, $offeringId, null === $legacy ? '' : (int) $legacy);
+        $cacheKey = sprintf('%d:%d:%d:%s', $listingId, $productId, $offeringId, self::boolCacheKeyPart($legacy));
         if (!$skipCache) {
             if ($this->offeringCache->has($cacheKey)) {
                 /**
@@ -111,7 +112,7 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      */
     public function getProduct(int $listingId, int $productId, bool $skipCache = false, ?bool $legacy = null): ListingInventoryProductInterface
     {
-        $cacheKey = sprintf('%d:%d:%s', $listingId, $productId, null === $legacy ? '' : (int) $legacy);
+        $cacheKey = sprintf('%d:%d:%s', $listingId, $productId, self::boolCacheKeyPart($legacy));
         if (!$skipCache) {
             if ($this->productCache->has($cacheKey)) {
                 /**
@@ -155,9 +156,18 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         return $inventory;
     }
 
+    private static function boolCacheKeyPart(?bool $value): string
+    {
+        if (null === $value) {
+            return '';
+        }
+
+        return $value ? '1' : '0';
+    }
+
     private static function buildByListingIdCacheKey(int $listingId, ?bool $showDeleted, ?string $includes): string
     {
-        return sprintf('%d:%s:%s', $listingId, null === $showDeleted ? '' : (int) $showDeleted, $includes ?? '');
+        return sprintf('%d:%s:%s', $listingId, self::boolCacheKeyPart($showDeleted), $includes ?? '');
     }
 
     /**
@@ -165,15 +175,18 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      */
     private static function buildByListingIdQuery(?bool $showDeleted, ?string $includes): array
     {
-        $query = [];
-        if (null !== $showDeleted) {
-            $query[self::KEY_SHOW_DELETED] = $showDeleted ? 'true' : 'false';
-        }
-        if (null !== $includes) {
-            $query[self::KEY_INCLUDES] = $includes;
-        }
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_SHOW_DELETED => self::encodeOptionalBool($showDeleted),
+                self::KEY_INCLUDES => $includes,
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
 
-        return $query;
+        return $optional;
     }
 
     /**
@@ -181,11 +194,15 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      */
     private static function buildLegacyQuery(?bool $legacy): array
     {
-        if (null === $legacy) {
-            return [];
-        }
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [self::KEY_LEGACY => self::encodeOptionalBool($legacy)],
+            static fn (?string $value): bool => null !== $value
+        );
 
-        return [self::KEY_LEGACY => $legacy ? 'true' : 'false'];
+        return $optional;
     }
 
     /**
@@ -198,5 +215,14 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         }
 
         return [self::KEY_MAX_VARIATIONS_SUPPORTED => $maxVariationsSupported];
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return $value ? 'true' : 'false';
     }
 }

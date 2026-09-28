@@ -704,6 +704,31 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $second);
     }
 
+    public function testGetByReturnPolicyWithLegacyFalseIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_RETURN_POLICY_SPRINTF, self::SHOP_ID, 55),
+                [ShopListingApiInterface::KEY_LEGACY => 'false'],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByReturnPolicy(55, false, false));
+    }
+
     public function testGetByReturnPolicyWithLegacyIncludesQuery(): void
     {
         $resultsData = [['listing-1']];

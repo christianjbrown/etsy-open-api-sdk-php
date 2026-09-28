@@ -18,6 +18,7 @@ use ChristianBrown\Etsy\Serializer\UpdateShopReadinessStateDefinitionRequestSeri
 use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionTransformerInterface;
 
+use function array_filter;
 use function is_array;
 use function sprintf;
 
@@ -86,7 +87,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
      */
     public function getMultiple(bool $skipCache = false, ?int $limit = null, ?int $offset = null): array
     {
-        $cacheKey = sprintf('all:%s:%s', $limit ?? '', $offset ?? '');
+        $cacheKey = self::buildPaginationCacheKey($limit, $offset);
         if (!$skipCache) {
             if ($this->cache->has($cacheKey)) {
                 /**
@@ -166,14 +167,31 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
      */
     private static function buildPaginationQuery(?int $limit, ?int $offset): array
     {
-        $query = [];
-        if (null !== $limit) {
-            $query[self::KEY_LIMIT] = (string) $limit;
-        }
-        if (null !== $offset) {
-            $query[self::KEY_OFFSET] = (string) $offset;
-        }
+        /**
+         * @var array<string, string> $query
+         */
+        $query = array_filter(
+            [
+                self::KEY_LIMIT => self::encodeOptionalInt($limit),
+                self::KEY_OFFSET => self::encodeOptionalInt($offset),
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
 
         return $query;
+    }
+
+    private static function encodeOptionalInt(?int $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
+    private static function buildPaginationCacheKey(?int $limit, ?int $offset): string
+    {
+        return sprintf('all:%s:%s', $limit ?? '', $offset ?? '');
     }
 }

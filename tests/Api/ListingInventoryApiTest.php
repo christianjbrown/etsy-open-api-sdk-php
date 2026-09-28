@@ -151,6 +151,31 @@ final class ListingInventoryApiTest extends TestCase
         self::assertSame($inventory, $api->getByListingId(self::LISTING_ID, false, true, 'Listing'));
     }
 
+    public function testGetByListingIdWithShowDeletedFalseIncludesQuery(): void
+    {
+        $inventoryData = ['inventory-data'];
+        $headers = ['x-api-key' => 'key'];
+        $inventory = self::createStub(ListingInventoryInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ListingInventoryApiInterface::API_URL_BY_LISTING_ID_SPRINTF, self::LISTING_ID),
+                [ListingInventoryApiInterface::KEY_SHOW_DELETED => 'false'],
+                $headers,
+            )
+            ->willReturn($inventoryData);
+
+        $inventoryTransformer = self::createMock(ListingInventoryTransformerInterface::class);
+        $inventoryTransformer->expects(self::once())->method('transform')
+            ->with($inventoryData)
+            ->willReturn($inventory);
+
+        $api = $this->buildApi($headers, $requestSender, $inventoryTransformer, self::createStub(ListingInventoryProductTransformerInterface::class), self::createStub(ListingInventoryProductOfferingTransformerInterface::class));
+
+        self::assertSame($inventory, $api->getByListingId(self::LISTING_ID, false, false));
+    }
+
     public function testGetOfferingReturnsOffering(): void
     {
         $offeringData = ['offering-data'];
@@ -240,6 +265,31 @@ final class ListingInventoryApiTest extends TestCase
 
         self::assertSame($offering, $first);
         self::assertSame($offering, $second);
+    }
+
+    public function testGetOfferingWithLegacyFalseIncludesQuery(): void
+    {
+        $offeringData = ['offering-data'];
+        $headers = ['x-api-key' => 'key'];
+        $offering = self::createStub(ListingInventoryProductOfferingInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ListingInventoryApiInterface::API_URL_OFFERING_SPRINTF, self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID),
+                [ListingInventoryApiInterface::KEY_LEGACY => 'false'],
+                $headers,
+            )
+            ->willReturn($offeringData);
+
+        $offeringTransformer = self::createMock(ListingInventoryProductOfferingTransformerInterface::class);
+        $offeringTransformer->expects(self::once())->method('transform')
+            ->with($offeringData)
+            ->willReturn($offering);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ListingInventoryTransformerInterface::class), self::createStub(ListingInventoryProductTransformerInterface::class), $offeringTransformer);
+
+        self::assertSame($offering, $api->getOffering(self::LISTING_ID, self::PRODUCT_ID, self::OFFERING_ID, false, false));
     }
 
     public function testGetOfferingWithLegacyIncludesQuery(): void

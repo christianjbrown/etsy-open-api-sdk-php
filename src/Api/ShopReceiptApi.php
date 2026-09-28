@@ -208,24 +208,6 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
         return implode(':', array_map(static fn (?string $part): string => $part ?? '', $parts));
     }
 
-    private static function encodeOptionalBool(?bool $value): ?string
-    {
-        if (null === $value) {
-            return null;
-        }
-
-        return $value ? 'true' : 'false';
-    }
-
-    private static function encodeOptionalInt(?int $value): ?string
-    {
-        if (null === $value) {
-            return null;
-        }
-
-        return (string) $value;
-    }
-
     /**
      * @return array<string, string>
      */
@@ -263,5 +245,23 @@ final class ShopReceiptApi implements ShopReceiptApiInterface
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
         ] + $optional;
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return $value ? 'true' : 'false';
+    }
+
+    private static function encodeOptionalInt(?int $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return (string) $value;
     }
 }
