@@ -17,14 +17,14 @@
     ],
     "require": {
         "php": "^8.5",
-        "christianjbrown/api-client": "dev-main",
-        "christianjbrown/key-value-store": "dev-main",
-        "christianjbrown/oauth2-client": "dev-main",
+        "christianjbrown/api-client": "^1.0",
+        "christianjbrown/key-value-store": "^1.0",
+        "christianjbrown/oauth2-client": "^1.0",
         "psr/container": "^2.0",
         "symfony/dependency-injection": "^8.0"
     },
     "require-dev": {
-        "christianjbrown/code-quality-scripts": "dev-main",
+        "christianjbrown/code-quality-scripts": "^1.0",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^13.0"
     },
