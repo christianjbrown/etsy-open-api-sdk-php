@@ -11,6 +11,14 @@ final class ListingWithAssociations implements ListingWithAssociationsInterface
     private ?int $createdTimestamp = null;
     private ?int $creationTimestamp = null;
     private ?string $description = null;
+    private ?string $ecgtAfterSalesServiceInfo = null;
+    private ?bool $ecgtCommercialGuaranteeEnabled = null;
+    private ?string $ecgtGaranBrand = null;
+    private ?string $ecgtGaranGuaranteeDetails = null;
+    private ?string $ecgtGaranModel = null;
+    private ?int $ecgtGaranYears = null;
+    private ?string $ecgtOtherCommercialGuaranteeDetails = null;
+    private ?string $ecgtSoftwareUpdateDetails = null;
     private ?int $endingTimestamp = null;
     private ?int $featuredRank = null;
     private ?string $fileData = null;
@@ -129,6 +137,46 @@ final class ListingWithAssociations implements ListingWithAssociationsInterface
     public function getDescription(): ?string
     {
         return $this->description;
+    }
+
+    public function getEcgtAfterSalesServiceInfo(): ?string
+    {
+        return $this->ecgtAfterSalesServiceInfo;
+    }
+
+    public function getEcgtCommercialGuaranteeEnabled(): ?bool
+    {
+        return $this->ecgtCommercialGuaranteeEnabled;
+    }
+
+    public function getEcgtGaranBrand(): ?string
+    {
+        return $this->ecgtGaranBrand;
+    }
+
+    public function getEcgtGaranGuaranteeDetails(): ?string
+    {
+        return $this->ecgtGaranGuaranteeDetails;
+    }
+
+    public function getEcgtGaranModel(): ?string
+    {
+        return $this->ecgtGaranModel;
+    }
+
+    public function getEcgtGaranYears(): ?int
+    {
+        return $this->ecgtGaranYears;
+    }
+
+    public function getEcgtOtherCommercialGuaranteeDetails(): ?string
+    {
+        return $this->ecgtOtherCommercialGuaranteeDetails;
+    }
+
+    public function getEcgtSoftwareUpdateDetails(): ?string
+    {
+        return $this->ecgtSoftwareUpdateDetails;
     }
 
     public function getEndingTimestamp(): ?int
@@ -471,6 +519,62 @@ final class ListingWithAssociations implements ListingWithAssociationsInterface
     public function setDescription(?string $value): ListingWithAssociationsInterface
     {
         $this->description = $value;
+
+        return $this;
+    }
+
+    public function setEcgtAfterSalesServiceInfo(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtAfterSalesServiceInfo = $value;
+
+        return $this;
+    }
+
+    public function setEcgtCommercialGuaranteeEnabled(?bool $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtCommercialGuaranteeEnabled = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranBrand(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtGaranBrand = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranGuaranteeDetails(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtGaranGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranModel(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtGaranModel = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranYears(?int $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtGaranYears = $value;
+
+        return $this;
+    }
+
+    public function setEcgtOtherCommercialGuaranteeDetails(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtOtherCommercialGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtSoftwareUpdateDetails(?string $value): ListingWithAssociationsInterface
+    {
+        $this->ecgtSoftwareUpdateDetails = $value;
 
         return $this;
     }

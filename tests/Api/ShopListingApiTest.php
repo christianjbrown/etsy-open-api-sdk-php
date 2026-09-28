@@ -162,6 +162,36 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $second);
     }
 
+    public function testFindActiveByShopWithSortIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_ACTIVE_BY_SHOP_SPRINTF, self::SHOP_ID),
+                [
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_SORT_ON => 'price',
+                    ShopListingApiInterface::KEY_SORT_ORDER => 'asc',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->findActiveByShop(10, 5, false, 'price', 'asc'));
+    }
+
     public function testFindActiveReturnsListings(): void
     {
         $resultsData = [['listing-1']];
@@ -229,6 +259,44 @@ final class ShopListingApiTest extends TestCase
 
         self::assertSame($listings, $first);
         self::assertSame($listings, $second);
+    }
+
+    public function testFindActiveWithAllFiltersIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                ShopListingApiInterface::API_URL_ACTIVE,
+                [
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_KEYWORDS => 'mug',
+                    ShopListingApiInterface::KEY_SORT_ON => 'created',
+                    ShopListingApiInterface::KEY_SORT_ORDER => 'desc',
+                    ShopListingApiInterface::KEY_MIN_PRICE => '1.5',
+                    ShopListingApiInterface::KEY_MAX_PRICE => '99.5',
+                    ShopListingApiInterface::KEY_TAXONOMY_ID => '7',
+                    ShopListingApiInterface::KEY_SHOP_LOCATION => 'GB',
+                    ShopListingApiInterface::KEY_IS_SAFE => 'true',
+                    ShopListingApiInterface::KEY_CURRENCY => 'GBP',
+                    ShopListingApiInterface::KEY_BUYER_COUNTRY => 'GB',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->findActive('mug', 10, 5, false, 'created', 'desc', 1.5, 99.5, 7, 'GB', true, 'GBP', 'GB'));
     }
 
     public function testFindActiveWithoutKeywordsOmitsKeywordsQuery(): void
@@ -347,6 +415,35 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listing, $second);
     }
 
+    public function testGetByIdWithFiltersIncludesQuery(): void
+    {
+        $listingData = ['listing-self'];
+        $headers = ['x-api-key' => 'key'];
+        $listing = self::createStub(ListingInterface::class);
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_ID_SPRINTF, 500),
+                [
+                    ShopListingApiInterface::KEY_INCLUDES => 'Shop',
+                    ShopListingApiInterface::KEY_LANGUAGE => 'en',
+                    ShopListingApiInterface::KEY_ALLOW_SUGGESTED_TITLE => 'true',
+                ],
+                $headers,
+            )
+            ->willReturn($listingData);
+
+        $listingTransformer = self::createMock(ListingTransformerInterface::class);
+        $listingTransformer->expects(self::once())->method('transform')
+            ->with($listingData)
+            ->willReturn($listing);
+
+        $api = $this->buildApi($headers, $requestSender, $listingTransformer);
+
+        self::assertSame($listing, $api->getById(500, false, 'Shop', 'en', true));
+    }
+
     public function testGetByListingIdsReturnsListings(): void
     {
         $resultsData = [['listing-1']];
@@ -412,6 +509,37 @@ final class ShopListingApiTest extends TestCase
 
         self::assertSame($listings, $first);
         self::assertSame($listings, $second);
+    }
+
+    public function testGetByListingIdsWithFiltersIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                ShopListingApiInterface::API_URL_BATCH,
+                [
+                    ShopListingApiInterface::KEY_LISTING_IDS => '1,2,3',
+                    ShopListingApiInterface::KEY_INCLUDES => 'Shop',
+                    ShopListingApiInterface::KEY_CURRENCY => 'GBP',
+                    ShopListingApiInterface::KEY_BUYER_COUNTRY => 'GB',
+                    ShopListingApiInterface::KEY_LEGACY => 'true',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByListingIds([1, 2, 3], false, 'Shop', 'GBP', 'GB', true));
     }
 
     public function testGetByReceiptReturnsListings(): void
@@ -482,6 +610,35 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $second);
     }
 
+    public function testGetByReceiptWithLegacyIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_RECEIPT_SPRINTF, self::SHOP_ID, 77),
+                [
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_LEGACY => 'true',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByReceipt(77, 10, 5, false, true));
+    }
+
     public function testGetByReturnPolicyReturnsListings(): void
     {
         $resultsData = [['listing-1']];
@@ -545,6 +702,56 @@ final class ShopListingApiTest extends TestCase
 
         self::assertSame($listings, $first);
         self::assertSame($listings, $second);
+    }
+
+    public function testGetByReturnPolicyWithLegacyFalseIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_RETURN_POLICY_SPRINTF, self::SHOP_ID, 55),
+                [ShopListingApiInterface::KEY_LEGACY => 'false'],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByReturnPolicy(55, false, false));
+    }
+
+    public function testGetByReturnPolicyWithLegacyIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_RETURN_POLICY_SPRINTF, self::SHOP_ID, 55),
+                [ShopListingApiInterface::KEY_LEGACY => 'true'],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByReturnPolicy(55, false, true));
     }
 
     public function testGetByShopReturnsListings(): void
@@ -645,6 +852,38 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $second);
     }
 
+    public function testGetByShopSectionIdsWithSortLegacyIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_SHOP_SECTIONS_SPRINTF, self::SHOP_ID),
+                [
+                    ShopListingApiInterface::KEY_SHOP_SECTION_IDS => '7,8',
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_SORT_ON => 'price',
+                    ShopListingApiInterface::KEY_SORT_ORDER => 'asc',
+                    ShopListingApiInterface::KEY_LEGACY => 'true',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByShopSectionIds([7, 8], 10, 5, false, 'price', 'asc', true));
+    }
+
     public function testGetByShopSkipCacheRefetches(): void
     {
         $listings = [self::createStub(ListingInterface::class)];
@@ -736,6 +975,38 @@ final class ShopListingApiTest extends TestCase
         self::assertSame($listings, $api->getByShop(null, 10, 5));
     }
 
+    public function testGetByShopWithSortIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_BY_SHOP_SPRINTF, self::SHOP_ID),
+                [
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_STATE => 'active',
+                    ShopListingApiInterface::KEY_SORT_ON => 'price',
+                    ShopListingApiInterface::KEY_SORT_ORDER => 'asc',
+                    ShopListingApiInterface::KEY_INCLUDES => 'Shop',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getByShop('active', 10, 5, false, 'price', 'asc', 'Shop'));
+    }
+
     public function testGetFeaturedByShopReturnsListings(): void
     {
         $resultsData = [['listing-1']];
@@ -802,6 +1073,35 @@ final class ShopListingApiTest extends TestCase
 
         self::assertSame($listings, $first);
         self::assertSame($listings, $second);
+    }
+
+    public function testGetFeaturedByShopWithLegacyIncludesQuery(): void
+    {
+        $resultsData = [['listing-1']];
+        $headers = ['x-api-key' => 'key'];
+        $listings = [self::createStub(ListingInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopListingApiInterface::API_URL_FEATURED_BY_SHOP_SPRINTF, self::SHOP_ID),
+                [
+                    ShopListingApiInterface::KEY_LIMIT => '10',
+                    ShopListingApiInterface::KEY_OFFSET => '5',
+                    ShopListingApiInterface::KEY_LEGACY => 'true',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopListingApiInterface::KEY_RESULTS => $resultsData]);
+
+        $listingsTransformer = self::createMock(ListingsTransformerInterface::class);
+        $listingsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($listings);
+
+        $api = $this->buildApi($headers, $requestSender, null, $listingsTransformer);
+
+        self::assertSame($listings, $api->getFeaturedByShop(10, 5, false, true));
     }
 
     public function testUpdateReturnsListing(): void

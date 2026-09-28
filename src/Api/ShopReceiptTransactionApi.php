@@ -13,6 +13,7 @@ use ChristianBrown\Etsy\Model\TransactionInterface;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\TransactionTransformerInterface;
 
+use function array_filter;
 use function is_array;
 use function sprintf;
 
@@ -47,9 +48,9 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByListing(int $listingId, int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByListing(int $listingId, int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d:%d', $listingId, $limit, $offset);
+        $cacheKey = self::buildByListingCacheKey($listingId, $limit, $offset, $legacy);
         if (!$skipCache) {
             if ($this->byListingCache->has($cacheKey)) {
                 /**
@@ -62,7 +63,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         }
 
         $url = sprintf(self::API_URL_BY_LISTING_SPRINTF, $this->shopId, $listingId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
         $this->byListingCache->set($cacheKey, $transactions);
@@ -76,24 +77,25 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByReceipt(int $receiptId, bool $skipCache = false): array
+    public function getByReceipt(int $receiptId, bool $skipCache = false, ?bool $legacy = null): array
     {
+        $cacheKey = self::buildByReceiptCacheKey($receiptId, $legacy);
         if (!$skipCache) {
-            if ($this->byReceiptCache->has((string) $receiptId)) {
+            if ($this->byReceiptCache->has($cacheKey)) {
                 /**
                  * @var array<int, TransactionInterface> $cached
                  */
-                $cached = $this->byReceiptCache->get((string) $receiptId);
+                $cached = $this->byReceiptCache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_BY_RECEIPT_SPRINTF, $this->shopId, $receiptId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
-        $this->byReceiptCache->set((string) $receiptId, $transactions);
+        $this->byReceiptCache->set($cacheKey, $transactions);
 
         return $transactions;
     }
@@ -104,9 +106,9 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
      *
      * @return array<int, TransactionInterface>
      */
-    public function getByShop(int $limit = 25, int $offset = 0, bool $skipCache = false): array
+    public function getByShop(int $limit = 25, int $offset = 0, bool $skipCache = false, ?bool $legacy = null): array
     {
-        $cacheKey = sprintf('%d:%d', $limit, $offset);
+        $cacheKey = self::buildByShopCacheKey($limit, $offset, $legacy);
         if (!$skipCache) {
             if ($this->byShopCache->has($cacheKey)) {
                 /**
@@ -119,7 +121,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         }
 
         $url = sprintf(self::API_URL_BY_SHOP_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildQuery($limit, $offset, $legacy), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
         $this->byShopCache->set($cacheKey, $transactions);
@@ -156,15 +158,55 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         return $transaction;
     }
 
+    private static function buildByListingCacheKey(int $listingId, int $limit, int $offset, ?bool $legacy): string
+    {
+        return sprintf('%d:%d:%d:%s', $listingId, $limit, $offset, self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    private static function buildByReceiptCacheKey(int $receiptId, ?bool $legacy): string
+    {
+        return sprintf('%d:%s', $receiptId, self::encodeOptionalBool($legacy) ?? '');
+    }
+
+    private static function buildByShopCacheKey(int $limit, int $offset, ?bool $legacy): string
+    {
+        return sprintf('%d:%d:%s', $limit, $offset, self::encodeOptionalBool($legacy) ?? '');
+    }
+
     /**
      * @return array<string, string>
      */
-    private static function buildQuery(int $limit, int $offset): array
+    private static function buildLegacyQuery(?bool $legacy): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [self::KEY_LEGACY => self::encodeOptionalBool($legacy)],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return $optional;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildQuery(int $limit, int $offset, ?bool $legacy = null): array
     {
         return [
             self::KEY_LIMIT => (string) $limit,
             self::KEY_OFFSET => (string) $offset,
-        ];
+        ] + self::buildLegacyQuery($legacy);
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return $value ? 'true' : 'false';
     }
 
     /**

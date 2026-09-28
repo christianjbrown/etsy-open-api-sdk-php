@@ -16,8 +16,18 @@ interface ShopReceiptApiInterface
     public const string API_URL_TRACKING_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/receipts/%d/tracking';
     public const string KEY_LEGACY = 'legacy';
     public const string KEY_LIMIT = 'limit';
+    public const string KEY_MAX_CREATED = 'max_created';
+    public const string KEY_MAX_LAST_MODIFIED = 'max_last_modified';
+    public const string KEY_MIN_CREATED = 'min_created';
+    public const string KEY_MIN_LAST_MODIFIED = 'min_last_modified';
     public const string KEY_OFFSET = 'offset';
     public const string KEY_RESULTS = 'results';
+    public const string KEY_SORT_ON = 'sort_on';
+    public const string KEY_SORT_ORDER = 'sort_order';
+    public const string KEY_WAS_CANCELED = 'was_canceled';
+    public const string KEY_WAS_DELIVERED = 'was_delivered';
+    public const string KEY_WAS_PAID = 'was_paid';
+    public const string KEY_WAS_SHIPPED = 'was_shipped';
     public const string UNEXPECTED_RESPONSE = 'Response not set or not an array';
     public const string UNEXPECTED_RESPONSE_SPRINTF = '%s not set or not an array';
 
@@ -31,7 +41,7 @@ interface ShopReceiptApiInterface
      *
      * @return array<int, ReceiptInterface>
      */
-    public function getMultiple(int $limit = 100, int $offset = 0, bool $skipCache = false): array;
+    public function getMultiple(int $limit = 100, int $offset = 0, bool $skipCache = false, ?int $minCreated = null, ?int $maxCreated = null, ?int $minLastModified = null, ?int $maxLastModified = null, ?string $sortOn = null, ?string $sortOrder = null, ?bool $wasPaid = null, ?bool $wasShipped = null, ?bool $wasDelivered = null, ?bool $wasCanceled = null): array;
 
     public function getOneById(int $receiptId, bool $skipCache = false): ReceiptInterface;
 
@@ -40,7 +50,7 @@ interface ShopReceiptApiInterface
      * receipt count, so a caller can page through the whole set without having
      * to infer the end from a short page.
      */
-    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false): ReceiptPageInterface;
+    public function getPage(int $limit = 100, int $offset = 0, bool $skipCache = false, ?int $minCreated = null, ?int $maxCreated = null, ?int $minLastModified = null, ?int $maxLastModified = null, ?string $sortOn = null, ?string $sortOrder = null, ?bool $wasPaid = null, ?bool $wasShipped = null, ?bool $wasDelivered = null, ?bool $wasCanceled = null): ReceiptPageInterface;
 
     /**
      * Updates the shipped/paid status of a receipt.

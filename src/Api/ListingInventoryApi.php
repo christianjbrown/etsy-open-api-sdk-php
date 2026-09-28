@@ -18,6 +18,7 @@ use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformerIn
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryTransformerInterface;
 
+use function array_filter;
 use function sprintf;
 
 final class ListingInventoryApi implements ListingInventoryApiInterface
@@ -49,27 +50,28 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function getByListingId(int $listingId, bool $skipCache = false): ListingInventoryInterface
+    public function getByListingId(int $listingId, bool $skipCache = false, ?bool $showDeleted = null, ?string $includes = null): ListingInventoryInterface
     {
+        $cacheKey = self::buildByListingIdCacheKey($listingId, $showDeleted, $includes);
         if (!$skipCache) {
-            if ($this->byListingIdCache->has((string) $listingId)) {
+            if ($this->byListingIdCache->has($cacheKey)) {
                 /**
                  * @var ListingInventoryInterface $cached
                  */
-                $cached = $this->byListingIdCache->get((string) $listingId);
+                $cached = $this->byListingIdCache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_BY_LISTING_ID_SPRINTF, $listingId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildByListingIdQuery($showDeleted, $includes), $this->credentials->toHeaders());
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $inventory = $this->listingInventoryTransformer->transform($data);
-        $this->byListingIdCache->set((string) $listingId, $inventory);
+        $this->byListingIdCache->set($cacheKey, $inventory);
 
         return $inventory;
     }
@@ -78,9 +80,9 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function getOffering(int $listingId, int $productId, int $offeringId, bool $skipCache = false): ListingInventoryProductOfferingInterface
+    public function getOffering(int $listingId, int $productId, int $offeringId, bool $skipCache = false, ?bool $legacy = null): ListingInventoryProductOfferingInterface
     {
-        $cacheKey = sprintf('%d:%d:%d', $listingId, $productId, $offeringId);
+        $cacheKey = sprintf('%d:%d:%d:%s', $listingId, $productId, $offeringId, self::boolCacheKeyPart($legacy));
         if (!$skipCache) {
             if ($this->offeringCache->has($cacheKey)) {
                 /**
@@ -93,7 +95,7 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         }
 
         $url = sprintf(self::API_URL_OFFERING_SPRINTF, $listingId, $productId, $offeringId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders());
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
@@ -108,9 +110,9 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function getProduct(int $listingId, int $productId, bool $skipCache = false): ListingInventoryProductInterface
+    public function getProduct(int $listingId, int $productId, bool $skipCache = false, ?bool $legacy = null): ListingInventoryProductInterface
     {
-        $cacheKey = sprintf('%d:%d', $listingId, $productId);
+        $cacheKey = sprintf('%d:%d:%s', $listingId, $productId, self::boolCacheKeyPart($legacy));
         if (!$skipCache) {
             if ($this->productCache->has($cacheKey)) {
                 /**
@@ -123,7 +125,7 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         }
 
         $url = sprintf(self::API_URL_PRODUCT_SPRINTF, $listingId, $productId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildLegacyQuery($legacy), $this->credentials->toHeaders());
 
         if (empty($data)) {
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
@@ -147,11 +149,60 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $inventory = $this->listingInventoryTransformer->transform($data);
-        $this->byListingIdCache->set((string) $listingId, $inventory);
+        $this->byListingIdCache->set(self::buildByListingIdCacheKey($listingId, null, null), $inventory);
         $this->offeringCache->clear();
         $this->productCache->clear();
 
         return $inventory;
+    }
+
+    private static function boolCacheKeyPart(?bool $value): string
+    {
+        if (null === $value) {
+            return '';
+        }
+
+        return $value ? '1' : '0';
+    }
+
+    private static function buildByListingIdCacheKey(int $listingId, ?bool $showDeleted, ?string $includes): string
+    {
+        return sprintf('%d:%s:%s', $listingId, self::boolCacheKeyPart($showDeleted), $includes ?? '');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildByListingIdQuery(?bool $showDeleted, ?string $includes): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [
+                self::KEY_SHOW_DELETED => self::encodeOptionalBool($showDeleted),
+                self::KEY_INCLUDES => $includes,
+            ],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return $optional;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildLegacyQuery(?bool $legacy): array
+    {
+        /**
+         * @var array<string, string> $optional
+         */
+        $optional = array_filter(
+            [self::KEY_LEGACY => self::encodeOptionalBool($legacy)],
+            static fn (?string $value): bool => null !== $value
+        );
+
+        return $optional;
     }
 
     /**
@@ -164,5 +215,14 @@ final class ListingInventoryApi implements ListingInventoryApiInterface
         }
 
         return [self::KEY_MAX_VARIATIONS_SUPPORTED => $maxVariationsSupported];
+    }
+
+    private static function encodeOptionalBool(?bool $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return $value ? 'true' : 'false';
     }
 }

@@ -12,6 +12,14 @@ interface ListingTransformerInterface
     public const string KEY_CREATED_TIMESTAMP = 'created_timestamp';
     public const string KEY_CREATION_TIMESTAMP = 'creation_timestamp';
     public const string KEY_DESCRIPTION = 'description';
+    public const string KEY_ECGT_AFTER_SALES_SERVICE_INFO = 'ecgt_after_sales_service_info';
+    public const string KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED = 'ecgt_commercial_guarantee_enabled';
+    public const string KEY_ECGT_GARAN_BRAND = 'ecgt_garan_brand';
+    public const string KEY_ECGT_GARAN_GUARANTEE_DETAILS = 'ecgt_garan_guarantee_details';
+    public const string KEY_ECGT_GARAN_MODEL = 'ecgt_garan_model';
+    public const string KEY_ECGT_GARAN_YEARS = 'ecgt_garan_years';
+    public const string KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS = 'ecgt_other_commercial_guarantee_details';
+    public const string KEY_ECGT_SOFTWARE_UPDATE_DETAILS = 'ecgt_software_update_details';
     public const string KEY_ENDING_TIMESTAMP = 'ending_timestamp';
     public const string KEY_FEATURED_RANK = 'featured_rank';
     public const string KEY_FILE_DATA = 'file_data';

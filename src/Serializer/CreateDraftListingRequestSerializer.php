@@ -26,6 +26,13 @@ final class CreateDraftListingRequestSerializer implements CreateDraftListingReq
         $data = [];
 
         $data = self::applyDescription($data, $createDraftListingRequest);
+        $data = self::applyEcgtAfterSalesServiceInfo($data, $createDraftListingRequest);
+        $data = self::applyEcgtGaranBrand($data, $createDraftListingRequest);
+        $data = self::applyEcgtGaranGuaranteeDetails($data, $createDraftListingRequest);
+        $data = self::applyEcgtGaranModel($data, $createDraftListingRequest);
+        $data = $this->applyEcgtGaranYears($data, $createDraftListingRequest);
+        $data = self::applyEcgtOtherCommercialGuaranteeDetails($data, $createDraftListingRequest);
+        $data = self::applyEcgtSoftwareUpdateDetails($data, $createDraftListingRequest);
         $data = $this->applyImageIds($data, $createDraftListingRequest);
         $data = $this->applyIsCustomizable($data, $createDraftListingRequest);
         $data = $this->applyIsSupply($data, $createDraftListingRequest);
@@ -66,6 +73,118 @@ final class CreateDraftListingRequestSerializer implements CreateDraftListingReq
     private static function applyDescription(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
     {
         $data[self::KEY_DESCRIPTION] = $createDraftListingRequest->getDescription();
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtAfterSalesServiceInfo(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtAfterSalesServiceInfo();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_AFTER_SALES_SERVICE_INFO] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranBrand(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtGaranBrand();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_BRAND] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranGuaranteeDetails(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtGaranGuaranteeDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_GUARANTEE_DETAILS] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranModel(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtGaranModel();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_MODEL] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private function applyEcgtGaranYears(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtGaranYears();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_YEARS] = $this->formValueEncoder->encodeInt($value);
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtOtherCommercialGuaranteeDetails(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtOtherCommercialGuaranteeDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtSoftwareUpdateDetails(array $data, CreateDraftListingRequestInterface $createDraftListingRequest): array
+    {
+        $value = $createDraftListingRequest->getEcgtSoftwareUpdateDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_SOFTWARE_UPDATE_DETAILS] = $value;
 
         return $data;
     }

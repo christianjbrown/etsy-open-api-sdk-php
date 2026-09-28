@@ -7,6 +7,13 @@ namespace ChristianBrown\Etsy\Model;
 final class CreateDraftListingRequest implements CreateDraftListingRequestInterface
 {
     private string $description;
+    private ?string $ecgtAfterSalesServiceInfo = null;
+    private ?string $ecgtGaranBrand = null;
+    private ?string $ecgtGaranGuaranteeDetails = null;
+    private ?string $ecgtGaranModel = null;
+    private ?int $ecgtGaranYears = null;
+    private ?string $ecgtOtherCommercialGuaranteeDetails = null;
+    private ?string $ecgtSoftwareUpdateDetails = null;
 
     /**
      * @var array<int, int>
@@ -70,6 +77,41 @@ final class CreateDraftListingRequest implements CreateDraftListingRequestInterf
     public function getDescription(): string
     {
         return $this->description;
+    }
+
+    public function getEcgtAfterSalesServiceInfo(): ?string
+    {
+        return $this->ecgtAfterSalesServiceInfo;
+    }
+
+    public function getEcgtGaranBrand(): ?string
+    {
+        return $this->ecgtGaranBrand;
+    }
+
+    public function getEcgtGaranGuaranteeDetails(): ?string
+    {
+        return $this->ecgtGaranGuaranteeDetails;
+    }
+
+    public function getEcgtGaranModel(): ?string
+    {
+        return $this->ecgtGaranModel;
+    }
+
+    public function getEcgtGaranYears(): ?int
+    {
+        return $this->ecgtGaranYears;
+    }
+
+    public function getEcgtOtherCommercialGuaranteeDetails(): ?string
+    {
+        return $this->ecgtOtherCommercialGuaranteeDetails;
+    }
+
+    public function getEcgtSoftwareUpdateDetails(): ?string
+    {
+        return $this->ecgtSoftwareUpdateDetails;
     }
 
     /**
@@ -230,6 +272,55 @@ final class CreateDraftListingRequest implements CreateDraftListingRequestInterf
     public function setDescription(string $value): CreateDraftListingRequestInterface
     {
         $this->description = $value;
+
+        return $this;
+    }
+
+    public function setEcgtAfterSalesServiceInfo(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtAfterSalesServiceInfo = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranBrand(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtGaranBrand = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranGuaranteeDetails(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtGaranGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranModel(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtGaranModel = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranYears(?int $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtGaranYears = $value;
+
+        return $this;
+    }
+
+    public function setEcgtOtherCommercialGuaranteeDetails(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtOtherCommercialGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtSoftwareUpdateDetails(?string $value): CreateDraftListingRequestInterface
+    {
+        $this->ecgtSoftwareUpdateDetails = $value;
 
         return $this;
     }

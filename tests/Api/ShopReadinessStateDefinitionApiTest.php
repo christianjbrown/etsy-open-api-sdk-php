@@ -210,6 +210,34 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
         self::assertSame($definitions, $second);
     }
 
+    public function testGetMultipleWithPaginationIncludesQuery(): void
+    {
+        $resultsData = [['definition-1'], ['definition-2']];
+        $headers = ['x-api-key' => 'key'];
+        $definitions = [self::createStub(ShopReadinessStateDefinitionInterface::class)];
+
+        $requestSender = self::createMock(JsonApiRequestSenderInterface::class);
+        $requestSender->expects(self::once())->method('get')
+            ->with(
+                sprintf(ShopReadinessStateDefinitionApiInterface::API_URL_MULTIPLE_SPRINTF, self::SHOP_ID),
+                [
+                    ShopReadinessStateDefinitionApiInterface::KEY_LIMIT => '10',
+                    ShopReadinessStateDefinitionApiInterface::KEY_OFFSET => '5',
+                ],
+                $headers,
+            )
+            ->willReturn([ShopReadinessStateDefinitionApiInterface::KEY_RESULTS => $resultsData]);
+
+        $definitionsTransformer = self::createMock(ShopReadinessStateDefinitionsTransformerInterface::class);
+        $definitionsTransformer->expects(self::once())->method('transform')
+            ->with($resultsData)
+            ->willReturn($definitions);
+
+        $api = $this->buildApi($headers, $requestSender, self::createStub(ShopReadinessStateDefinitionTransformerInterface::class), $definitionsTransformer);
+
+        self::assertSame($definitions, $api->getMultiple(false, 10, 5));
+    }
+
     public function testGetOneByIdReturnsDefinition(): void
     {
         $definitionData = ['definition-self'];

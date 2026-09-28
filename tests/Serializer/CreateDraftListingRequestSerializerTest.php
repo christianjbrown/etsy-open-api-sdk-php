@@ -46,6 +46,13 @@ final class CreateDraftListingRequestSerializerTest extends TestCase
         $styles = ['test-styles-1', 'test-styles-2'];
         $tags = ['test-tags-1', 'test-tags-2'];
         $type = 'test-type';
+        $ecgtAfterSalesServiceInfo = 'test-ecgtAfterSalesServiceInfo';
+        $ecgtGaranBrand = 'test-ecgtGaranBrand';
+        $ecgtGaranGuaranteeDetails = 'test-ecgtGaranGuaranteeDetails';
+        $ecgtGaranModel = 'test-ecgtGaranModel';
+        $ecgtGaranYears = 19;
+        $ecgtOtherCommercialGuaranteeDetails = 'test-ecgtOtherCommercialGuaranteeDetails';
+        $ecgtSoftwareUpdateDetails = 'test-ecgtSoftwareUpdateDetails';
 
         $formValueEncoder = self::createStub(FormValueEncoderInterface::class);
         $formValueEncoder->method('encodeInt')
@@ -59,6 +66,7 @@ final class CreateDraftListingRequestSerializerTest extends TestCase
                     [16, 'test-int-16'],
                     [17, 'test-int-17'],
                     [18, 'test-int-18'],
+                    [19, 'test-int-19'],
                 ]
             );
         $formValueEncoder->method('encodeFloat')
@@ -123,12 +131,26 @@ final class CreateDraftListingRequestSerializerTest extends TestCase
             ->setShouldAutoRenew($shouldAutoRenew)
             ->setStyles($styles)
             ->setTags($tags)
-            ->setType($type);
+            ->setType($type)
+            ->setEcgtAfterSalesServiceInfo($ecgtAfterSalesServiceInfo)
+            ->setEcgtGaranBrand($ecgtGaranBrand)
+            ->setEcgtGaranGuaranteeDetails($ecgtGaranGuaranteeDetails)
+            ->setEcgtGaranModel($ecgtGaranModel)
+            ->setEcgtGaranYears($ecgtGaranYears)
+            ->setEcgtOtherCommercialGuaranteeDetails($ecgtOtherCommercialGuaranteeDetails)
+            ->setEcgtSoftwareUpdateDetails($ecgtSoftwareUpdateDetails);
 
         $serializer = new CreateDraftListingRequestSerializer($formValueEncoder);
 
         $expected = [
             CreateDraftListingRequestSerializerInterface::KEY_DESCRIPTION => $description,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_AFTER_SALES_SERVICE_INFO => $ecgtAfterSalesServiceInfo,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_GARAN_BRAND => $ecgtGaranBrand,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_GARAN_GUARANTEE_DETAILS => $ecgtGaranGuaranteeDetails,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_GARAN_MODEL => $ecgtGaranModel,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_GARAN_YEARS => 'test-int-19',
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS => $ecgtOtherCommercialGuaranteeDetails,
+            CreateDraftListingRequestSerializerInterface::KEY_ECGT_SOFTWARE_UPDATE_DETAILS => $ecgtSoftwareUpdateDetails,
             'test-imageIds' => 'test-imageIds-value',
             CreateDraftListingRequestSerializerInterface::KEY_IS_CUSTOMIZABLE => 'test-bool-true',
             CreateDraftListingRequestSerializerInterface::KEY_IS_SUPPLY => 'test-bool-true',

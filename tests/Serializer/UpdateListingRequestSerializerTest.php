@@ -41,6 +41,13 @@ final class UpdateListingRequestSerializerTest extends TestCase
         $type = 'test-type';
         $whenMade = 'test-whenMade';
         $whoMade = 'test-whoMade';
+        $ecgtAfterSalesServiceInfo = 'test-ecgtAfterSalesServiceInfo';
+        $ecgtGaranBrand = 'test-ecgtGaranBrand';
+        $ecgtGaranGuaranteeDetails = 'test-ecgtGaranGuaranteeDetails';
+        $ecgtGaranModel = 'test-ecgtGaranModel';
+        $ecgtGaranYears = 15;
+        $ecgtOtherCommercialGuaranteeDetails = 'test-ecgtOtherCommercialGuaranteeDetails';
+        $ecgtSoftwareUpdateDetails = 'test-ecgtSoftwareUpdateDetails';
 
         $formValueEncoder = self::createStub(FormValueEncoderInterface::class);
         $formValueEncoder->method('encodeInt')
@@ -51,6 +58,7 @@ final class UpdateListingRequestSerializerTest extends TestCase
                     [12, 'test-int-12'],
                     [13, 'test-int-13'],
                     [14, 'test-int-14'],
+                    [15, 'test-int-15'],
                 ]
             );
         $formValueEncoder->method('encodeFloat')
@@ -86,6 +94,13 @@ final class UpdateListingRequestSerializerTest extends TestCase
 
         $updateListingRequest = (new UpdateListingRequest())
             ->setDescription($description)
+            ->setEcgtAfterSalesServiceInfo($ecgtAfterSalesServiceInfo)
+            ->setEcgtGaranBrand($ecgtGaranBrand)
+            ->setEcgtGaranGuaranteeDetails($ecgtGaranGuaranteeDetails)
+            ->setEcgtGaranModel($ecgtGaranModel)
+            ->setEcgtGaranYears($ecgtGaranYears)
+            ->setEcgtOtherCommercialGuaranteeDetails($ecgtOtherCommercialGuaranteeDetails)
+            ->setEcgtSoftwareUpdateDetails($ecgtSoftwareUpdateDetails)
             ->setFeaturedRank($featuredRank)
             ->setImageIds($imageIds)
             ->setIsSupply($isSupply)
@@ -114,6 +129,13 @@ final class UpdateListingRequestSerializerTest extends TestCase
 
         $expected = [
             UpdateListingRequestSerializerInterface::KEY_DESCRIPTION => $description,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_AFTER_SALES_SERVICE_INFO => $ecgtAfterSalesServiceInfo,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_GARAN_BRAND => $ecgtGaranBrand,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_GARAN_GUARANTEE_DETAILS => $ecgtGaranGuaranteeDetails,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_GARAN_MODEL => $ecgtGaranModel,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_GARAN_YEARS => 'test-int-15',
+            UpdateListingRequestSerializerInterface::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS => $ecgtOtherCommercialGuaranteeDetails,
+            UpdateListingRequestSerializerInterface::KEY_ECGT_SOFTWARE_UPDATE_DETAILS => $ecgtSoftwareUpdateDetails,
             UpdateListingRequestSerializerInterface::KEY_FEATURED_RANK => 'test-int-1',
             'test-imageIds' => 'test-imageIds-value',
             UpdateListingRequestSerializerInterface::KEY_IS_SUPPLY => 'test-bool-true',

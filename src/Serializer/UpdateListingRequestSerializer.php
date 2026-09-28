@@ -26,6 +26,13 @@ final class UpdateListingRequestSerializer implements UpdateListingRequestSerial
         $data = [];
 
         $data = self::applyDescription($data, $updateListingRequest);
+        $data = self::applyEcgtAfterSalesServiceInfo($data, $updateListingRequest);
+        $data = self::applyEcgtGaranBrand($data, $updateListingRequest);
+        $data = self::applyEcgtGaranGuaranteeDetails($data, $updateListingRequest);
+        $data = self::applyEcgtGaranModel($data, $updateListingRequest);
+        $data = $this->applyEcgtGaranYears($data, $updateListingRequest);
+        $data = self::applyEcgtOtherCommercialGuaranteeDetails($data, $updateListingRequest);
+        $data = self::applyEcgtSoftwareUpdateDetails($data, $updateListingRequest);
         $data = $this->applyFeaturedRank($data, $updateListingRequest);
         $data = $this->applyImageIds($data, $updateListingRequest);
         $data = $this->applyIsSupply($data, $updateListingRequest);
@@ -65,6 +72,118 @@ final class UpdateListingRequestSerializer implements UpdateListingRequestSerial
             return $data;
         }
         $data[self::KEY_DESCRIPTION] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtAfterSalesServiceInfo(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtAfterSalesServiceInfo();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_AFTER_SALES_SERVICE_INFO] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranBrand(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtGaranBrand();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_BRAND] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranGuaranteeDetails(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtGaranGuaranteeDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_GUARANTEE_DETAILS] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtGaranModel(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtGaranModel();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_MODEL] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private function applyEcgtGaranYears(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtGaranYears();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_GARAN_YEARS] = $this->formValueEncoder->encodeInt($value);
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtOtherCommercialGuaranteeDetails(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtOtherCommercialGuaranteeDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS] = $value;
+
+        return $data;
+    }
+
+    /**
+     * @phpstan-param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private static function applyEcgtSoftwareUpdateDetails(array $data, UpdateListingRequestInterface $updateListingRequest): array
+    {
+        $value = $updateListingRequest->getEcgtSoftwareUpdateDetails();
+        if (null === $value) {
+            return $data;
+        }
+        $data[self::KEY_ECGT_SOFTWARE_UPDATE_DETAILS] = $value;
 
         return $data;
     }
