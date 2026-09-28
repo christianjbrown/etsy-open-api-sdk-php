@@ -8,8 +8,9 @@ use ChristianBrown\Etsy\Model\MultipartFileInterface;
 use Random\RandomException;
 
 use function array_keys;
+use function array_map;
 use function bin2hex;
-use function count;
+use function implode;
 use function random_bytes;
 use function sprintf;
 
@@ -22,11 +23,11 @@ final class MultipartFormDataBuilder implements MultipartFormDataBuilderInterfac
      */
     public function build(string $boundary, array $fields, ?MultipartFileInterface $file = null): string
     {
-        $body = '';
-        $keys = array_keys($fields);
-        for ($i = 0, $count = count($keys); $i < $count; ++$i) {
-            $body .= sprintf(self::FIELD_PART_SPRINTF, $boundary, $keys[$i], $fields[$keys[$i]]);
-        }
+        $body = implode('', array_map(
+            static fn (string $key, string $value): string => sprintf(self::FIELD_PART_SPRINTF, $boundary, $key, $value),
+            array_keys($fields),
+            $fields
+        ));
         if (null !== $file) {
             $body .= sprintf(self::FILE_PART_SPRINTF, $boundary, $file->getFieldName(), $file->getFileName(), $file->getContentType(), $file->getContents());
         }
