@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingPersonalizationInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPersonalizationRequestInterface;
@@ -19,23 +20,20 @@ use function sprintf;
 final class ListingPersonalizationApi implements ListingPersonalizationApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, ListingPersonalizationInterface>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private ListingPersonalizationTransformerInterface $listingPersonalizationTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UpdateListingPersonalizationRequestSerializerInterface $updateListingPersonalizationRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPersonalizationTransformerInterface $listingPersonalizationTransformer, UpdateListingPersonalizationRequestSerializerInterface $updateListingPersonalizationRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPersonalizationTransformerInterface $listingPersonalizationTransformer, UpdateListingPersonalizationRequestSerializerInterface $updateListingPersonalizationRequestSerializer, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
         $this->listingPersonalizationTransformer = $listingPersonalizationTransformer;
         $this->updateListingPersonalizationRequestSerializer = $updateListingPersonalizationRequestSerializer;
+        $this->cache = $cache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -48,7 +46,7 @@ final class ListingPersonalizationApi implements ListingPersonalizationApiInterf
         $url = sprintf(self::API_URL_WRITE_SPRINTF, $this->shopId, $listingId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId]);
+        $this->cache->delete((string) $listingId);
     }
 
     /**
@@ -58,8 +56,13 @@ final class ListingPersonalizationApi implements ListingPersonalizationApiInterf
     public function get(int $listingId, bool $skipCache = false): ListingPersonalizationInterface
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var ListingPersonalizationInterface $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -70,7 +73,7 @@ final class ListingPersonalizationApi implements ListingPersonalizationApiInterf
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $personalization = $this->listingPersonalizationTransformer->transform($data);
-        $this->cache[$listingId] = $personalization;
+        $this->cache->set((string) $listingId, $personalization);
 
         return $personalization;
     }
@@ -88,7 +91,7 @@ final class ListingPersonalizationApi implements ListingPersonalizationApiInterf
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $personalization = $this->listingPersonalizationTransformer->transform($data);
-        $this->cache[$listingId] = $personalization;
+        $this->cache->set((string) $listingId, $personalization);
 
         return $personalization;
     }

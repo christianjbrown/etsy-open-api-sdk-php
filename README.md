@@ -266,6 +266,11 @@ Under the hood, `Etsy` wires the clients, their transformer chains, and the OAut
 use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Auth\Credentials;
+use ChristianBrown\Etsy\Cache\ResponseCache;
+use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
+use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestsSerializer;
+use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestSerializer;
+use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
 use ChristianBrown\Etsy\Transformer\ListingPropertyValueTransformer;
 use ChristianBrown\Etsy\Transformer\MoneyTransformer;
@@ -280,12 +285,14 @@ use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationTransformer;
+use ChristianBrown\Etsy\Http\FormValueEncoder;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
 use ChristianBrown\OAuth2Client\RefreshTokenManager;
 use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
 
 $shopId = 12345678;
 $keystring = 'your-app-keystring';
+$sharedSecret = 'your-app-shared-secret';
 
 $accessTokenStore = new MemoryKeyValueStore();
 $refreshTokenStore = new MemoryKeyValueStore();
@@ -302,7 +309,7 @@ $refreshTokenManager = new RefreshTokenManager(
     new AccessTokenTransformer(),
     'https://api.etsy.com/v3/public/oauth/token'
 );
-$credentials = new Credentials($refreshTokenManager, $keystring);
+$credentials = new Credentials($refreshTokenManager, $keystring, $sharedSecret);
 
 // Receipt transformer chain. The single Money transformer is shared across every
 // money field; the singular Receipt transformer is wrapped by ReceiptsTransformer
@@ -325,15 +332,28 @@ $receiptTransformer = new ReceiptTransformer(
 
 $receiptsTransformer = new ReceiptsTransformer($receiptTransformer);
 
+// Write-side serializers for createReceiptShipment()/updateShopReceipt().
+$createReceiptShipmentRequestSerializer = new CreateReceiptShipmentRequestSerializer(
+    new ReceiptShipmentCustomsItemRequestsSerializer(new ReceiptShipmentCustomsItemRequestSerializer())
+);
+$updateShopReceiptRequestSerializer = new UpdateShopReceiptRequestSerializer(new FormValueEncoder());
+
 $shopReceiptApi = new ShopReceiptApi(
     $requestSender,
     $receiptTransformer,
     $receiptsTransformer,
     new ReceiptPageTransformer($receiptsTransformer),
+    $createReceiptShipmentRequestSerializer,
+    $updateShopReceiptRequestSerializer,
+    new ResponseCache(), // getMultiple()
+    new ResponseCache(), // getPage()
+    new ResponseCache(), // getOneById()
     $credentials,
     $shopId
 );
 ```
+
+Every `Api/` class keeps its own in-memory response cache behind `ChristianBrown\Etsy\Cache\ResponseCacheInterface`, one instance per cache the class needs — `ShopReceiptApi` above has three, one each for `getMultiple()`, `getPage()` and `getOneById()`. `ResponseCache` is the plain implementation used by the container; a hand-wired client can use it too, or supply its own.
 
 </details>
 

@@ -8,15 +8,18 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\UserInterface;
 use ChristianBrown\Etsy\Transformer\UserTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(UserApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class UserApiTest extends TestCase
 {
     public function testGetByIdReturnsUser(): void
@@ -205,6 +208,6 @@ final class UserApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new UserApi($requestSender, $userTransformer, $credentials);
+        return new UserApi($requestSender, $userTransformer, new ResponseCache(), $credentials);
     }
 }

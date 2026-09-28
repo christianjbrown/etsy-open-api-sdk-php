@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApi;
 use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateShopReadinessStateDefinitionRequestInterface;
 use ChristianBrown\Etsy\Model\ShopReadinessStateDefinitionInterface;
@@ -18,11 +19,13 @@ use ChristianBrown\Etsy\Serializer\UpdateShopReadinessStateDefinitionRequestSeri
 use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopReadinessStateDefinitionApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopReadinessStateDefinitionApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -359,6 +362,8 @@ final class ShopReadinessStateDefinitionApiTest extends TestCase
             $shopReadinessStateDefinitionsTransformer,
             $createShopReadinessStateDefinitionRequestSerializer ?? self::createStub(CreateShopReadinessStateDefinitionRequestSerializerInterface::class),
             $updateShopReadinessStateDefinitionRequestSerializer ?? self::createStub(UpdateShopReadinessStateDefinitionRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

@@ -86,7 +86,8 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   directly), then `ApiRequestSenderInterface` if the client has any `DELETE` or multipart-upload
   method (see "Writes" below), then its transformer(s), then any `MultipartFormDataBuilderInterface`
   and `JsonToArrayTransformerInterface` an upload method needs, then its request serializer(s), then
-  the `CredentialsInterface`, then the injected `int $shopId` (shop_id is constructor-level;
+  one `Cache\ResponseCacheInterface` per cache the class needs (see below), then the
+  `CredentialsInterface`, then the injected `int $shopId` (shop_id is constructor-level;
   per-resource ids like `receipt_id` are method arguments).
   Read methods: build headers via `$this->credentials->toHeaders()`, call
   `$this->requestSender->get($url, $query, $headers)`, defensively validate the response shape
@@ -102,6 +103,21 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   Full URLs live in `API_URL*_SPRINTF` constants on the interface (the base host is
   `https://openapi.etsy.com`; note the OAuth token endpoint is on a different host,
   `https://api.etsy.com`, held as `EtsyInterface::OAUTH_TOKEN_URL`).
+- **`Cache/`** — `ResponseCacheInterface` (`has`/`get`/`set`/`delete`/`clear`, keyed by `string`) and
+  `ResponseCache`, its plain in-memory implementation. An `Api` class that caches gets one
+  `ResponseCacheInterface` constructor parameter per cache it needs — `ShopReceiptApi` has three
+  (a list cache, a page cache, a by-id cache), each independently invalidated — rather than a
+  private array per cache the way it worked before this was extracted. A read checks
+  `has($key)`/`get($key)` before calling out, narrowing the `mixed` return with a
+  `/** @var X $cached */` docblock exactly like a container getter does; a write calls `set($key,
+  $value)`; invalidation calls `clear()` (drop everything this cache holds) or `delete($key)` (drop
+  one entry — `ResponseCache::get()`/`has()` treat a deleted or never-set key identically, both via
+  `isset()`, matching the old array's behaviour when a key was `unset()`). Cache keys are always
+  `string`: an endpoint keyed by a single numeric id casts it with `(string) $id` before calling the
+  cache; a compound key (limit+offset, several ids) is built with `sprintf()` as before. The
+  container gives each `Api` client its own fresh `ResponseCache` instances (see
+  `DependencyInjection\Registrar\ApiClientsRegistrar`); nothing is shared between clients or between
+  two `Etsy` instances.
 - **Writes** — `create`/`update` methods serialize a `Model\XRequest` through its `Serializer\XRequestSerializer`
   and call `$this->requestSender->postForm()`/`putForm()`/`patchForm()` (form-urlencoded body — most
   write endpoints) or `->post()`/`->put()` (JSON body — endpoints whose spec `requestBody` is

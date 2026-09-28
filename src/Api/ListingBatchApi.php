@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingWithAssociationsInterface;
 use ChristianBrown\Etsy\Transformer\ListingsWithAssociationsTransformerInterface;
@@ -17,23 +18,18 @@ use function sprintf;
 
 final class ListingBatchApi implements ListingBatchApiInterface
 {
-    /**
-     * @var array<string, array<int, ListingWithAssociationsInterface>>
-     */
-    private array $byInventoryCache = [];
-
-    /**
-     * @var array<string, array<int, ListingWithAssociationsInterface>>
-     */
-    private array $byShippingCache = [];
+    private ResponseCacheInterface $byInventoryCache;
+    private ResponseCacheInterface $byShippingCache;
     private CredentialsInterface $credentials;
     private ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer;
     private JsonApiRequestSenderInterface $requestSender;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer, ResponseCacheInterface $byInventoryCache, ResponseCacheInterface $byShippingCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->listingsWithAssociationsTransformer = $listingsWithAssociationsTransformer;
+        $this->byInventoryCache = $byInventoryCache;
+        $this->byShippingCache = $byShippingCache;
         $this->credentials = $credentials;
     }
 
@@ -49,15 +45,20 @@ final class ListingBatchApi implements ListingBatchApiInterface
     {
         $cacheKey = implode(',', $listingIds);
         if (!$skipCache) {
-            if (isset($this->byInventoryCache[$cacheKey])) {
-                return $this->byInventoryCache[$cacheKey];
+            if ($this->byInventoryCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingWithAssociationsInterface> $cached
+                 */
+                $cached = $this->byInventoryCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
         $data = $this->requestSender->get(self::API_URL_INVENTORY, self::buildQuery($listingIds), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byInventoryCache[$cacheKey] = $listings;
+        $this->byInventoryCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -74,15 +75,20 @@ final class ListingBatchApi implements ListingBatchApiInterface
     {
         $cacheKey = implode(',', $listingIds);
         if (!$skipCache) {
-            if (isset($this->byShippingCache[$cacheKey])) {
-                return $this->byShippingCache[$cacheKey];
+            if ($this->byShippingCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingWithAssociationsInterface> $cached
+                 */
+                $cached = $this->byShippingCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
         $data = $this->requestSender->get(self::API_URL_SHIPPING, self::buildQuery($listingIds), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byShippingCache[$cacheKey] = $listings;
+        $this->byShippingCache->set($cacheKey, $listings);
 
         return $listings;
     }

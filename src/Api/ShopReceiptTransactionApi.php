@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\TransactionInterface;
 use ChristianBrown\Etsy\Transformer\TransactionsTransformerInterface;
@@ -17,36 +18,25 @@ use function sprintf;
 
 final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterface
 {
-    /**
-     * @var array<int, TransactionInterface>
-     */
-    private array $byIdCache = [];
-
-    /**
-     * @var array<string, array<int, TransactionInterface>>
-     */
-    private array $byListingCache = [];
-
-    /**
-     * @var array<int, array<int, TransactionInterface>>
-     */
-    private array $byReceiptCache = [];
-
-    /**
-     * @var array<string, array<int, TransactionInterface>>
-     */
-    private array $byShopCache = [];
+    private ResponseCacheInterface $byIdCache;
+    private ResponseCacheInterface $byListingCache;
+    private ResponseCacheInterface $byReceiptCache;
+    private ResponseCacheInterface $byShopCache;
     private CredentialsInterface $credentials;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private TransactionsTransformerInterface $transactionsTransformer;
     private TransactionTransformerInterface $transactionTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, TransactionTransformerInterface $transactionTransformer, TransactionsTransformerInterface $transactionsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, TransactionTransformerInterface $transactionTransformer, TransactionsTransformerInterface $transactionsTransformer, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byShopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->transactionTransformer = $transactionTransformer;
         $this->transactionsTransformer = $transactionsTransformer;
+        $this->byIdCache = $byIdCache;
+        $this->byListingCache = $byListingCache;
+        $this->byReceiptCache = $byReceiptCache;
+        $this->byShopCache = $byShopCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -61,8 +51,13 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     {
         $cacheKey = sprintf('%d:%d:%d', $listingId, $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->byListingCache[$cacheKey])) {
-                return $this->byListingCache[$cacheKey];
+            if ($this->byListingCache->has($cacheKey)) {
+                /**
+                 * @var array<int, TransactionInterface> $cached
+                 */
+                $cached = $this->byListingCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -70,7 +65,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
-        $this->byListingCache[$cacheKey] = $transactions;
+        $this->byListingCache->set($cacheKey, $transactions);
 
         return $transactions;
     }
@@ -84,8 +79,13 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     public function getByReceipt(int $receiptId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->byReceiptCache[$receiptId])) {
-                return $this->byReceiptCache[$receiptId];
+            if ($this->byReceiptCache->has((string) $receiptId)) {
+                /**
+                 * @var array<int, TransactionInterface> $cached
+                 */
+                $cached = $this->byReceiptCache->get((string) $receiptId);
+
+                return $cached;
             }
         }
 
@@ -93,7 +93,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
-        $this->byReceiptCache[$receiptId] = $transactions;
+        $this->byReceiptCache->set((string) $receiptId, $transactions);
 
         return $transactions;
     }
@@ -108,8 +108,13 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->byShopCache[$cacheKey])) {
-                return $this->byShopCache[$cacheKey];
+            if ($this->byShopCache->has($cacheKey)) {
+                /**
+                 * @var array<int, TransactionInterface> $cached
+                 */
+                $cached = $this->byShopCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -117,7 +122,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
         $data = $this->requestSender->get($url, self::buildQuery($limit, $offset), $this->credentials->toHeaders());
 
         $transactions = $this->handleResults($data);
-        $this->byShopCache[$cacheKey] = $transactions;
+        $this->byShopCache->set($cacheKey, $transactions);
 
         return $transactions;
     }
@@ -129,8 +134,13 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     public function getOneById(int $transactionId, bool $skipCache = false): TransactionInterface
     {
         if (!$skipCache) {
-            if (isset($this->byIdCache[$transactionId])) {
-                return $this->byIdCache[$transactionId];
+            if ($this->byIdCache->has((string) $transactionId)) {
+                /**
+                 * @var TransactionInterface $cached
+                 */
+                $cached = $this->byIdCache->get((string) $transactionId);
+
+                return $cached;
             }
         }
 
@@ -141,7 +151,7 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $transaction = $this->transactionTransformer->transform($data);
-        $this->byIdCache[$transactionId] = $transaction;
+        $this->byIdCache->set((string) $transactionId, $transaction);
 
         return $transaction;
     }

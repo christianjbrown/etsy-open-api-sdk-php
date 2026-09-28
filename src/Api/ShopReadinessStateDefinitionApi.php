@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateShopReadinessStateDefinitionRequestInterface;
 use ChristianBrown\Etsy\Model\ShopReadinessStateDefinitionInterface;
@@ -23,25 +24,17 @@ use function sprintf;
 final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinitionApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var null|array<int, ShopReadinessStateDefinitionInterface>
-     */
-    private ?array $cache = null;
+    private ResponseCacheInterface $cache;
     private CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer;
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<int, ShopReadinessStateDefinitionInterface>
-     */
-    private array $definitionCache = [];
+    private ResponseCacheInterface $definitionCache;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private ShopReadinessStateDefinitionsTransformerInterface $shopReadinessStateDefinitionsTransformer;
     private ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer;
     private UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer, ShopReadinessStateDefinitionsTransformerInterface $shopReadinessStateDefinitionsTransformer, CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer, UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer, ShopReadinessStateDefinitionsTransformerInterface $shopReadinessStateDefinitionsTransformer, CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer, UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer, ResponseCacheInterface $definitionCache, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -49,6 +42,8 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
         $this->shopReadinessStateDefinitionsTransformer = $shopReadinessStateDefinitionsTransformer;
         $this->createShopReadinessStateDefinitionRequestSerializer = $createShopReadinessStateDefinitionRequestSerializer;
         $this->updateShopReadinessStateDefinitionRequestSerializer = $updateShopReadinessStateDefinitionRequestSerializer;
+        $this->definitionCache = $definitionCache;
+        $this->cache = $cache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -66,7 +61,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReadinessStateDefinition = $this->shopReadinessStateDefinitionTransformer->transform($data);
-        $this->cache = null;
+        $this->cache->clear();
 
         return $shopReadinessStateDefinition;
     }
@@ -79,8 +74,8 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
         $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $readinessStateDefinitionId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        $this->cache = null;
-        unset($this->definitionCache[$readinessStateDefinitionId]);
+        $this->cache->clear();
+        $this->definitionCache->delete((string) $readinessStateDefinitionId);
     }
 
     /**
@@ -92,8 +87,13 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
     public function getMultiple(bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (null !== $this->cache) {
-                return $this->cache;
+            if ($this->cache->has('all')) {
+                /**
+                 * @var array<int, ShopReadinessStateDefinitionInterface> $cached
+                 */
+                $cached = $this->cache->get('all');
+
+                return $cached;
             }
         }
 
@@ -107,7 +107,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $shopReadinessStateDefinitions = $this->shopReadinessStateDefinitionsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache = $shopReadinessStateDefinitions;
+        $this->cache->set('all', $shopReadinessStateDefinitions);
 
         return $shopReadinessStateDefinitions;
     }
@@ -119,8 +119,13 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
     public function getOneById(int $readinessStateDefinitionId, bool $skipCache = false): ShopReadinessStateDefinitionInterface
     {
         if (!$skipCache) {
-            if (isset($this->definitionCache[$readinessStateDefinitionId])) {
-                return $this->definitionCache[$readinessStateDefinitionId];
+            if ($this->definitionCache->has((string) $readinessStateDefinitionId)) {
+                /**
+                 * @var ShopReadinessStateDefinitionInterface $cached
+                 */
+                $cached = $this->definitionCache->get((string) $readinessStateDefinitionId);
+
+                return $cached;
             }
         }
 
@@ -131,7 +136,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReadinessStateDefinition = $this->shopReadinessStateDefinitionTransformer->transform($data);
-        $this->definitionCache[$readinessStateDefinitionId] = $shopReadinessStateDefinition;
+        $this->definitionCache->set((string) $readinessStateDefinitionId, $shopReadinessStateDefinition);
 
         return $shopReadinessStateDefinition;
     }
@@ -149,8 +154,8 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $shopReadinessStateDefinition = $this->shopReadinessStateDefinitionTransformer->transform($data);
-        $this->cache = null;
-        $this->definitionCache[$readinessStateDefinitionId] = $shopReadinessStateDefinition;
+        $this->cache->clear();
+        $this->definitionCache->set((string) $readinessStateDefinitionId, $shopReadinessStateDefinition);
 
         return $shopReadinessStateDefinition;
     }

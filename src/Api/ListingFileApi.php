@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilderInterface;
 use ChristianBrown\Etsy\Model\ListingFileInterface;
@@ -25,26 +26,18 @@ use function sprintf;
 final class ListingFileApi implements ListingFileApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, array<int, ListingFileInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private JsonToArrayTransformerInterface $jsonToArrayTransformer;
     private ListingFilesTransformerInterface $listingFilesTransformer;
     private ListingFileTransformerInterface $listingFileTransformer;
     private MultipartFormDataBuilderInterface $multipartFormDataBuilder;
-
-    /**
-     * @var array<string, ListingFileInterface>
-     */
-    private array $oneCache = [];
+    private ResponseCacheInterface $oneCache;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UploadListingFileRequestSerializerInterface $uploadListingFileRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingFileTransformerInterface $listingFileTransformer, ListingFilesTransformerInterface $listingFilesTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingFileRequestSerializerInterface $uploadListingFileRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingFileTransformerInterface $listingFileTransformer, ListingFilesTransformerInterface $listingFilesTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingFileRequestSerializerInterface $uploadListingFileRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -53,6 +46,8 @@ final class ListingFileApi implements ListingFileApiInterface
         $this->multipartFormDataBuilder = $multipartFormDataBuilder;
         $this->jsonToArrayTransformer = $jsonToArrayTransformer;
         $this->uploadListingFileRequestSerializer = $uploadListingFileRequestSerializer;
+        $this->cache = $cache;
+        $this->oneCache = $oneCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -65,7 +60,8 @@ final class ListingFileApi implements ListingFileApiInterface
         $url = sprintf(self::API_URL_ONE_SPRINTF, $this->shopId, $listingId, $listingFileId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $listingFileId)]);
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->delete(sprintf('%d:%d', $listingId, $listingFileId));
     }
 
     /**
@@ -77,8 +73,13 @@ final class ListingFileApi implements ListingFileApiInterface
     public function getMultiple(int $listingId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var array<int, ListingFileInterface> $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -92,7 +93,7 @@ final class ListingFileApi implements ListingFileApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $listingFiles = $this->listingFilesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $listingFiles;
+        $this->cache->set((string) $listingId, $listingFiles);
 
         return $listingFiles;
     }
@@ -105,8 +106,13 @@ final class ListingFileApi implements ListingFileApiInterface
     {
         $cacheKey = sprintf('%d:%d', $listingId, $listingFileId);
         if (!$skipCache) {
-            if (isset($this->oneCache[$cacheKey])) {
-                return $this->oneCache[$cacheKey];
+            if ($this->oneCache->has($cacheKey)) {
+                /**
+                 * @var ListingFileInterface $cached
+                 */
+                $cached = $this->oneCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -117,7 +123,7 @@ final class ListingFileApi implements ListingFileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingFile = $this->listingFileTransformer->transform($data);
-        $this->oneCache[$cacheKey] = $listingFile;
+        $this->oneCache->set($cacheKey, $listingFile);
 
         return $listingFile;
     }
@@ -139,8 +145,8 @@ final class ListingFileApi implements ListingFileApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listingFile = $this->listingFileTransformer->transform($data);
-        unset($this->cache[$listingId]);
-        $this->oneCache[sprintf('%d:%d', $listingId, $listingFile->getListingFileId())] = $listingFile;
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->set(sprintf('%d:%d', $listingId, $listingFile->getListingFileId()), $listingFile);
 
         return $listingFile;
     }

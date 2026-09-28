@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\UserAddressInterface;
 use ChristianBrown\Etsy\Transformer\UserAddressesTransformerInterface;
@@ -19,27 +20,21 @@ use function sprintf;
 final class UserAddressApi implements UserAddressApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<string, array<int, UserAddressInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private JsonApiRequestSenderInterface $requestSender;
-
-    /**
-     * @var array<int, UserAddressInterface>
-     */
-    private array $userAddressCache = [];
+    private ResponseCacheInterface $userAddressCache;
     private UserAddressesTransformerInterface $userAddressesTransformer;
     private UserAddressTransformerInterface $userAddressTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, ResponseCacheInterface $cache, ResponseCacheInterface $userAddressCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
         $this->userAddressTransformer = $userAddressTransformer;
         $this->userAddressesTransformer = $userAddressesTransformer;
+        $this->cache = $cache;
+        $this->userAddressCache = $userAddressCache;
         $this->credentials = $credentials;
     }
 
@@ -51,8 +46,8 @@ final class UserAddressApi implements UserAddressApiInterface
         $url = sprintf(self::API_URL_ONE_SPRINTF, $userAddressId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        $this->cache = [];
-        unset($this->userAddressCache[$userAddressId]);
+        $this->cache->clear();
+        $this->userAddressCache->delete((string) $userAddressId);
     }
 
     /**
@@ -65,8 +60,13 @@ final class UserAddressApi implements UserAddressApiInterface
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->cache[$cacheKey])) {
-                return $this->cache[$cacheKey];
+            if ($this->cache->has($cacheKey)) {
+                /**
+                 * @var array<int, UserAddressInterface> $cached
+                 */
+                $cached = $this->cache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -79,7 +79,7 @@ final class UserAddressApi implements UserAddressApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $userAddresses = $this->userAddressesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$cacheKey] = $userAddresses;
+        $this->cache->set($cacheKey, $userAddresses);
 
         return $userAddresses;
     }
@@ -91,8 +91,13 @@ final class UserAddressApi implements UserAddressApiInterface
     public function getOneById(int $userAddressId, bool $skipCache = false): UserAddressInterface
     {
         if (!$skipCache) {
-            if (isset($this->userAddressCache[$userAddressId])) {
-                return $this->userAddressCache[$userAddressId];
+            if ($this->userAddressCache->has((string) $userAddressId)) {
+                /**
+                 * @var UserAddressInterface $cached
+                 */
+                $cached = $this->userAddressCache->get((string) $userAddressId);
+
+                return $cached;
             }
         }
 
@@ -103,7 +108,7 @@ final class UserAddressApi implements UserAddressApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $userAddress = $this->userAddressTransformer->transform($data);
-        $this->userAddressCache[$userAddressId] = $userAddress;
+        $this->userAddressCache->set((string) $userAddressId, $userAddress);
 
         return $userAddress;
     }

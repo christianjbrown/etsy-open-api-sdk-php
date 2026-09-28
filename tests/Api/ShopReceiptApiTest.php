@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateReceiptShipmentRequestInterface;
 use ChristianBrown\Etsy\Model\ReceiptInterface;
@@ -19,11 +20,13 @@ use ChristianBrown\Etsy\Transformer\ReceiptPageTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ReceiptTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopReceiptApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopReceiptApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -442,6 +445,9 @@ final class ShopReceiptApiTest extends TestCase
             $receiptPageTransformer,
             $createReceiptShipmentRequestSerializer ?? self::createStub(CreateReceiptShipmentRequestSerializerInterface::class),
             $updateShopReceiptRequestSerializer ?? self::createStub(UpdateShopReceiptRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

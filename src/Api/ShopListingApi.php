@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateDraftListingRequestInterface;
 use ChristianBrown\Etsy\Model\ListingInterface;
@@ -23,60 +24,25 @@ use function sprintf;
 
 final class ShopListingApi implements ShopListingApiInterface
 {
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $activeByShopCache = [];
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $activeCache = [];
+    private ResponseCacheInterface $activeByShopCache;
+    private ResponseCacheInterface $activeCache;
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, ListingInterface>
-     */
-    private array $byIdCache = [];
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $byListingIdsCache = [];
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $byReceiptCache = [];
-
-    /**
-     * @var array<int, array<int, ListingInterface>>
-     */
-    private array $byReturnPolicyCache = [];
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $byShopCache = [];
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $byShopSectionIdsCache = [];
+    private ResponseCacheInterface $byIdCache;
+    private ResponseCacheInterface $byListingIdsCache;
+    private ResponseCacheInterface $byReceiptCache;
+    private ResponseCacheInterface $byReturnPolicyCache;
+    private ResponseCacheInterface $byShopCache;
+    private ResponseCacheInterface $byShopSectionIdsCache;
     private CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer;
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<string, array<int, ListingInterface>>
-     */
-    private array $featuredByShopCache = [];
+    private ResponseCacheInterface $featuredByShopCache;
     private ListingsTransformerInterface $listingsTransformer;
     private ListingTransformerInterface $listingTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UpdateListingRequestSerializerInterface $updateListingRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer, UpdateListingRequestSerializerInterface $updateListingRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer, UpdateListingRequestSerializerInterface $updateListingRequestSerializer, ResponseCacheInterface $activeByShopCache, ResponseCacheInterface $activeCache, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingIdsCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byReturnPolicyCache, ResponseCacheInterface $byShopCache, ResponseCacheInterface $byShopSectionIdsCache, ResponseCacheInterface $featuredByShopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -84,6 +50,15 @@ final class ShopListingApi implements ShopListingApiInterface
         $this->listingsTransformer = $listingsTransformer;
         $this->createDraftListingRequestSerializer = $createDraftListingRequestSerializer;
         $this->updateListingRequestSerializer = $updateListingRequestSerializer;
+        $this->activeByShopCache = $activeByShopCache;
+        $this->activeCache = $activeCache;
+        $this->byIdCache = $byIdCache;
+        $this->byListingIdsCache = $byListingIdsCache;
+        $this->byReceiptCache = $byReceiptCache;
+        $this->byReturnPolicyCache = $byReturnPolicyCache;
+        $this->byShopCache = $byShopCache;
+        $this->byShopSectionIdsCache = $byShopSectionIdsCache;
+        $this->featuredByShopCache = $featuredByShopCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -101,10 +76,10 @@ final class ShopListingApi implements ShopListingApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache[$listing->getListingId()] = $listing;
-        $this->activeByShopCache = [];
-        $this->byShopCache = [];
-        $this->featuredByShopCache = [];
+        $this->byIdCache->set((string) $listing->getListingId(), $listing);
+        $this->activeByShopCache->clear();
+        $this->byShopCache->clear();
+        $this->featuredByShopCache->clear();
 
         return $listing;
     }
@@ -117,15 +92,15 @@ final class ShopListingApi implements ShopListingApiInterface
         $url = sprintf(self::API_URL_BY_ID_SPRINTF, $listingId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->byIdCache[$listingId]);
-        $this->activeCache = [];
-        $this->activeByShopCache = [];
-        $this->byShopCache = [];
-        $this->byShopSectionIdsCache = [];
-        $this->byListingIdsCache = [];
-        $this->byReceiptCache = [];
-        $this->byReturnPolicyCache = [];
-        $this->featuredByShopCache = [];
+        $this->byIdCache->delete((string) $listingId);
+        $this->activeCache->clear();
+        $this->activeByShopCache->clear();
+        $this->byShopCache->clear();
+        $this->byShopSectionIdsCache->clear();
+        $this->byListingIdsCache->clear();
+        $this->byReceiptCache->clear();
+        $this->byReturnPolicyCache->clear();
+        $this->featuredByShopCache->clear();
     }
 
     /**
@@ -138,15 +113,20 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%s:%d:%d', $keywords ?? '', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->activeCache[$cacheKey])) {
-                return $this->activeCache[$cacheKey];
+            if ($this->activeCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->activeCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
         $data = $this->requestSender->get(self::API_URL_ACTIVE, self::buildActiveQuery($keywords, $limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->activeCache[$cacheKey] = $listings;
+        $this->activeCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -161,8 +141,13 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->activeByShopCache[$cacheKey])) {
-                return $this->activeByShopCache[$cacheKey];
+            if ($this->activeByShopCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->activeByShopCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -170,7 +155,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->activeByShopCache[$cacheKey] = $listings;
+        $this->activeByShopCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -182,8 +167,13 @@ final class ShopListingApi implements ShopListingApiInterface
     public function getById(int $listingId, bool $skipCache = false): ListingInterface
     {
         if (!$skipCache) {
-            if (isset($this->byIdCache[$listingId])) {
-                return $this->byIdCache[$listingId];
+            if ($this->byIdCache->has((string) $listingId)) {
+                /**
+                 * @var ListingInterface $cached
+                 */
+                $cached = $this->byIdCache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -194,7 +184,7 @@ final class ShopListingApi implements ShopListingApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache[$listingId] = $listing;
+        $this->byIdCache->set((string) $listingId, $listing);
 
         return $listing;
     }
@@ -211,15 +201,20 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = implode(',', $listingIds);
         if (!$skipCache) {
-            if (isset($this->byListingIdsCache[$cacheKey])) {
-                return $this->byListingIdsCache[$cacheKey];
+            if ($this->byListingIdsCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->byListingIdsCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
         $data = $this->requestSender->get(self::API_URL_BATCH, self::buildBatchQuery($listingIds), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byListingIdsCache[$cacheKey] = $listings;
+        $this->byListingIdsCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -234,8 +229,13 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%d:%d:%d', $receiptId, $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->byReceiptCache[$cacheKey])) {
-                return $this->byReceiptCache[$cacheKey];
+            if ($this->byReceiptCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->byReceiptCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -243,7 +243,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byReceiptCache[$cacheKey] = $listings;
+        $this->byReceiptCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -257,8 +257,13 @@ final class ShopListingApi implements ShopListingApiInterface
     public function getByReturnPolicy(int $returnPolicyId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->byReturnPolicyCache[$returnPolicyId])) {
-                return $this->byReturnPolicyCache[$returnPolicyId];
+            if ($this->byReturnPolicyCache->has((string) $returnPolicyId)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->byReturnPolicyCache->get((string) $returnPolicyId);
+
+                return $cached;
             }
         }
 
@@ -266,7 +271,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byReturnPolicyCache[$returnPolicyId] = $listings;
+        $this->byReturnPolicyCache->set((string) $returnPolicyId, $listings);
 
         return $listings;
     }
@@ -281,8 +286,13 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%s:%d:%d', $state ?? '', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->byShopCache[$cacheKey])) {
-                return $this->byShopCache[$cacheKey];
+            if ($this->byShopCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->byShopCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -290,7 +300,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, self::buildShopQuery($state, $limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byShopCache[$cacheKey] = $listings;
+        $this->byShopCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -307,8 +317,13 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%s:%d:%d', implode(',', $shopSectionIds), $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->byShopSectionIdsCache[$cacheKey])) {
-                return $this->byShopSectionIdsCache[$cacheKey];
+            if ($this->byShopSectionIdsCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->byShopSectionIdsCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -316,7 +331,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, self::buildShopSectionQuery($shopSectionIds, $limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->byShopSectionIdsCache[$cacheKey] = $listings;
+        $this->byShopSectionIdsCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -331,8 +346,13 @@ final class ShopListingApi implements ShopListingApiInterface
     {
         $cacheKey = sprintf('%d:%d', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->featuredByShopCache[$cacheKey])) {
-                return $this->featuredByShopCache[$cacheKey];
+            if ($this->featuredByShopCache->has($cacheKey)) {
+                /**
+                 * @var array<int, ListingInterface> $cached
+                 */
+                $cached = $this->featuredByShopCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -340,7 +360,7 @@ final class ShopListingApi implements ShopListingApiInterface
         $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
 
         $listings = $this->handleResults($data);
-        $this->featuredByShopCache[$cacheKey] = $listings;
+        $this->featuredByShopCache->set($cacheKey, $listings);
 
         return $listings;
     }
@@ -358,15 +378,15 @@ final class ShopListingApi implements ShopListingApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $listing = $this->listingTransformer->transform($data);
-        $this->byIdCache[$listingId] = $listing;
-        $this->activeCache = [];
-        $this->activeByShopCache = [];
-        $this->byShopCache = [];
-        $this->byShopSectionIdsCache = [];
-        $this->byListingIdsCache = [];
-        $this->byReceiptCache = [];
-        $this->byReturnPolicyCache = [];
-        $this->featuredByShopCache = [];
+        $this->byIdCache->set((string) $listingId, $listing);
+        $this->activeCache->clear();
+        $this->activeByShopCache->clear();
+        $this->byShopCache->clear();
+        $this->byShopSectionIdsCache->clear();
+        $this->byListingIdsCache->clear();
+        $this->byReceiptCache->clear();
+        $this->byReturnPolicyCache->clear();
+        $this->featuredByShopCache->clear();
 
         return $listing;
     }

@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\UserInterface;
 use ChristianBrown\Etsy\Transformer\UserTransformerInterface;
@@ -18,17 +19,14 @@ final class UserApi implements UserApiInterface
     private CredentialsInterface $credentials;
     private ?UserInterface $meCache = null;
     private JsonApiRequestSenderInterface $requestSender;
-
-    /**
-     * @var array<int, UserInterface>
-     */
-    private array $userCache = [];
+    private ResponseCacheInterface $userCache;
     private UserTransformerInterface $userTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, UserTransformerInterface $userTransformer, CredentialsInterface $credentials)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, UserTransformerInterface $userTransformer, ResponseCacheInterface $userCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->userTransformer = $userTransformer;
+        $this->userCache = $userCache;
         $this->credentials = $credentials;
     }
 
@@ -39,8 +37,13 @@ final class UserApi implements UserApiInterface
     public function getById(int $userId, bool $skipCache = false): UserInterface
     {
         if (!$skipCache) {
-            if (isset($this->userCache[$userId])) {
-                return $this->userCache[$userId];
+            if ($this->userCache->has((string) $userId)) {
+                /**
+                 * @var UserInterface $cached
+                 */
+                $cached = $this->userCache->get((string) $userId);
+
+                return $cached;
             }
         }
 
@@ -51,7 +54,7 @@ final class UserApi implements UserApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $user = $this->userTransformer->transform($data);
-        $this->userCache[$userId] = $user;
+        $this->userCache->set((string) $userId, $user);
 
         return $user;
     }

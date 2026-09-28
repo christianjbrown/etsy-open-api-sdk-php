@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\PaymentInterface;
 use ChristianBrown\Etsy\Transformer\PaymentsTransformerInterface;
@@ -17,29 +18,21 @@ use function sprintf;
 
 final class PaymentApi implements PaymentApiInterface
 {
-    /**
-     * @var array<string, array<int, PaymentInterface>>
-     */
-    private array $byLedgerEntryIdsCache = [];
-
-    /**
-     * @var array<string, array<int, PaymentInterface>>
-     */
-    private array $byPaymentIdsCache = [];
-
-    /**
-     * @var array<int, array<int, PaymentInterface>>
-     */
-    private array $byReceiptCache = [];
+    private ResponseCacheInterface $byLedgerEntryIdsCache;
+    private ResponseCacheInterface $byPaymentIdsCache;
+    private ResponseCacheInterface $byReceiptCache;
     private CredentialsInterface $credentials;
     private PaymentsTransformerInterface $paymentsTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, PaymentsTransformerInterface $paymentsTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, PaymentsTransformerInterface $paymentsTransformer, ResponseCacheInterface $byLedgerEntryIdsCache, ResponseCacheInterface $byPaymentIdsCache, ResponseCacheInterface $byReceiptCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->paymentsTransformer = $paymentsTransformer;
+        $this->byLedgerEntryIdsCache = $byLedgerEntryIdsCache;
+        $this->byPaymentIdsCache = $byPaymentIdsCache;
+        $this->byReceiptCache = $byReceiptCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -56,8 +49,13 @@ final class PaymentApi implements PaymentApiInterface
     {
         $cacheKey = implode(',', $ledgerEntryIds);
         if (!$skipCache) {
-            if (isset($this->byLedgerEntryIdsCache[$cacheKey])) {
-                return $this->byLedgerEntryIdsCache[$cacheKey];
+            if ($this->byLedgerEntryIdsCache->has($cacheKey)) {
+                /**
+                 * @var array<int, PaymentInterface> $cached
+                 */
+                $cached = $this->byLedgerEntryIdsCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -65,7 +63,7 @@ final class PaymentApi implements PaymentApiInterface
         $data = $this->requestSender->get($url, self::buildLedgerEntryIdsQuery($ledgerEntryIds), $this->credentials->toHeaders());
 
         $payments = $this->handleResults($data);
-        $this->byLedgerEntryIdsCache[$cacheKey] = $payments;
+        $this->byLedgerEntryIdsCache->set($cacheKey, $payments);
 
         return $payments;
     }
@@ -82,8 +80,13 @@ final class PaymentApi implements PaymentApiInterface
     {
         $cacheKey = implode(',', $paymentIds);
         if (!$skipCache) {
-            if (isset($this->byPaymentIdsCache[$cacheKey])) {
-                return $this->byPaymentIdsCache[$cacheKey];
+            if ($this->byPaymentIdsCache->has($cacheKey)) {
+                /**
+                 * @var array<int, PaymentInterface> $cached
+                 */
+                $cached = $this->byPaymentIdsCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -91,7 +94,7 @@ final class PaymentApi implements PaymentApiInterface
         $data = $this->requestSender->get($url, self::buildPaymentIdsQuery($paymentIds), $this->credentials->toHeaders());
 
         $payments = $this->handleResults($data);
-        $this->byPaymentIdsCache[$cacheKey] = $payments;
+        $this->byPaymentIdsCache->set($cacheKey, $payments);
 
         return $payments;
     }
@@ -105,8 +108,13 @@ final class PaymentApi implements PaymentApiInterface
     public function getByReceipt(int $receiptId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->byReceiptCache[$receiptId])) {
-                return $this->byReceiptCache[$receiptId];
+            if ($this->byReceiptCache->has((string) $receiptId)) {
+                /**
+                 * @var array<int, PaymentInterface> $cached
+                 */
+                $cached = $this->byReceiptCache->get((string) $receiptId);
+
+                return $cached;
             }
         }
 
@@ -114,7 +122,7 @@ final class PaymentApi implements PaymentApiInterface
         $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
 
         $payments = $this->handleResults($data);
-        $this->byReceiptCache[$receiptId] = $payments;
+        $this->byReceiptCache->set((string) $receiptId, $payments);
 
         return $payments;
     }

@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingTranslationInterface;
 use ChristianBrown\Etsy\Model\ListingTranslationRequestInterface;
@@ -18,21 +19,19 @@ use function sprintf;
 
 final class ListingTranslationApi implements ListingTranslationApiInterface
 {
-    /**
-     * @var array<string, ListingTranslationInterface>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private ListingTranslationRequestSerializerInterface $listingTranslationRequestSerializer;
     private ListingTranslationTransformerInterface $listingTranslationTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingTranslationTransformerInterface $listingTranslationTransformer, ListingTranslationRequestSerializerInterface $listingTranslationRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingTranslationTransformerInterface $listingTranslationTransformer, ListingTranslationRequestSerializerInterface $listingTranslationRequestSerializer, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->listingTranslationTransformer = $listingTranslationTransformer;
         $this->listingTranslationRequestSerializer = $listingTranslationRequestSerializer;
+        $this->cache = $cache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -50,7 +49,7 @@ final class ListingTranslationApi implements ListingTranslationApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $translation = $this->listingTranslationTransformer->transform($data);
-        $this->cache[sprintf('%d:%s', $listingId, $language)] = $translation;
+        $this->cache->set(sprintf('%d:%s', $listingId, $language), $translation);
 
         return $translation;
     }
@@ -63,8 +62,13 @@ final class ListingTranslationApi implements ListingTranslationApiInterface
     {
         $cacheKey = sprintf('%d:%s', $listingId, $language);
         if (!$skipCache) {
-            if (isset($this->cache[$cacheKey])) {
-                return $this->cache[$cacheKey];
+            if ($this->cache->has($cacheKey)) {
+                /**
+                 * @var ListingTranslationInterface $cached
+                 */
+                $cached = $this->cache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -75,7 +79,7 @@ final class ListingTranslationApi implements ListingTranslationApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $translation = $this->listingTranslationTransformer->transform($data);
-        $this->cache[$cacheKey] = $translation;
+        $this->cache->set($cacheKey, $translation);
 
         return $translation;
     }
@@ -93,7 +97,7 @@ final class ListingTranslationApi implements ListingTranslationApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $translation = $this->listingTranslationTransformer->transform($data);
-        $this->cache[sprintf('%d:%s', $listingId, $language)] = $translation;
+        $this->cache->set(sprintf('%d:%s', $listingId, $language), $translation);
 
         return $translation;
     }

@@ -8,17 +8,20 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\FormValueEncoderInterface;
 use ChristianBrown\Etsy\Model\ShopHolidayPreferenceInterface;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShopHolidayPreferenceApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShopHolidayPreferenceApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -153,6 +156,6 @@ final class ShopHolidayPreferenceApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ShopHolidayPreferenceApi($requestSender, $shopHolidayPreferenceTransformer ?? self::createStub(ShopHolidayPreferenceTransformerInterface::class), $shopHolidayPreferencesTransformer, $formValueEncoder ?? self::createStub(FormValueEncoderInterface::class), $credentials, self::SHOP_ID);
+        return new ShopHolidayPreferenceApi($requestSender, $shopHolidayPreferenceTransformer ?? self::createStub(ShopHolidayPreferenceTransformerInterface::class), $shopHolidayPreferencesTransformer, $formValueEncoder ?? self::createStub(FormValueEncoderInterface::class), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

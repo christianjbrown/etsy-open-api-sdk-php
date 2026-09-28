@@ -8,15 +8,18 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\PaymentInterface;
 use ChristianBrown\Etsy\Transformer\PaymentsTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(PaymentApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class PaymentApiTest extends TestCase
 {
     private const int SHOP_ID = 42;
@@ -250,6 +253,6 @@ final class PaymentApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new PaymentApi($requestSender, $paymentsTransformer, $credentials, self::SHOP_ID);
+        return new PaymentApi($requestSender, $paymentsTransformer, new ResponseCache(), new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

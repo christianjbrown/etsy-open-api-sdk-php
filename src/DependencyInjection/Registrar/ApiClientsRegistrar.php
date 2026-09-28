@@ -31,6 +31,7 @@ use ChristianBrown\Etsy\Api\ShopReturnPolicyApi;
 use ChristianBrown\Etsy\Api\ShopSectionApi;
 use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserApi;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\DependencyInjection\ServiceRegistrarInterface;
 use ChristianBrown\Etsy\EtsyInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -59,6 +60,9 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_RECEIPT_PAGE_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_CREATE_RECEIPT_SHIPMENT_REQUEST_SERIALIZER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_RECEIPT_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -71,6 +75,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOPS_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -85,6 +91,15 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_LISTINGS_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_CREATE_DRAFT_LISTING_REQUEST_SERIALIZER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_LISTING_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -100,6 +115,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_MULTIPART_FORM_DATA_BUILDER),
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPLOAD_LISTING_FILE_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -115,6 +132,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_MULTIPART_FORM_DATA_BUILDER),
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPLOAD_LISTING_IMAGE_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -130,6 +149,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_MULTIPART_FORM_DATA_BUILDER),
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_TO_ARRAY_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPLOAD_LISTING_VIDEO_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -141,6 +162,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_VARIATION_IMAGES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_VARIATION_IMAGES_REQUEST_SERIALIZER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -154,6 +176,9 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_INVENTORY_PRODUCT_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_INVENTORY_PRODUCT_OFFERING_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_LISTING_INVENTORY_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );
@@ -166,6 +191,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_PROPERTY_VALUE_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_PROPERTY_VALUES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_LISTING_PROPERTY_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -177,6 +204,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_TRANSLATION_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_TRANSLATION_REQUEST_SERIALIZER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -189,6 +217,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTING_PERSONALIZATION_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_LISTING_PERSONALIZATION_REQUEST_SERIALIZER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -199,6 +228,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                 [
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_USER_TRANSFORMER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );
@@ -210,6 +240,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_USER_ADDRESS_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_USER_ADDRESSES_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );
@@ -230,6 +262,10 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_TRANSACTION_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_TRANSACTIONS_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -240,6 +276,9 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                 [
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_PAYMENTS_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -251,6 +290,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRY_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_PAYMENT_ACCOUNT_LEDGER_ENTRIES_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -263,6 +304,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_SECTION_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_SECTIONS_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -276,6 +319,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_RETURN_POLICY_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_RETURN_POLICIES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_RETURN_POLICY_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -286,6 +331,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                 [
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_PRODUCTION_PARTNERS_TRANSFORMER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -298,6 +344,7 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_HOLIDAY_PREFERENCE_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_HOLIDAY_PREFERENCES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_FORM_VALUE_ENCODER),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -312,6 +359,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_SHOP_READINESS_STATE_DEFINITIONS_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_CREATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_READINESS_STATE_DEFINITION_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -322,6 +371,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                 [
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_REVIEWS_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -345,6 +396,11 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_REQUEST_SERIALIZER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_DESTINATION_REQUEST_SERIALIZER),
                     $container->getDefinition(EtsyInterface::SERVICE_UPDATE_SHOP_SHIPPING_PROFILE_UPGRADE_REQUEST_SERIALIZER),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                     $this->shopId,
                 ]
@@ -356,6 +412,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_SELLER_TAXONOMY_NODES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_TAXONOMY_NODE_PROPERTIES_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );
@@ -366,6 +424,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_BUYER_TAXONOMY_NODES_TRANSFORMER),
                     $container->getDefinition(EtsyInterface::SERVICE_BUYER_TAXONOMY_NODE_PROPERTIES_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );
@@ -375,6 +435,8 @@ final class ApiClientsRegistrar implements ServiceRegistrarInterface
                 [
                     $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $container->getDefinition(EtsyInterface::SERVICE_LISTINGS_WITH_ASSOCIATIONS_TRANSFORMER),
+                    new ResponseCache(),
+                    new ResponseCache(),
                     $container->getDefinition(EtsyInterface::SERVICE_CREDENTIALS),
                 ]
             );

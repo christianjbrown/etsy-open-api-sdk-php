@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\CreateShopShippingProfileDestinationRequestInterface;
 use ChristianBrown\Etsy\Model\CreateShopShippingProfileRequestInterface;
@@ -34,11 +35,13 @@ use ChristianBrown\Etsy\Transformer\ShopShippingProfileTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ShippingProfileApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ShippingProfileApiTest extends TestCase
 {
     private const int PROFILE_ID = 77;
@@ -958,6 +961,11 @@ final class ShippingProfileApiTest extends TestCase
             $updateProfileRequestSerializer,
             $updateDestinationRequestSerializer,
             $updateUpgradeRequestSerializer,
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

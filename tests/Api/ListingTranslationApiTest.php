@@ -8,18 +8,21 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingTranslationApi;
 use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingTranslationInterface;
 use ChristianBrown\Etsy\Model\ListingTranslationRequestInterface;
 use ChristianBrown\Etsy\Serializer\ListingTranslationRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingTranslationTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function rawurlencode;
 use function sprintf;
 
 #[CoversClass(ListingTranslationApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingTranslationApiTest extends TestCase
 {
     private const string LANGUAGE = 'fr-CA';
@@ -217,6 +220,6 @@ final class ListingTranslationApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ListingTranslationApi($requestSender, $translationTransformer, $listingTranslationRequestSerializer ?? self::createStub(ListingTranslationRequestSerializerInterface::class), $credentials, self::SHOP_ID);
+        return new ListingTranslationApi($requestSender, $translationTransformer, $listingTranslationRequestSerializer ?? self::createStub(ListingTranslationRequestSerializerInterface::class), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

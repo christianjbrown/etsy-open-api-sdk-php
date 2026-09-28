@@ -8,15 +8,18 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ReviewApi;
 use ChristianBrown\Etsy\Api\ReviewApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ReviewInterface;
 use ChristianBrown\Etsy\Transformer\ReviewsTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ReviewApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ReviewApiTest extends TestCase
 {
     private const int LISTING_ID = 77;
@@ -322,6 +325,6 @@ final class ReviewApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ReviewApi($requestSender, $reviewsTransformer, $credentials, self::SHOP_ID);
+        return new ReviewApi($requestSender, $reviewsTransformer, new ResponseCache(), new ResponseCache(), $credentials, self::SHOP_ID);
     }
 }

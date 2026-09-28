@@ -8,17 +8,20 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\SellerTaxonomyApi;
 use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\SellerTaxonomyNodeInterface;
 use ChristianBrown\Etsy\Model\TaxonomyNodePropertyInterface;
 use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodesTransformerInterface;
 use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertiesTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(SellerTaxonomyApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class SellerTaxonomyApiTest extends TestCase
 {
     private const int TAXONOMY_ID = 77;
@@ -261,6 +264,6 @@ final class SellerTaxonomyApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new SellerTaxonomyApi($requestSender, $nodesTransformer, $propertiesTransformer, $credentials);
+        return new SellerTaxonomyApi($requestSender, $nodesTransformer, $propertiesTransformer, new ResponseCache(), new ResponseCache(), $credentials);
     }
 }

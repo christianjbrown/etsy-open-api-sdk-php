@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Api\ListingVideoApi;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilderInterface;
 use ChristianBrown\Etsy\Model\ListingVideoInterface;
@@ -18,11 +19,13 @@ use ChristianBrown\Etsy\Serializer\UploadListingVideoRequestSerializerInterface;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingVideoTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingVideoApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingVideoApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -331,6 +334,8 @@ final class ListingVideoApiTest extends TestCase
             $multipartFormDataBuilder ?? self::createStub(MultipartFormDataBuilderInterface::class),
             $jsonToArrayTransformer ?? self::createStub(JsonToArrayTransformerInterface::class),
             $uploadListingVideoRequestSerializer ?? self::createStub(UploadListingVideoRequestSerializerInterface::class),
+            new ResponseCache(),
+            new ResponseCache(),
             $credentials,
             self::SHOP_ID,
         );

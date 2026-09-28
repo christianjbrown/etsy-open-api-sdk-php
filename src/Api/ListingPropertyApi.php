@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingPropertyValueInterface;
 use ChristianBrown\Etsy\Model\UpdateListingPropertyRequestInterface;
@@ -21,30 +22,24 @@ use function sprintf;
 final class ListingPropertyApi implements ListingPropertyApiInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
-
-    /**
-     * @var array<int, array<int, ListingPropertyValueInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer;
     private ListingPropertyValueTransformerInterface $listingPropertyValueTransformer;
-
-    /**
-     * @var array<string, ListingPropertyValueInterface>
-     */
-    private array $oneCache = [];
+    private ResponseCacheInterface $oneCache;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
         $this->listingPropertyValueTransformer = $listingPropertyValueTransformer;
         $this->listingPropertyValuesTransformer = $listingPropertyValuesTransformer;
         $this->updateListingPropertyRequestSerializer = $updateListingPropertyRequestSerializer;
+        $this->cache = $cache;
+        $this->oneCache = $oneCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -57,7 +52,8 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
         $url = sprintf(self::API_URL_WRITE_SPRINTF, $this->shopId, $listingId, $propertyId);
         $this->apiRequestSender->delete($url, [], $this->credentials->toHeaders());
 
-        unset($this->cache[$listingId], $this->oneCache[sprintf('%d:%d', $listingId, $propertyId)]);
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->delete(sprintf('%d:%d', $listingId, $propertyId));
     }
 
     /**
@@ -69,8 +65,13 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
     public function getMultiple(int $listingId, bool $skipCache = false): array
     {
         if (!$skipCache) {
-            if (isset($this->cache[$listingId])) {
-                return $this->cache[$listingId];
+            if ($this->cache->has((string) $listingId)) {
+                /**
+                 * @var array<int, ListingPropertyValueInterface> $cached
+                 */
+                $cached = $this->cache->get((string) $listingId);
+
+                return $cached;
             }
         }
 
@@ -84,7 +85,7 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $propertyValues = $this->listingPropertyValuesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$listingId] = $propertyValues;
+        $this->cache->set((string) $listingId, $propertyValues);
 
         return $propertyValues;
     }
@@ -97,8 +98,13 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
     {
         $cacheKey = sprintf('%d:%d', $listingId, $propertyId);
         if (!$skipCache) {
-            if (isset($this->oneCache[$cacheKey])) {
-                return $this->oneCache[$cacheKey];
+            if ($this->oneCache->has($cacheKey)) {
+                /**
+                 * @var ListingPropertyValueInterface $cached
+                 */
+                $cached = $this->oneCache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -109,7 +115,7 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $propertyValue = $this->listingPropertyValueTransformer->transform($data);
-        $this->oneCache[$cacheKey] = $propertyValue;
+        $this->oneCache->set($cacheKey, $propertyValue);
 
         return $propertyValue;
     }
@@ -127,8 +133,8 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $propertyValue = $this->listingPropertyValueTransformer->transform($data);
-        unset($this->cache[$listingId]);
-        $this->oneCache[sprintf('%d:%d', $listingId, $propertyId)] = $propertyValue;
+        $this->cache->delete((string) $listingId);
+        $this->oneCache->set(sprintf('%d:%d', $listingId, $propertyId), $propertyValue);
 
         return $propertyValue;
     }

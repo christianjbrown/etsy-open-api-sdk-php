@@ -7,6 +7,7 @@ namespace ChristianBrown\Etsy\Api;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\PaymentAccountLedgerEntryInterface;
 use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformerInterface;
@@ -17,26 +18,21 @@ use function sprintf;
 
 final class LedgerEntryApi implements LedgerEntryApiInterface
 {
-    /**
-     * @var array<string, array<int, PaymentAccountLedgerEntryInterface>>
-     */
-    private array $cache = [];
+    private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
-
-    /**
-     * @var array<int, PaymentAccountLedgerEntryInterface>
-     */
-    private array $entryCache = [];
+    private ResponseCacheInterface $entryCache;
     private PaymentAccountLedgerEntriesTransformerInterface $paymentAccountLedgerEntriesTransformer;
     private PaymentAccountLedgerEntryTransformerInterface $paymentAccountLedgerEntryTransformer;
     private JsonApiRequestSenderInterface $requestSender;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, PaymentAccountLedgerEntryTransformerInterface $paymentAccountLedgerEntryTransformer, PaymentAccountLedgerEntriesTransformerInterface $paymentAccountLedgerEntriesTransformer, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, PaymentAccountLedgerEntryTransformerInterface $paymentAccountLedgerEntryTransformer, PaymentAccountLedgerEntriesTransformerInterface $paymentAccountLedgerEntriesTransformer, ResponseCacheInterface $cache, ResponseCacheInterface $entryCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->paymentAccountLedgerEntryTransformer = $paymentAccountLedgerEntryTransformer;
         $this->paymentAccountLedgerEntriesTransformer = $paymentAccountLedgerEntriesTransformer;
+        $this->cache = $cache;
+        $this->entryCache = $entryCache;
         $this->credentials = $credentials;
         $this->shopId = $shopId;
     }
@@ -51,8 +47,13 @@ final class LedgerEntryApi implements LedgerEntryApiInterface
     {
         $cacheKey = sprintf('%s:%s:%d:%d', $minCreated ?? '', $maxCreated ?? '', $limit, $offset);
         if (!$skipCache) {
-            if (isset($this->cache[$cacheKey])) {
-                return $this->cache[$cacheKey];
+            if ($this->cache->has($cacheKey)) {
+                /**
+                 * @var array<int, PaymentAccountLedgerEntryInterface> $cached
+                 */
+                $cached = $this->cache->get($cacheKey);
+
+                return $cached;
             }
         }
 
@@ -66,7 +67,7 @@ final class LedgerEntryApi implements LedgerEntryApiInterface
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $entries = $this->paymentAccountLedgerEntriesTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache[$cacheKey] = $entries;
+        $this->cache->set($cacheKey, $entries);
 
         return $entries;
     }
@@ -78,8 +79,13 @@ final class LedgerEntryApi implements LedgerEntryApiInterface
     public function getOneById(int $ledgerEntryId, bool $skipCache = false): PaymentAccountLedgerEntryInterface
     {
         if (!$skipCache) {
-            if (isset($this->entryCache[$ledgerEntryId])) {
-                return $this->entryCache[$ledgerEntryId];
+            if ($this->entryCache->has((string) $ledgerEntryId)) {
+                /**
+                 * @var PaymentAccountLedgerEntryInterface $cached
+                 */
+                $cached = $this->entryCache->get((string) $ledgerEntryId);
+
+                return $cached;
             }
         }
 
@@ -90,7 +96,7 @@ final class LedgerEntryApi implements LedgerEntryApiInterface
             throw new UnexpectedResponseException(self::UNEXPECTED_RESPONSE);
         }
         $entry = $this->paymentAccountLedgerEntryTransformer->transform($data);
-        $this->entryCache[$ledgerEntryId] = $entry;
+        $this->entryCache->set((string) $ledgerEntryId, $entry);
 
         return $entry;
     }

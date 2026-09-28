@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\Etsy\Api\ListingInventoryApi;
 use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
+use ChristianBrown\Etsy\Cache\ResponseCache;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
 use ChristianBrown\Etsy\Model\ListingInventoryInterface;
 use ChristianBrown\Etsy\Model\ListingInventoryProductInterface;
@@ -18,11 +19,13 @@ use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformerIn
 use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingInventoryTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
 #[CoversClass(ListingInventoryApi::class)]
+#[UsesClass(ResponseCache::class)]
 final class ListingInventoryApiTest extends TestCase
 {
     private const int LISTING_ID = 7;
@@ -380,6 +383,6 @@ final class ListingInventoryApiTest extends TestCase
         $credentials = self::createStub(CredentialsInterface::class);
         $credentials->method('toHeaders')->willReturn($headers);
 
-        return new ListingInventoryApi($requestSender, $inventoryTransformer, $productTransformer, $offeringTransformer, $updateListingInventoryRequestSerializer ?? self::createStub(UpdateListingInventoryRequestSerializerInterface::class), $credentials);
+        return new ListingInventoryApi($requestSender, $inventoryTransformer, $productTransformer, $offeringTransformer, $updateListingInventoryRequestSerializer ?? self::createStub(UpdateListingInventoryRequestSerializerInterface::class), new ResponseCache(), new ResponseCache(), new ResponseCache(), $credentials);
     }
 }
