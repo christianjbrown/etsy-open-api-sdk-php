@@ -7,6 +7,13 @@ namespace ChristianBrown\Etsy\Model;
 final class UpdateListingRequest implements UpdateListingRequestInterface
 {
     private ?string $description = null;
+    private ?string $ecgtAfterSalesServiceInfo = null;
+    private ?string $ecgtGaranBrand = null;
+    private ?string $ecgtGaranGuaranteeDetails = null;
+    private ?string $ecgtGaranModel = null;
+    private ?int $ecgtGaranYears = null;
+    private ?string $ecgtOtherCommercialGuaranteeDetails = null;
+    private ?string $ecgtSoftwareUpdateDetails = null;
     private ?int $featuredRank = null;
 
     /**
@@ -50,6 +57,41 @@ final class UpdateListingRequest implements UpdateListingRequestInterface
     public function getDescription(): ?string
     {
         return $this->description;
+    }
+
+    public function getEcgtAfterSalesServiceInfo(): ?string
+    {
+        return $this->ecgtAfterSalesServiceInfo;
+    }
+
+    public function getEcgtGaranBrand(): ?string
+    {
+        return $this->ecgtGaranBrand;
+    }
+
+    public function getEcgtGaranGuaranteeDetails(): ?string
+    {
+        return $this->ecgtGaranGuaranteeDetails;
+    }
+
+    public function getEcgtGaranModel(): ?string
+    {
+        return $this->ecgtGaranModel;
+    }
+
+    public function getEcgtGaranYears(): ?int
+    {
+        return $this->ecgtGaranYears;
+    }
+
+    public function getEcgtOtherCommercialGuaranteeDetails(): ?string
+    {
+        return $this->ecgtOtherCommercialGuaranteeDetails;
+    }
+
+    public function getEcgtSoftwareUpdateDetails(): ?string
+    {
+        return $this->ecgtSoftwareUpdateDetails;
     }
 
     public function getFeaturedRank(): ?int
@@ -182,6 +224,55 @@ final class UpdateListingRequest implements UpdateListingRequestInterface
     public function setDescription(?string $value): UpdateListingRequestInterface
     {
         $this->description = $value;
+
+        return $this;
+    }
+
+    public function setEcgtAfterSalesServiceInfo(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtAfterSalesServiceInfo = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranBrand(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtGaranBrand = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranGuaranteeDetails(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtGaranGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranModel(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtGaranModel = $value;
+
+        return $this;
+    }
+
+    public function setEcgtGaranYears(?int $value): UpdateListingRequestInterface
+    {
+        $this->ecgtGaranYears = $value;
+
+        return $this;
+    }
+
+    public function setEcgtOtherCommercialGuaranteeDetails(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtOtherCommercialGuaranteeDetails = $value;
+
+        return $this;
+    }
+
+    public function setEcgtSoftwareUpdateDetails(?string $value): UpdateListingRequestInterface
+    {
+        $this->ecgtSoftwareUpdateDetails = $value;
 
         return $this;
     }

@@ -12,6 +12,20 @@ interface UpdateListingRequestInterface
 {
     public function getDescription(): ?string;
 
+    public function getEcgtAfterSalesServiceInfo(): ?string;
+
+    public function getEcgtGaranBrand(): ?string;
+
+    public function getEcgtGaranGuaranteeDetails(): ?string;
+
+    public function getEcgtGaranModel(): ?string;
+
+    public function getEcgtGaranYears(): ?int;
+
+    public function getEcgtOtherCommercialGuaranteeDetails(): ?string;
+
+    public function getEcgtSoftwareUpdateDetails(): ?string;
+
     public function getFeaturedRank(): ?int;
 
     /**
@@ -71,6 +85,20 @@ interface UpdateListingRequestInterface
     public function getWhoMade(): ?string;
 
     public function setDescription(?string $value): self;
+
+    public function setEcgtAfterSalesServiceInfo(?string $value): self;
+
+    public function setEcgtGaranBrand(?string $value): self;
+
+    public function setEcgtGaranGuaranteeDetails(?string $value): self;
+
+    public function setEcgtGaranModel(?string $value): self;
+
+    public function setEcgtGaranYears(?int $value): self;
+
+    public function setEcgtOtherCommercialGuaranteeDetails(?string $value): self;
+
+    public function setEcgtSoftwareUpdateDetails(?string $value): self;
 
     public function setFeaturedRank(?int $value): self;
 

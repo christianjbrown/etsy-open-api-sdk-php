@@ -88,6 +88,14 @@ final class ListingTransformerTest extends TestCase
             ListingTransformerInterface::KEY_TAXONOMY_ID => 122,
             ListingTransformerInterface::KEY_READINESS_STATE_ID => 123,
             ListingTransformerInterface::KEY_SUGGESTED_TITLE => 'v_suggestedTitle',
+            ListingTransformerInterface::KEY_ECGT_AFTER_SALES_SERVICE_INFO => 'v_ecgtAfterSalesServiceInfo',
+            ListingTransformerInterface::KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED => true,
+            ListingTransformerInterface::KEY_ECGT_GARAN_BRAND => 'v_ecgtGaranBrand',
+            ListingTransformerInterface::KEY_ECGT_GARAN_GUARANTEE_DETAILS => 'v_ecgtGaranGuaranteeDetails',
+            ListingTransformerInterface::KEY_ECGT_GARAN_MODEL => 'v_ecgtGaranModel',
+            ListingTransformerInterface::KEY_ECGT_GARAN_YEARS => 124,
+            ListingTransformerInterface::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS => 'v_ecgtOtherCommercialGuaranteeDetails',
+            ListingTransformerInterface::KEY_ECGT_SOFTWARE_UPDATE_DETAILS => 'v_ecgtSoftwareUpdateDetails',
         ];
 
         $moneyTransformer = self::createStub(MoneyTransformerInterface::class);
@@ -153,6 +161,14 @@ final class ListingTransformerTest extends TestCase
         self::assertSame(122, $actual->getTaxonomyId());
         self::assertSame(123, $actual->getReadinessStateId());
         self::assertSame('v_suggestedTitle', $actual->getSuggestedTitle());
+        self::assertSame('v_ecgtAfterSalesServiceInfo', $actual->getEcgtAfterSalesServiceInfo());
+        self::assertTrue($actual->getEcgtCommercialGuaranteeEnabled());
+        self::assertSame('v_ecgtGaranBrand', $actual->getEcgtGaranBrand());
+        self::assertSame('v_ecgtGaranGuaranteeDetails', $actual->getEcgtGaranGuaranteeDetails());
+        self::assertSame('v_ecgtGaranModel', $actual->getEcgtGaranModel());
+        self::assertSame(124, $actual->getEcgtGaranYears());
+        self::assertSame('v_ecgtOtherCommercialGuaranteeDetails', $actual->getEcgtOtherCommercialGuaranteeDetails());
+        self::assertSame('v_ecgtSoftwareUpdateDetails', $actual->getEcgtSoftwareUpdateDetails());
     }
 
     /**
@@ -228,8 +244,41 @@ final class ListingTransformerTest extends TestCase
                 self::assertNull($m->getTaxonomyId());
                 self::assertNull($m->getReadinessStateId());
                 self::assertNull($m->getSuggestedTitle());
+                self::assertNull($m->getEcgtAfterSalesServiceInfo());
+                self::assertNull($m->getEcgtCommercialGuaranteeEnabled());
+                self::assertNull($m->getEcgtGaranBrand());
+                self::assertNull($m->getEcgtGaranGuaranteeDetails());
+                self::assertNull($m->getEcgtGaranModel());
+                self::assertNull($m->getEcgtGaranYears());
+                self::assertNull($m->getEcgtOtherCommercialGuaranteeDetails());
+                self::assertNull($m->getEcgtSoftwareUpdateDetails());
             },
         ];
+
+        yield 'ecgtAfterSalesServiceInfoWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_AFTER_SALES_SERVICE_INFO => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtAfterSalesServiceInfo());
+        }];
+        yield 'ecgtCommercialGuaranteeEnabledWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED => 'x'], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtCommercialGuaranteeEnabled());
+        }];
+        yield 'ecgtGaranBrandWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_GARAN_BRAND => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtGaranBrand());
+        }];
+        yield 'ecgtGaranGuaranteeDetailsWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_GARAN_GUARANTEE_DETAILS => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtGaranGuaranteeDetails());
+        }];
+        yield 'ecgtGaranModelWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_GARAN_MODEL => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtGaranModel());
+        }];
+        yield 'ecgtGaranYearsWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_GARAN_YEARS => 'x'], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtGaranYears());
+        }];
+        yield 'ecgtOtherCommercialGuaranteeDetailsWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtOtherCommercialGuaranteeDetails());
+        }];
+        yield 'ecgtSoftwareUpdateDetailsWrongType' => [[$id => 1, ListingTransformerInterface::KEY_ECGT_SOFTWARE_UPDATE_DETAILS => 42], static function (ListingInterface $m): void {
+            self::assertNull($m->getEcgtSoftwareUpdateDetails());
+        }];
 
         yield 'userIdWrongType' => [[$id => 1, ListingTransformerInterface::KEY_USER_ID => 'x'], static function (ListingInterface $m): void {
             self::assertNull($m->getUserId());

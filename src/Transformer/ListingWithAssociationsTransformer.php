@@ -65,6 +65,14 @@ final class ListingWithAssociationsTransformer implements ListingWithAssociation
         self::applyCreatedTimestamp($listing, $data);
         self::applyCreationTimestamp($listing, $data);
         self::applyDescription($listing, $data);
+        self::applyEcgtAfterSalesServiceInfo($listing, $data);
+        self::applyEcgtCommercialGuaranteeEnabled($listing, $data);
+        self::applyEcgtGaranBrand($listing, $data);
+        self::applyEcgtGaranGuaranteeDetails($listing, $data);
+        self::applyEcgtGaranModel($listing, $data);
+        self::applyEcgtGaranYears($listing, $data);
+        self::applyEcgtOtherCommercialGuaranteeDetails($listing, $data);
+        self::applyEcgtSoftwareUpdateDetails($listing, $data);
         self::applyEndingTimestamp($listing, $data);
         self::applyFeaturedRank($listing, $data);
         self::applyFileData($listing, $data);
@@ -193,6 +201,118 @@ final class ListingWithAssociationsTransformer implements ListingWithAssociation
             return;
         }
         $listing->setDescription($data[self::KEY_DESCRIPTION]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtAfterSalesServiceInfo(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_AFTER_SALES_SERVICE_INFO])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_AFTER_SALES_SERVICE_INFO])) {
+            return;
+        }
+        $listing->setEcgtAfterSalesServiceInfo($data[self::KEY_ECGT_AFTER_SALES_SERVICE_INFO]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtCommercialGuaranteeEnabled(ListingWithAssociations $listing, array $data): void
+    {
+        if (!isset($data[self::KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED])) {
+            return;
+        }
+        if (!is_bool($data[self::KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED])) {
+            return;
+        }
+        $listing->setEcgtCommercialGuaranteeEnabled($data[self::KEY_ECGT_COMMERCIAL_GUARANTEE_ENABLED]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtGaranBrand(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_GARAN_BRAND])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_GARAN_BRAND])) {
+            return;
+        }
+        $listing->setEcgtGaranBrand($data[self::KEY_ECGT_GARAN_BRAND]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtGaranGuaranteeDetails(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_GARAN_GUARANTEE_DETAILS])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_GARAN_GUARANTEE_DETAILS])) {
+            return;
+        }
+        $listing->setEcgtGaranGuaranteeDetails($data[self::KEY_ECGT_GARAN_GUARANTEE_DETAILS]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtGaranModel(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_GARAN_MODEL])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_GARAN_MODEL])) {
+            return;
+        }
+        $listing->setEcgtGaranModel($data[self::KEY_ECGT_GARAN_MODEL]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtGaranYears(ListingWithAssociations $listing, array $data): void
+    {
+        if (!isset($data[self::KEY_ECGT_GARAN_YEARS])) {
+            return;
+        }
+        if (!is_int($data[self::KEY_ECGT_GARAN_YEARS])) {
+            return;
+        }
+        $listing->setEcgtGaranYears($data[self::KEY_ECGT_GARAN_YEARS]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtOtherCommercialGuaranteeDetails(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS])) {
+            return;
+        }
+        $listing->setEcgtOtherCommercialGuaranteeDetails($data[self::KEY_ECGT_OTHER_COMMERCIAL_GUARANTEE_DETAILS]);
+    }
+
+    /**
+     * @phpstan-param mixed[] $data
+     */
+    private static function applyEcgtSoftwareUpdateDetails(ListingWithAssociations $listing, array $data): void
+    {
+        if (empty($data[self::KEY_ECGT_SOFTWARE_UPDATE_DETAILS])) {
+            return;
+        }
+        if (!is_string($data[self::KEY_ECGT_SOFTWARE_UPDATE_DETAILS])) {
+            return;
+        }
+        $listing->setEcgtSoftwareUpdateDetails($data[self::KEY_ECGT_SOFTWARE_UPDATE_DETAILS]);
     }
 
     /**
