@@ -318,6 +318,52 @@ final class ListingVideoApiTest extends TestCase
         $api->upload(self::LISTING_ID, self::createStub(UploadListingVideoRequestInterface::class));
     }
 
+    public function testUploadWithIsMultiVideoPassesQuery(): void
+    {
+        $headers = ['x-api-key' => 'key'];
+        $videoData = ['video-99'];
+        $video = self::createStub(ListingVideoInterface::class);
+        $video->method('getVideoId')->willReturn(99);
+        $serializedFields = ['name' => 'demo.mp4'];
+
+        $request = self::createStub(UploadListingVideoRequestInterface::class);
+        $requestSerializer = self::createMock(UploadListingVideoRequestSerializerInterface::class);
+        $requestSerializer->expects(self::once())->method('serialize')
+            ->with($request)
+            ->willReturn($serializedFields);
+
+        $multipartFormDataBuilder = self::createMock(MultipartFormDataBuilderInterface::class);
+        $multipartFormDataBuilder->expects(self::once())->method('generateBoundary')->willReturn('boundary-1');
+        $multipartFormDataBuilder->expects(self::once())->method('build')
+            ->with('boundary-1', $serializedFields, null)
+            ->willReturn('multipart-body');
+        $multipartFormDataBuilder->expects(self::once())->method('toContentTypeHeaderValue')
+            ->with('boundary-1')
+            ->willReturn('multipart/form-data; boundary=boundary-1');
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())->method('post')
+            ->with(
+                sprintf(ListingVideoApiInterface::API_URL_WRITE_MULTIPLE_SPRINTF, self::SHOP_ID, self::LISTING_ID),
+                [ListingVideoApiInterface::KEY_IS_MULTI_VIDEO => 'true'],
+                $headers + ['Content-Type' => 'multipart/form-data; boundary=boundary-1'],
+                'multipart-body',
+            )
+            ->willReturn('{"video_id":99}');
+
+        $jsonToArrayTransformer = self::createStub(JsonToArrayTransformerInterface::class);
+        $jsonToArrayTransformer->method('transform')->willReturn($videoData);
+
+        $videoTransformer = self::createMock(ListingVideoTransformerInterface::class);
+        $videoTransformer->expects(self::once())->method('transform')
+            ->with($videoData)
+            ->willReturn($video);
+
+        $api = $this->buildApi($headers, self::createStub(JsonApiRequestSenderInterface::class), $videoTransformer, self::createStub(ListingVideosTransformerInterface::class), $apiRequestSender, $multipartFormDataBuilder, $jsonToArrayTransformer, $requestSerializer);
+
+        self::assertSame($video, $api->upload(self::LISTING_ID, $request, true));
+    }
+
     /**
      * @param array<string, string> $headers
      */

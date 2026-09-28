@@ -132,13 +132,13 @@ final class ListingVideoApi implements ListingVideoApiInterface
      * @throws RequestExceptionInterface
      * @throws UnexpectedResponseException
      */
-    public function upload(int $listingId, UploadListingVideoRequestInterface $uploadListingVideoRequest): ListingVideoInterface
+    public function upload(int $listingId, UploadListingVideoRequestInterface $uploadListingVideoRequest, ?bool $isMultiVideo = null): ListingVideoInterface
     {
         $url = sprintf(self::API_URL_WRITE_MULTIPLE_SPRINTF, $this->shopId, $listingId);
         $boundary = $this->multipartFormDataBuilder->generateBoundary();
         $body = $this->multipartFormDataBuilder->build($boundary, $this->uploadListingVideoRequestSerializer->serialize($uploadListingVideoRequest), $uploadListingVideoRequest->getVideo());
         $headers = array_merge($this->credentials->toHeaders(), [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => $this->multipartFormDataBuilder->toContentTypeHeaderValue($boundary)]);
-        $contents = $this->apiRequestSender->post($url, [], $headers, $body);
+        $contents = $this->apiRequestSender->post($url, self::buildUploadQuery($isMultiVideo), $headers, $body);
         $data = $this->jsonToArrayTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $url));
 
         if (empty($data)) {
@@ -149,5 +149,17 @@ final class ListingVideoApi implements ListingVideoApiInterface
         $this->oneCache->set(sprintf('%d:%d', $listingId, $listingVideo->getVideoId()), $listingVideo);
 
         return $listingVideo;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildUploadQuery(?bool $isMultiVideo): array
+    {
+        if (null === $isMultiVideo) {
+            return [];
+        }
+
+        return [self::KEY_IS_MULTI_VIDEO => $isMultiVideo ? 'true' : 'false'];
     }
 }
