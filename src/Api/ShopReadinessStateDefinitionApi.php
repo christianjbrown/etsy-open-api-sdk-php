@@ -84,21 +84,22 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
      *
      * @return array<int, ShopReadinessStateDefinitionInterface>
      */
-    public function getMultiple(bool $skipCache = false): array
+    public function getMultiple(bool $skipCache = false, ?int $limit = null, ?int $offset = null): array
     {
+        $cacheKey = sprintf('all:%s:%s', $limit ?? '', $offset ?? '');
         if (!$skipCache) {
-            if ($this->cache->has('all')) {
+            if ($this->cache->has($cacheKey)) {
                 /**
                  * @var array<int, ShopReadinessStateDefinitionInterface> $cached
                  */
-                $cached = $this->cache->get('all');
+                $cached = $this->cache->get($cacheKey);
 
                 return $cached;
             }
         }
 
         $url = sprintf(self::API_URL_MULTIPLE_SPRINTF, $this->shopId);
-        $data = $this->requestSender->get($url, [], $this->credentials->toHeaders());
+        $data = $this->requestSender->get($url, self::buildPaginationQuery($limit, $offset), $this->credentials->toHeaders());
 
         if (empty($data[self::KEY_RESULTS])) {
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
@@ -107,7 +108,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
             throw new UnexpectedResponseException(sprintf(self::UNEXPECTED_RESPONSE_SPRINTF, self::KEY_RESULTS));
         }
         $shopReadinessStateDefinitions = $this->shopReadinessStateDefinitionsTransformer->transform($data[self::KEY_RESULTS]);
-        $this->cache->set('all', $shopReadinessStateDefinitions);
+        $this->cache->set($cacheKey, $shopReadinessStateDefinitions);
 
         return $shopReadinessStateDefinitions;
     }
@@ -158,5 +159,21 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
         $this->definitionCache->set((string) $readinessStateDefinitionId, $shopReadinessStateDefinition);
 
         return $shopReadinessStateDefinition;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function buildPaginationQuery(?int $limit, ?int $offset): array
+    {
+        $query = [];
+        if (null !== $limit) {
+            $query[self::KEY_LIMIT] = (string) $limit;
+        }
+        if (null !== $offset) {
+            $query[self::KEY_OFFSET] = (string) $offset;
+        }
+
+        return $query;
     }
 }

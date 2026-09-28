@@ -12,6 +12,8 @@ interface ShopReadinessStateDefinitionApiInterface
 {
     public const string API_URL_MULTIPLE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/readiness-state-definitions';
     public const string API_URL_ONE_SPRINTF = 'https://openapi.etsy.com/v3/application/shops/%d/readiness-state-definitions/%d';
+    public const string KEY_LIMIT = 'limit';
+    public const string KEY_OFFSET = 'offset';
     public const string KEY_RESULTS = 'results';
     public const string UNEXPECTED_RESPONSE = 'Response not set or not an array';
     public const string UNEXPECTED_RESPONSE_SPRINTF = '%s not set or not an array';
@@ -31,7 +33,7 @@ interface ShopReadinessStateDefinitionApiInterface
      *
      * @return array<int, ShopReadinessStateDefinitionInterface>
      */
-    public function getMultiple(bool $skipCache = false): array;
+    public function getMultiple(bool $skipCache = false, ?int $limit = null, ?int $offset = null): array;
 
     public function getOneById(int $readinessStateDefinitionId, bool $skipCache = false): ShopReadinessStateDefinitionInterface;
 
