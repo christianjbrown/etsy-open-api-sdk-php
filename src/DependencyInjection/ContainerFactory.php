@@ -6,6 +6,8 @@ namespace ChristianBrown\Etsy\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+use function array_walk;
+
 final class ContainerFactory implements ContainerFactoryInterface
 {
     /**
@@ -25,9 +27,9 @@ final class ContainerFactory implements ContainerFactoryInterface
     {
         $container = new ContainerBuilder();
 
-        foreach ($this->registrars as $registrar) {
+        array_walk($this->registrars, static function (ServiceRegistrarInterface $registrar) use ($container): void {
             $registrar->register($container);
-        }
+        });
 
         return $container;
     }
