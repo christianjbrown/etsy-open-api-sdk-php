@@ -357,6 +357,12 @@ Every `Api/` class keeps its own in-memory response cache behind `ChristianBrown
 
 </details>
 
+## :memo: Changelog
+
+Notable changes in each release are listed in [CHANGELOG.md](CHANGELOG.md).
+
+
+
 ## :page_facing_up: License
 
 Released under the [MIT License](LICENSE).
