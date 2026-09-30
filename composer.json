@@ -24,6 +24,7 @@
         "symfony/dependency-injection": "^8.0"
     },
     "require-dev": {
+        "brianium/paratest": "^7.25",
         "christianjbrown/code-quality-scripts": "^1.0",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^13.0"
@@ -40,7 +41,7 @@
     },
     "scripts": {
         "test": [
-            "clear && XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/phpunit && open ./.phpunit.cache/code-coverage-html/index.html"
+            "clear && XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/paratest --processes=$(getconf _NPROCESSORS_ONLN) --max-batch-size=150 --passthru-php=\"-d memory_limit=-1\" --coverage-text --coverage-html=./.phpunit.cache/code-coverage-html && open ./.phpunit.cache/code-coverage-html/index.html"
         ],
         "stan": [
             "clear && ./bin/phpstan analyse"
