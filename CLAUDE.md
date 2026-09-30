@@ -22,8 +22,8 @@ gitignored and Composer-installed, so run `composer install` first.
 | Task | Command |
 | --- | --- |
 | Run tests + coverage (opens HTML report) | `composer test` |
-| Run tests, no coverage | `php -d memory_limit=-1 ./bin/phpunit --no-coverage` |
-| Run tests + coverage, no browser | `XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/phpunit` |
+| Run tests, no coverage | `php -d memory_limit=-1 ./bin/paratest --no-coverage` |
+| Run tests + coverage, no browser | `XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/paratest --processes=$(getconf _NPROCESSORS_ONLN) --max-batch-size=150 --passthru-php="-d memory_limit=-1" --coverage-text` |
 | Run one test | `php -d memory_limit=-1 ./bin/phpunit --filter ReceiptTransformerTest` |
 | Static analysis | `composer stan` |
 | Check code style | `composer check-style` |
@@ -35,9 +35,17 @@ Style tooling comes from the `christianjbrown/code-quality-scripts` dev dependen
 lints with **PHP_CodeSniffer 4** using the **`ChristianBrown` standard**, and **php-cs-fixer**
 (`@PhpCsFixer`/`@Symfony`) handles formatting. Static analysis is **PHPStan at `level: max`**
 (`phpstan.neon.dist`). The **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) runs style,
-PHPStan, and the PHPUnit suite with coverage on every push/PR, then fails the build with
+PHPStan, and the test suite (under ParaTest) with coverage on every push/PR, then fails the build with
 `bin/php-coverage-check` if line, path, method, or branch coverage drops below 100%. Always run `composer fix-style` first,
 then `composer check-style`, then `composer stan`, then `composer test` before finishing.
+
+Tests run under **ParaTest** (`./bin/paratest`), one worker per core (`composer test` detects the core
+count; CI uses `nproc`) with `--max-batch-size=150`. Do not run the whole suite with plain phpunit and
+path coverage: coverage bookkeeping grows with every test held in one process, so a single process
+takes over ten minutes, while short-lived workers take a fraction of that. `phpunit.xml` declares no
+report, so ask for one on the command line (`--coverage-text=<file>`, plus `--coverage-html=<dir>`
+locally). Workers need `--passthru-php="-d memory_limit=-1"` because they do not inherit the parent's
+`php -d` options. Plain `./bin/phpunit --filter ...` is still fine for running one test.
 
 ## Changelog
 

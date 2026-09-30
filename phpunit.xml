@@ -10,10 +10,5 @@
       <directory>src</directory>
     </include>
   </source>
-  <coverage includeUncoveredFiles="true" pathCoverage="true">
-    <report>
-      <html outputDirectory="./.phpunit.cache/code-coverage-html"/>
-      <text outputFile="php://stdout"/>
-    </report>
-  </coverage>
+  <coverage includeUncoveredFiles="true" pathCoverage="true"/>
 </phpunit>
