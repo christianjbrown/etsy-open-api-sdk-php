@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -22,9 +22,9 @@ final class ListingBatchApi implements ListingBatchApiInterface
     private ResponseCacheInterface $byShippingCache;
     private CredentialsInterface $credentials;
     private ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer, ResponseCacheInterface $byInventoryCache, ResponseCacheInterface $byShippingCache, CredentialsInterface $credentials)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, ListingsWithAssociationsTransformerInterface $listingsWithAssociationsTransformer, ResponseCacheInterface $byInventoryCache, ResponseCacheInterface $byShippingCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->listingsWithAssociationsTransformer = $listingsWithAssociationsTransformer;

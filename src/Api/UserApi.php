@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -18,11 +18,11 @@ final class UserApi implements UserApiInterface
 {
     private CredentialsInterface $credentials;
     private ?UserInterface $meCache = null;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private ResponseCacheInterface $userCache;
     private UserTransformerInterface $userTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, UserTransformerInterface $userTransformer, ResponseCacheInterface $userCache, CredentialsInterface $credentials)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, UserTransformerInterface $userTransformer, ResponseCacheInterface $userCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->userTransformer = $userTransformer;

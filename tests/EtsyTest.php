@@ -4,369 +4,45 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Tests;
 
-use ChristianBrown\Etsy\Api\BuyerTaxonomyApi;
 use ChristianBrown\Etsy\Api\BuyerTaxonomyApiInterface;
-use ChristianBrown\Etsy\Api\LedgerEntryApi;
 use ChristianBrown\Etsy\Api\LedgerEntryApiInterface;
-use ChristianBrown\Etsy\Api\ListingBatchApi;
 use ChristianBrown\Etsy\Api\ListingBatchApiInterface;
-use ChristianBrown\Etsy\Api\ListingFileApi;
 use ChristianBrown\Etsy\Api\ListingFileApiInterface;
-use ChristianBrown\Etsy\Api\ListingImageApi;
 use ChristianBrown\Etsy\Api\ListingImageApiInterface;
-use ChristianBrown\Etsy\Api\ListingInventoryApi;
 use ChristianBrown\Etsy\Api\ListingInventoryApiInterface;
-use ChristianBrown\Etsy\Api\ListingPersonalizationApi;
 use ChristianBrown\Etsy\Api\ListingPersonalizationApiInterface;
-use ChristianBrown\Etsy\Api\ListingPropertyApi;
 use ChristianBrown\Etsy\Api\ListingPropertyApiInterface;
-use ChristianBrown\Etsy\Api\ListingTranslationApi;
 use ChristianBrown\Etsy\Api\ListingTranslationApiInterface;
-use ChristianBrown\Etsy\Api\ListingVariationImageApi;
 use ChristianBrown\Etsy\Api\ListingVariationImageApiInterface;
-use ChristianBrown\Etsy\Api\ListingVideoApi;
 use ChristianBrown\Etsy\Api\ListingVideoApiInterface;
-use ChristianBrown\Etsy\Api\PaymentApi;
 use ChristianBrown\Etsy\Api\PaymentApiInterface;
-use ChristianBrown\Etsy\Api\PingApi;
 use ChristianBrown\Etsy\Api\PingApiInterface;
-use ChristianBrown\Etsy\Api\ReviewApi;
 use ChristianBrown\Etsy\Api\ReviewApiInterface;
-use ChristianBrown\Etsy\Api\SellerTaxonomyApi;
 use ChristianBrown\Etsy\Api\SellerTaxonomyApiInterface;
-use ChristianBrown\Etsy\Api\ShippingProfileApi;
 use ChristianBrown\Etsy\Api\ShippingProfileApiInterface;
-use ChristianBrown\Etsy\Api\ShopApi;
 use ChristianBrown\Etsy\Api\ShopApiInterface;
-use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApi;
 use ChristianBrown\Etsy\Api\ShopHolidayPreferenceApiInterface;
-use ChristianBrown\Etsy\Api\ShopListingApi;
 use ChristianBrown\Etsy\Api\ShopListingApiInterface;
-use ChristianBrown\Etsy\Api\ShopProductionPartnerApi;
 use ChristianBrown\Etsy\Api\ShopProductionPartnerApiInterface;
-use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApi;
 use ChristianBrown\Etsy\Api\ShopReadinessStateDefinitionApiInterface;
-use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Api\ShopReceiptApiInterface;
-use ChristianBrown\Etsy\Api\ShopReceiptTransactionApi;
 use ChristianBrown\Etsy\Api\ShopReceiptTransactionApiInterface;
-use ChristianBrown\Etsy\Api\ShopReturnPolicyApi;
 use ChristianBrown\Etsy\Api\ShopReturnPolicyApiInterface;
-use ChristianBrown\Etsy\Api\ShopSectionApi;
 use ChristianBrown\Etsy\Api\ShopSectionApiInterface;
-use ChristianBrown\Etsy\Api\UserAddressApi;
 use ChristianBrown\Etsy\Api\UserAddressApiInterface;
-use ChristianBrown\Etsy\Api\UserApi;
 use ChristianBrown\Etsy\Api\UserApiInterface;
-use ChristianBrown\Etsy\Auth\Credentials;
-use ChristianBrown\Etsy\DependencyInjection\ContainerFactory;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ApiClientsRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\BuyerTaxonomyTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\CoreServiceRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\LedgerTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingInventoryTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingMediaTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingPersonalizationTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingTranslationTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ListingWithAssociationsTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentAdjustmentTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\PaymentTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\PingTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ReceiptTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\RequestSerializersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ReviewTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\SellerTaxonomyTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ShippingProfileTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopConfigurationTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\ShopTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\UserAddressTransformersRegistrar;
-use ChristianBrown\Etsy\DependencyInjection\Registrar\UserTransformersRegistrar;
 use ChristianBrown\Etsy\Etsy;
-use ChristianBrown\Etsy\Host\EtsyHost;
-use ChristianBrown\Etsy\Http\HostRewritingApiRequestSender;
-use ChristianBrown\Etsy\Http\HostRewritingJsonApiRequestSender;
-use ChristianBrown\Etsy\Serializer\CreateDraftListingRequestSerializer;
-use ChristianBrown\Etsy\Serializer\CreateReceiptShipmentRequestSerializer;
-use ChristianBrown\Etsy\Serializer\CreateShopReadinessStateDefinitionRequestSerializer;
-use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileDestinationRequestSerializer;
-use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileRequestSerializer;
-use ChristianBrown\Etsy\Serializer\CreateShopShippingProfileUpgradeRequestSerializer;
-use ChristianBrown\Etsy\Serializer\ListingInventoryProductOfferingRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\ListingInventoryProductPropertyValueRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestSerializer;
-use ChristianBrown\Etsy\Serializer\ListingInventoryProductRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\ListingTranslationRequestSerializer;
-use ChristianBrown\Etsy\Serializer\ListingVariationImageRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\PersonalizationQuestionOptionRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestSerializer;
-use ChristianBrown\Etsy\Serializer\PersonalizationQuestionRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\ReceiptShipmentCustomsItemRequestsSerializer;
-use ChristianBrown\Etsy\Serializer\ShopReturnPolicyRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateListingInventoryRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateListingPersonalizationRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateListingPropertyRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateListingRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateShopReadinessStateDefinitionRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateShopReceiptRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileDestinationRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateShopShippingProfileUpgradeRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UpdateVariationImagesRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UploadListingFileRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UploadListingImageRequestSerializer;
-use ChristianBrown\Etsy\Serializer\UploadListingVideoRequestSerializer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertiesTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodePropertyTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodesTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyNodeTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScalesTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyScaleTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValuesTransformer;
-use ChristianBrown\Etsy\Transformer\BuyerTaxonomyPropertyValueTransformer;
-use ChristianBrown\Etsy\Transformer\ListingBuyerPriceTransformer;
-use ChristianBrown\Etsy\Transformer\ListingFilesTransformer;
-use ChristianBrown\Etsy\Transformer\ListingImagesTransformer;
-use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingsTransformer;
-use ChristianBrown\Etsy\Transformer\ListingInventoryProductOfferingTransformer;
-use ChristianBrown\Etsy\Transformer\ListingInventoryProductsTransformer;
-use ChristianBrown\Etsy\Transformer\ListingInventoryProductTransformer;
-use ChristianBrown\Etsy\Transformer\ListingInventoryTransformer;
-use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformer;
-use ChristianBrown\Etsy\Transformer\ListingPropertyValuesTransformer;
-use ChristianBrown\Etsy\Transformer\ListingsTransformer;
-use ChristianBrown\Etsy\Transformer\ListingsWithAssociationsTransformer;
-use ChristianBrown\Etsy\Transformer\ListingTransformer;
-use ChristianBrown\Etsy\Transformer\ListingVariationImagesTransformer;
-use ChristianBrown\Etsy\Transformer\ListingVideosTransformer;
-use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntriesTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAccountLedgerEntryTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemsTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAdjustmentItemTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAdjustmentsTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentAdjustmentTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentsTransformer;
-use ChristianBrown\Etsy\Transformer\PaymentTransformer;
-use ChristianBrown\Etsy\Transformer\PersonalizationQuestionOptionsTransformer;
-use ChristianBrown\Etsy\Transformer\PersonalizationQuestionsTransformer;
-use ChristianBrown\Etsy\Transformer\PersonalizationQuestionTransformer;
-use ChristianBrown\Etsy\Transformer\PingTransformer;
-use ChristianBrown\Etsy\Transformer\ReceiptPageTransformer;
-use ChristianBrown\Etsy\Transformer\ReceiptsTransformer;
-use ChristianBrown\Etsy\Transformer\ReceiptTransformer;
-use ChristianBrown\Etsy\Transformer\RefundsTransformer;
-use ChristianBrown\Etsy\Transformer\RefundTransformer;
-use ChristianBrown\Etsy\Transformer\ReviewsTransformer;
-use ChristianBrown\Etsy\Transformer\ReviewTransformer;
-use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodesTransformer;
-use ChristianBrown\Etsy\Transformer\SellerTaxonomyNodeTransformer;
-use ChristianBrown\Etsy\Transformer\ShipmentsTransformer;
-use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassesTransformer;
-use ChristianBrown\Etsy\Transformer\ShippingCarrierMailClassTransformer;
-use ChristianBrown\Etsy\Transformer\ShippingCarriersTransformer;
-use ChristianBrown\Etsy\Transformer\ShippingCarrierTransformer;
-use ChristianBrown\Etsy\Transformer\ShopHolidayPreferencesTransformer;
-use ChristianBrown\Etsy\Transformer\ShopHolidayPreferenceTransformer;
-use ChristianBrown\Etsy\Transformer\ShopProductionPartnersTransformer;
-use ChristianBrown\Etsy\Transformer\ShopProductionPartnerTransformer;
-use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionsTransformer;
-use ChristianBrown\Etsy\Transformer\ShopReadinessStateDefinitionTransformer;
-use ChristianBrown\Etsy\Transformer\ShopReturnPoliciesTransformer;
-use ChristianBrown\Etsy\Transformer\ShopReturnPolicyTransformer;
-use ChristianBrown\Etsy\Transformer\ShopSectionsTransformer;
-use ChristianBrown\Etsy\Transformer\ShopSectionTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationsTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfileDestinationTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfilesTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfileTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradesTransformer;
-use ChristianBrown\Etsy\Transformer\ShopShippingProfileUpgradeTransformer;
-use ChristianBrown\Etsy\Transformer\ShopsTransformer;
-use ChristianBrown\Etsy\Transformer\ShopTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertiesTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyNodePropertyTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScalesTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyPropertyScaleTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValuesTransformer;
-use ChristianBrown\Etsy\Transformer\TaxonomyPropertyValueTransformer;
-use ChristianBrown\Etsy\Transformer\TransactionsTransformer;
-use ChristianBrown\Etsy\Transformer\TransactionTransformer;
-use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
-use ChristianBrown\Etsy\Transformer\UserAddressesTransformer;
-use ChristianBrown\Etsy\Transformer\UserAddressTransformer;
-use ChristianBrown\Etsy\Transformer\UserTransformer;
-use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
-use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
+use ChristianBrown\Etsy\EtsyInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+
+use function array_key_exists;
+use function explode;
+use function str_replace;
+use function ucwords;
 
 #[CoversClass(Etsy::class)]
-#[CoversClass(ApiClientsRegistrar::class)]
-#[CoversClass(CoreServiceRegistrar::class)]
-#[UsesClass(ContainerFactory::class)]
-#[CoversClass(BuyerTaxonomyTransformersRegistrar::class)]
-#[CoversClass(LedgerTransformersRegistrar::class)]
-#[CoversClass(ListingInventoryTransformersRegistrar::class)]
-#[CoversClass(ListingMediaTransformersRegistrar::class)]
-#[CoversClass(ListingPersonalizationTransformersRegistrar::class)]
-#[CoversClass(ListingTransformersRegistrar::class)]
-#[CoversClass(ListingTranslationTransformersRegistrar::class)]
-#[CoversClass(ListingWithAssociationsTransformersRegistrar::class)]
-#[CoversClass(PaymentAdjustmentTransformersRegistrar::class)]
-#[CoversClass(PaymentTransformersRegistrar::class)]
-#[CoversClass(PingTransformersRegistrar::class)]
-#[CoversClass(ReceiptTransformersRegistrar::class)]
-#[CoversClass(RequestSerializersRegistrar::class)]
-#[CoversClass(ReviewTransformersRegistrar::class)]
-#[CoversClass(SellerTaxonomyTransformersRegistrar::class)]
-#[CoversClass(ShippingProfileTransformersRegistrar::class)]
-#[CoversClass(ShopConfigurationTransformersRegistrar::class)]
-#[CoversClass(ShopTransformersRegistrar::class)]
-#[CoversClass(UserAddressTransformersRegistrar::class)]
-#[CoversClass(UserTransformersRegistrar::class)]
-#[UsesClass(EtsyHost::class)]
-#[UsesClass(HostRewritingApiRequestSender::class)]
-#[UsesClass(HostRewritingJsonApiRequestSender::class)]
-#[UsesClass(BuyerTaxonomyApi::class)]
-#[UsesClass(SellerTaxonomyApi::class)]
-#[UsesClass(ListingFileApi::class)]
-#[UsesClass(ListingImageApi::class)]
-#[UsesClass(ListingInventoryApi::class)]
-#[UsesClass(ListingPersonalizationApi::class)]
-#[UsesClass(ListingPropertyApi::class)]
-#[UsesClass(ListingTranslationApi::class)]
-#[UsesClass(ListingVariationImageApi::class)]
-#[UsesClass(ListingVideoApi::class)]
-#[UsesClass(PingApi::class)]
-#[UsesClass(ReviewApi::class)]
-#[UsesClass(ShopApi::class)]
-#[UsesClass(ShopHolidayPreferenceApi::class)]
-#[UsesClass(ShopListingApi::class)]
-#[UsesClass(ShopProductionPartnerApi::class)]
-#[UsesClass(ShopReadinessStateDefinitionApi::class)]
-#[UsesClass(ShopReceiptApi::class)]
-#[UsesClass(ShopReceiptTransactionApi::class)]
-#[UsesClass(ShopReturnPolicyApi::class)]
-#[UsesClass(ShippingProfileApi::class)]
-#[UsesClass(ShopSectionApi::class)]
-#[UsesClass(PaymentApi::class)]
-#[UsesClass(LedgerEntryApi::class)]
-#[UsesClass(ListingBatchApi::class)]
-#[UsesClass(UserApi::class)]
-#[UsesClass(UserAddressApi::class)]
-#[UsesClass(Credentials::class)]
-#[UsesClass(CreateDraftListingRequestSerializer::class)]
-#[UsesClass(CreateReceiptShipmentRequestSerializer::class)]
-#[UsesClass(CreateShopReadinessStateDefinitionRequestSerializer::class)]
-#[UsesClass(CreateShopShippingProfileDestinationRequestSerializer::class)]
-#[UsesClass(CreateShopShippingProfileRequestSerializer::class)]
-#[UsesClass(CreateShopShippingProfileUpgradeRequestSerializer::class)]
-#[UsesClass(ListingInventoryProductOfferingRequestsSerializer::class)]
-#[UsesClass(ListingInventoryProductPropertyValueRequestsSerializer::class)]
-#[UsesClass(ListingInventoryProductRequestSerializer::class)]
-#[UsesClass(ListingInventoryProductRequestsSerializer::class)]
-#[UsesClass(ListingTranslationRequestSerializer::class)]
-#[UsesClass(ListingVariationImageRequestsSerializer::class)]
-#[UsesClass(PersonalizationQuestionOptionRequestsSerializer::class)]
-#[UsesClass(PersonalizationQuestionRequestSerializer::class)]
-#[UsesClass(PersonalizationQuestionRequestsSerializer::class)]
-#[UsesClass(ReceiptShipmentCustomsItemRequestsSerializer::class)]
-#[UsesClass(ShopReturnPolicyRequestSerializer::class)]
-#[UsesClass(UpdateListingInventoryRequestSerializer::class)]
-#[UsesClass(UpdateListingPersonalizationRequestSerializer::class)]
-#[UsesClass(UpdateListingPropertyRequestSerializer::class)]
-#[UsesClass(UpdateListingRequestSerializer::class)]
-#[UsesClass(UpdateShopReadinessStateDefinitionRequestSerializer::class)]
-#[UsesClass(UpdateShopReceiptRequestSerializer::class)]
-#[UsesClass(UpdateShopShippingProfileDestinationRequestSerializer::class)]
-#[UsesClass(UpdateShopShippingProfileRequestSerializer::class)]
-#[UsesClass(UpdateShopShippingProfileUpgradeRequestSerializer::class)]
-#[UsesClass(UpdateVariationImagesRequestSerializer::class)]
-#[UsesClass(UploadListingFileRequestSerializer::class)]
-#[UsesClass(UploadListingImageRequestSerializer::class)]
-#[UsesClass(UploadListingVideoRequestSerializer::class)]
-#[UsesClass(ListingBuyerPriceTransformer::class)]
-#[UsesClass(ListingFilesTransformer::class)]
-#[UsesClass(ListingImagesTransformer::class)]
-#[UsesClass(ListingInventoryProductOfferingTransformer::class)]
-#[UsesClass(ListingInventoryProductOfferingsTransformer::class)]
-#[UsesClass(ListingInventoryProductTransformer::class)]
-#[UsesClass(ListingInventoryProductsTransformer::class)]
-#[UsesClass(ListingInventoryTransformer::class)]
-#[UsesClass(ListingPersonalizationTransformer::class)]
-#[UsesClass(ListingPropertyValuesTransformer::class)]
-#[UsesClass(ListingTransformer::class)]
-#[UsesClass(ListingsTransformer::class)]
-#[UsesClass(ListingVariationImagesTransformer::class)]
-#[UsesClass(ListingVideosTransformer::class)]
-#[UsesClass(ListingWithAssociationsTransformer::class)]
-#[UsesClass(ListingsWithAssociationsTransformer::class)]
-#[UsesClass(PersonalizationQuestionOptionsTransformer::class)]
-#[UsesClass(PersonalizationQuestionsTransformer::class)]
-#[UsesClass(PersonalizationQuestionTransformer::class)]
-#[UsesClass(PingTransformer::class)]
-#[UsesClass(ReceiptPageTransformer::class)]
-#[UsesClass(ReceiptTransformer::class)]
-#[UsesClass(ReceiptsTransformer::class)]
-#[UsesClass(RefundTransformer::class)]
-#[UsesClass(RefundsTransformer::class)]
-#[UsesClass(ReviewTransformer::class)]
-#[UsesClass(ReviewsTransformer::class)]
-#[UsesClass(ShipmentsTransformer::class)]
-#[UsesClass(ShopTransformer::class)]
-#[UsesClass(ShopsTransformer::class)]
-#[UsesClass(ShopHolidayPreferenceTransformer::class)]
-#[UsesClass(ShopHolidayPreferencesTransformer::class)]
-#[UsesClass(ShopProductionPartnerTransformer::class)]
-#[UsesClass(ShopProductionPartnersTransformer::class)]
-#[UsesClass(ShopReadinessStateDefinitionTransformer::class)]
-#[UsesClass(ShopReadinessStateDefinitionsTransformer::class)]
-#[UsesClass(ShopReturnPolicyTransformer::class)]
-#[UsesClass(ShopReturnPoliciesTransformer::class)]
-#[UsesClass(ShopSectionTransformer::class)]
-#[UsesClass(ShopSectionsTransformer::class)]
-#[UsesClass(ShippingCarrierMailClassTransformer::class)]
-#[UsesClass(ShippingCarrierMailClassesTransformer::class)]
-#[UsesClass(ShippingCarrierTransformer::class)]
-#[UsesClass(ShippingCarriersTransformer::class)]
-#[UsesClass(ShopShippingProfileDestinationTransformer::class)]
-#[UsesClass(ShopShippingProfileDestinationsTransformer::class)]
-#[UsesClass(ShopShippingProfileUpgradeTransformer::class)]
-#[UsesClass(ShopShippingProfileUpgradesTransformer::class)]
-#[UsesClass(ShopShippingProfileTransformer::class)]
-#[UsesClass(ShopShippingProfilesTransformer::class)]
-#[UsesClass(TransactionTransformer::class)]
-#[UsesClass(TransactionsTransformer::class)]
-#[UsesClass(TransactionVariationsTransformer::class)]
-#[UsesClass(PaymentTransformer::class)]
-#[UsesClass(PaymentsTransformer::class)]
-#[UsesClass(PaymentAccountLedgerEntryTransformer::class)]
-#[UsesClass(PaymentAccountLedgerEntriesTransformer::class)]
-#[UsesClass(PaymentAdjustmentItemTransformer::class)]
-#[UsesClass(PaymentAdjustmentItemsTransformer::class)]
-#[UsesClass(PaymentAdjustmentTransformer::class)]
-#[UsesClass(PaymentAdjustmentsTransformer::class)]
-#[UsesClass(UserTransformer::class)]
-#[UsesClass(UserAddressTransformer::class)]
-#[UsesClass(UserAddressesTransformer::class)]
-#[UsesClass(SellerTaxonomyNodeTransformer::class)]
-#[UsesClass(SellerTaxonomyNodesTransformer::class)]
-#[UsesClass(TaxonomyNodePropertyTransformer::class)]
-#[UsesClass(TaxonomyNodePropertiesTransformer::class)]
-#[UsesClass(TaxonomyPropertyScaleTransformer::class)]
-#[UsesClass(TaxonomyPropertyScalesTransformer::class)]
-#[UsesClass(TaxonomyPropertyValueTransformer::class)]
-#[UsesClass(TaxonomyPropertyValuesTransformer::class)]
-#[UsesClass(BuyerTaxonomyNodeTransformer::class)]
-#[UsesClass(BuyerTaxonomyNodesTransformer::class)]
-#[UsesClass(BuyerTaxonomyNodePropertyTransformer::class)]
-#[UsesClass(BuyerTaxonomyNodePropertiesTransformer::class)]
-#[UsesClass(BuyerTaxonomyPropertyScaleTransformer::class)]
-#[UsesClass(BuyerTaxonomyPropertyScalesTransformer::class)]
-#[UsesClass(BuyerTaxonomyPropertyValueTransformer::class)]
-#[UsesClass(BuyerTaxonomyPropertyValuesTransformer::class)]
 final class EtsyTest extends TestCase
 {
     public function testGetBuyerTaxonomyApi(): void
@@ -693,14 +369,36 @@ final class EtsyTest extends TestCase
         self::assertSame($etsy->getUserApi(), $etsy->getUserApi());
     }
 
-    private function buildEtsy(): Etsy
+    private function buildEtsy(): EtsyInterface
     {
-        return new Etsy(
-            42,
-            'test-keystring',
-            'test-shared-secret',
-            self::createStub(TtlAwareKeyValueStoreInterface::class),
-            self::createStub(KeyValueStoreInterface::class),
+        $services = [];
+        $container = self::createStub(ContainerInterface::class);
+        $container->method('get')->willReturnCallback(
+            function (string $id) use (&$services): object {
+                if (!array_key_exists($id, $services)) {
+                    $services[$id] = $this->createStub(self::interfaceFor($id));
+                }
+
+                return $services[$id];
+            }
         );
+
+        return new Etsy($container);
+    }
+
+    /**
+     * @return class-string
+     */
+    private static function interfaceFor(string $serviceId): string
+    {
+        $parts = explode('.', $serviceId);
+        $name = str_replace(' ', '', ucwords(str_replace('_', ' ', $parts[2]))).'Interface';
+
+        /**
+         * @var class-string $class
+         */
+        $class = 'ChristianBrown\Etsy\Api\\'.$name;
+
+        return $class;
     }
 }

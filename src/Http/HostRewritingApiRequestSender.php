@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Http;
 
 use ChristianBrown\ApiClient\ApiRequestSenderInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartPartInterface;
 use ChristianBrown\Etsy\Host\EtsyHostInterface;
 
 use function str_replace;
@@ -67,6 +68,17 @@ final class HostRewritingApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     */
+    public function patchMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->requestSender->patchMultipart($this->rewrite($requestUrl), $requestQueryStrings, $requestHeaders, $requestBodyParts);
+    }
+
+    /**
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
      * @param array<string, string> $requestHeaders
@@ -88,6 +100,17 @@ final class HostRewritingApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     */
+    public function postMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->requestSender->postMultipart($this->rewrite($requestUrl), $requestQueryStrings, $requestHeaders, $requestBodyParts);
+    }
+
+    /**
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
      * @param array<string, string> $requestHeaders
@@ -106,6 +129,17 @@ final class HostRewritingApiRequestSender implements ApiRequestSenderInterface
     public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string
     {
         return $this->requestSender->putForm($this->rewrite($requestUrl), $requestQueryStrings, $requestHeaders, $requestBodyFormData);
+    }
+
+    /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     */
+    public function putMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->requestSender->putMultipart($this->rewrite($requestUrl), $requestQueryStrings, $requestHeaders, $requestBodyParts);
     }
 
     private function rewrite(string $requestUrl): string

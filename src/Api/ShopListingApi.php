@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\ReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -28,7 +28,7 @@ final class ShopListingApi implements ShopListingApiInterface
 {
     private ResponseCacheInterface $activeByShopCache;
     private ResponseCacheInterface $activeCache;
-    private ApiRequestSenderInterface $apiRequestSender;
+    private ReadApiRequestSenderInterface $apiRequestSender;
     private ResponseCacheInterface $byIdCache;
     private ResponseCacheInterface $byListingIdsCache;
     private ResponseCacheInterface $byReceiptCache;
@@ -44,7 +44,7 @@ final class ShopListingApi implements ShopListingApiInterface
     private int $shopId;
     private UpdateListingRequestSerializerInterface $updateListingRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer, UpdateListingRequestSerializerInterface $updateListingRequestSerializer, ResponseCacheInterface $activeByShopCache, ResponseCacheInterface $activeCache, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingIdsCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byReturnPolicyCache, ResponseCacheInterface $byShopCache, ResponseCacheInterface $byShopSectionIdsCache, ResponseCacheInterface $featuredByShopCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReadApiRequestSenderInterface $apiRequestSender, ListingTransformerInterface $listingTransformer, ListingsTransformerInterface $listingsTransformer, CreateDraftListingRequestSerializerInterface $createDraftListingRequestSerializer, UpdateListingRequestSerializerInterface $updateListingRequestSerializer, ResponseCacheInterface $activeByShopCache, ResponseCacheInterface $activeCache, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingIdsCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byReturnPolicyCache, ResponseCacheInterface $byShopCache, ResponseCacheInterface $byShopSectionIdsCache, ResponseCacheInterface $featuredByShopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;

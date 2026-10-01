@@ -6,6 +6,36 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-01
+
+### Added
+
+- `EtsyFactory` (and `EtsyFactoryInterface`), the one place that builds the default object graph.
+  `(new EtsyFactory())->create($shopId, $key, $sharedSecret, $accessTokenStore, $refreshTokenStore)` returns
+  an `EtsyInterface`; `createForHost()` takes the same arguments plus an `EtsyHostInterface` to point at a
+  different host.
+- `HostRewritingApiRequestSender` and `HostRewritingJsonApiRequestSender` now implement the `patchMultipart`,
+  `postMultipart` and `putMultipart` methods of api-client 3 and rewrite the host on them too.
+- `ListingWithAssociationsFieldsTransformerInterface` and eleven small field transformers that
+  `ListingWithAssociationsTransformer` now composes, one per group of related listing fields.
+
+### Changed
+
+- `Etsy` no longer builds anything. Its constructor takes a single `Psr\Container\ContainerInterface`
+  holding the services. Use `EtsyFactory` to get a ready-made instance.
+- `ListingWithAssociationsTransformer` takes an array of `ListingWithAssociationsFieldsTransformerInterface`
+  instead of eleven transformers. Its output is unchanged.
+- Moves to christianjbrown/api-client ^3.0, christianjbrown/oauth2-client ^2.1 and christianjbrown/key-value-store
+  ^3.0, and requires symfony/clock ^8.0. Consumers now get those majors. The key-value stores need a PSR-20
+  clock (`new MemoryKeyValueStore(new NativeClock())`), and the in-memory store now enforces TTLs.
+- The resource clients type their senders as narrowly as they can: clients that only read take
+  `JsonReadApiRequestSenderInterface` and `ReadApiRequestSenderInterface`. The combined interfaces still satisfy them.
+
+### Removed
+
+- `EtsyInterface::SERVICE_ACCESS_TOKEN_TRANSFORMER`. The token transformer is now built inside oauth2-client's
+  `RefreshTokenManagerFactory`.
+
 ## [1.1.1] - 2026-09-30
 
 ### Changed
@@ -58,7 +88,8 @@ First stable release.
 - In-memory response caching in the API clients.
 - A single exception hierarchy, so callers do not depend on the underlying HTTP client.
 
-[Unreleased]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/releases/tag/v1.0.0

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\ReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -21,7 +21,7 @@ use function sprintf;
 
 final class ListingPropertyApi implements ListingPropertyApiInterface
 {
-    private ApiRequestSenderInterface $apiRequestSender;
+    private ReadApiRequestSenderInterface $apiRequestSender;
     private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
     private ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer;
@@ -31,7 +31,7 @@ final class ListingPropertyApi implements ListingPropertyApiInterface
     private int $shopId;
     private UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReadApiRequestSenderInterface $apiRequestSender, ListingPropertyValueTransformerInterface $listingPropertyValueTransformer, ListingPropertyValuesTransformerInterface $listingPropertyValuesTransformer, UpdateListingPropertyRequestSerializerInterface $updateListingPropertyRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;

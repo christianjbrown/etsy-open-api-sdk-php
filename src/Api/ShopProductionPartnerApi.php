@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -19,11 +19,11 @@ final class ShopProductionPartnerApi implements ShopProductionPartnerApiInterfac
 {
     private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private int $shopId;
     private ShopProductionPartnersTransformerInterface $shopProductionPartnersTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ShopProductionPartnersTransformerInterface $shopProductionPartnersTransformer, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, ShopProductionPartnersTransformerInterface $shopProductionPartnersTransformer, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->shopProductionPartnersTransformer = $shopProductionPartnersTransformer;
