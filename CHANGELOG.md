@@ -6,6 +6,8 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-01
+
 ### Added
 
 - `EtsyFactory` (and `EtsyFactoryInterface`), the one place that builds the default object graph.
@@ -86,7 +88,8 @@ First stable release.
 - In-memory response caching in the API clients.
 - A single exception hierarchy, so callers do not depend on the underlying HTTP client.
 
-[Unreleased]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/christianjbrown/etsy-open-api-sdk-php/releases/tag/v1.0.0
