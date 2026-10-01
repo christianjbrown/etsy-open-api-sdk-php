@@ -117,7 +117,7 @@ composer require christianjbrown/etsy-open-api-sdk
 
 Etsy's Open API v3 authenticates every request with two pieces: your app's **keystring** (sent as the `x-api-key` header) and an **OAuth 2.0 access token** (sent as `Authorization: Bearer …`). Access tokens are short-lived, so this client refreshes them for you using a long-lived **refresh token** and the OAuth2 `refresh_token` grant.
 
-You supply four things to the `Etsy` entry point:
+You supply four things to `EtsyFactory::create()`:
 
 - your numeric **shop id**,
 - your app **keystring** (which Etsy also uses as the OAuth `client_id`),
@@ -125,7 +125,7 @@ You supply four things to the `Etsy` entry point:
 - a **`KeyValueStoreInterface`** holding your refresh token. This one must **persist** (a database, secret store, etc.), because Etsy rotates the refresh token on every refresh and the client writes the new value back. Seed it once with a refresh token obtained from Etsy's [OAuth authorization flow](https://developers.etsy.com/documentation/essentials/authentication).
 
 ```php
-use ChristianBrown\Etsy\Etsy;
+use ChristianBrown\Etsy\EtsyFactory;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
 
 // Access token: transient, an in-memory store is fine.
@@ -136,7 +136,7 @@ $accessTokenStore = new MemoryKeyValueStore();
 $refreshTokenStore = new MemoryKeyValueStore();
 $refreshTokenStore->setValue('your-seed-refresh-token');
 
-$etsy = new Etsy(
+$etsy = (new EtsyFactory())->create(
     12345678,                 // your shop id
     'your-app-keystring',     // OAuth client_id, and the first half of x-api-key
     'your-app-shared-secret', // the second half of x-api-key
@@ -216,7 +216,7 @@ See "Supported write endpoints" above for the full list of write calls and their
 
 ### Pointing at a different host
 
-`Etsy` takes an optional sixth constructor argument, an `EtsyHostInterface`, which defaults to
+`EtsyFactory::create()` takes an optional sixth argument, an `EtsyHostInterface`, which defaults to
 Etsy's production hosts. Pass a differently configured `EtsyHost` to point every request, and the
 OAuth token refresh, somewhere else — a test double, a proxy, or a sandbox once Etsy publishes one:
 
@@ -228,13 +228,30 @@ $host = new EtsyHost(
     oAuthTokenUrl: 'https://api.etsy.com/v3/public/oauth/token',     // default OAuth2 token endpoint
 );
 
-$etsy = new Etsy(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+$etsy = (new EtsyFactory())->create(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
 ```
 
 Etsy's Open API v3 has no published sandbox at the time of writing (unlike, say, eBay's
 `api.sandbox.ebay.com`/`apiz.sandbox.ebay.com`), so the only two hosts this library knows about are
 the production ones above. `EtsyHost` exists so a test double or a future sandbox host can be
 swapped in without editing any `Api/` class.
+
+### Upgrading to 2.0
+
+`Etsy` no longer builds its own services, so it is no longer constructed with the shop id, keys and
+stores. Build it with `EtsyFactory` instead:
+
+```php
+// Before
+$etsy = new Etsy(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+
+// After
+$etsy = (new EtsyFactory())->create(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+```
+
+`new Etsy($container)` now takes a PSR-11 container and is meant for code that wires its own graph.
+If you construct `ListingWithAssociationsTransformer` yourself, it now takes an array of
+`ListingWithAssociationsFieldsTransformerInterface` implementations.
 
 ## :rotating_light: Error handling
 

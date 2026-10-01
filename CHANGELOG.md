@@ -6,6 +6,21 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `EtsyFactory` (and `EtsyFactoryInterface`), the one place that builds the default object graph.
+  `(new EtsyFactory())->create($shopId, $key, $sharedSecret, $accessTokenStore, $refreshTokenStore)` returns
+  an `EtsyInterface`; pass an `EtsyHostInterface` as the last argument to point at a different host.
+- `ListingWithAssociationsFieldsTransformerInterface` and eleven small field transformers that
+  `ListingWithAssociationsTransformer` now composes, one per group of related listing fields.
+
+### Changed
+
+- `Etsy` no longer builds anything. Its constructor takes a single `Psr\Container\ContainerInterface`
+  holding the services. Use `EtsyFactory` to get a ready-made instance.
+- `ListingWithAssociationsTransformer` takes an array of `ListingWithAssociationsFieldsTransformerInterface`
+  instead of eleven transformers. Its output is unchanged.
+
 ## [1.1.1] - 2026-09-30
 
 ### Changed
