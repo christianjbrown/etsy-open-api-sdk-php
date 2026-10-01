@@ -77,6 +77,17 @@ interface EtsyInterface extends EtsyListingsAwareInterface, EtsyPaymentsAwareInt
     public const string SERVICE_LISTING_VIDEO_API = 'etsy.api.listing_video_api';
     public const string SERVICE_LISTING_VIDEO_TRANSFORMER = 'etsy.transformer.listing_video_transformer';
     public const string SERVICE_LISTING_VIDEOS_TRANSFORMER = 'etsy.transformer.listing_videos_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_CATALOG_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_catalog_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_DIMENSIONS_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_dimensions_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_ECGT_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_ecgt_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_FLAGS_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_flags_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_IDENTIFIERS_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_identifiers_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_LISTS_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_lists_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_MEDIA_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_media_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_PRICE_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_price_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_SELLER_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_seller_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_TEXT_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_text_fields_transformer';
+    public const string SERVICE_LISTING_WITH_ASSOCIATIONS_TIMESTAMPS_FIELDS_TRANSFORMER = 'etsy.transformer.listing_with_associations_timestamps_fields_transformer';
     public const string SERVICE_LISTING_WITH_ASSOCIATIONS_TRANSFORMER = 'etsy.transformer.listing_with_associations_transformer';
     public const string SERVICE_LISTINGS_TRANSFORMER = 'etsy.transformer.listings_transformer';
     public const string SERVICE_LISTINGS_WITH_ASSOCIATIONS_TRANSFORMER = 'etsy.transformer.listings_with_associations_transformer';

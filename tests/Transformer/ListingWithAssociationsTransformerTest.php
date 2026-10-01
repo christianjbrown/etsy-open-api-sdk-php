@@ -24,6 +24,17 @@ use ChristianBrown\Etsy\Transformer\ListingInventoryTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingPersonalizationTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingTranslationTransformerInterface;
 use ChristianBrown\Etsy\Transformer\ListingVideosTransformerInterface;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsCatalogFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsDimensionsFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsEcgtFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsFlagsFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsIdentifiersFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsListsFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsMediaFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsPriceFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsSellerFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTextFieldsTransformer;
+use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTimestampsFieldsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTransformer;
 use ChristianBrown\Etsy\Transformer\ListingWithAssociationsTransformerInterface;
 use ChristianBrown\Etsy\Transformer\MoneyTransformerInterface;
@@ -41,6 +52,17 @@ use function array_keys;
 use function sprintf;
 
 #[CoversClass(ListingWithAssociations::class)]
+#[CoversClass(ListingWithAssociationsCatalogFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsDimensionsFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsEcgtFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsFlagsFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsIdentifiersFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsListsFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsMediaFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsPriceFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsSellerFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsTextFieldsTransformer::class)]
+#[CoversClass(ListingWithAssociationsTimestampsFieldsTransformer::class)]
 #[CoversClass(ListingWithAssociationsTransformer::class)]
 final class ListingWithAssociationsTransformerTest extends TestCase
 {
@@ -213,7 +235,7 @@ final class ListingWithAssociationsTransformerTest extends TestCase
             ->with($videosData)
             ->willReturn($videos);
 
-        $transformer = new ListingWithAssociationsTransformer(
+        $transformer = self::buildTransformer(
             $listingBuyerPriceTransformer,
             $listingImagesTransformer,
             $listingInventoryTransformer,
@@ -303,6 +325,13 @@ final class ListingWithAssociationsTransformerTest extends TestCase
         self::assertSame(1024, $actual->getViews());
     }
 
+    public function testTransformAppliesASingleFieldsTransformer(): void
+    {
+        $actual = (new ListingWithAssociationsTransformer([new ListingWithAssociationsTextFieldsTransformer()]))->transform([ListingWithAssociationsTransformerInterface::KEY_LISTING_ID => 7, ListingWithAssociationsTransformerInterface::KEY_TITLE => 'a title']);
+
+        self::assertSame('a title', $actual->getTitle());
+    }
+
     /**
      * @param array<string, mixed>                            $data
      * @param Closure(ListingWithAssociationsInterface): void $assert
@@ -310,7 +339,7 @@ final class ListingWithAssociationsTransformerTest extends TestCase
     #[DataProvider('provideTransformOptionalFieldStatesCases')]
     public function testTransformOptionalFieldStates(array $data, Closure $assert): void
     {
-        $transformer = new ListingWithAssociationsTransformer(
+        $transformer = self::buildTransformer(
             self::createStub(ListingBuyerPriceTransformerInterface::class),
             self::createStub(ListingImagesTransformerInterface::class),
             self::createStub(ListingInventoryTransformerInterface::class),
@@ -698,7 +727,7 @@ final class ListingWithAssociationsTransformerTest extends TestCase
     #[TestWith([[ListingWithAssociationsTransformerInterface::KEY_LISTING_ID => 'not-int']])]
     public function testTransformThrowsOnInvalidListingId(array $data): void
     {
-        $transformer = new ListingWithAssociationsTransformer(
+        $transformer = self::buildTransformer(
             self::createStub(ListingBuyerPriceTransformerInterface::class),
             self::createStub(ListingImagesTransformerInterface::class),
             self::createStub(ListingInventoryTransformerInterface::class),
@@ -716,5 +745,43 @@ final class ListingWithAssociationsTransformerTest extends TestCase
         $this->expectExceptionMessage(sprintf(ListingWithAssociationsTransformerInterface::UNEXPECTED_INTEGER_SPRINTF, ListingWithAssociationsTransformerInterface::KEY_LISTING_ID));
 
         $transformer->transform($data);
+    }
+
+    public function testTransformWithoutFieldsTransformersOnlyReadsTheListingId(): void
+    {
+        $actual = (new ListingWithAssociationsTransformer([]))->transform([ListingWithAssociationsTransformerInterface::KEY_LISTING_ID => 7, ListingWithAssociationsTransformerInterface::KEY_TITLE => 'ignored']);
+
+        self::assertSame(7, $actual->getListingId());
+        self::assertNull($actual->getTitle());
+    }
+
+    private static function buildTransformer(
+        ListingBuyerPriceTransformerInterface $listingBuyerPriceTransformer,
+        ListingImagesTransformerInterface $listingImagesTransformer,
+        ListingInventoryTransformerInterface $listingInventoryTransformer,
+        ListingPersonalizationTransformerInterface $listingPersonalizationTransformer,
+        ListingTranslationTransformerInterface $listingTranslationTransformer,
+        ListingVideosTransformerInterface $listingVideosTransformer,
+        MoneyTransformerInterface $moneyTransformer,
+        ShopProductionPartnersTransformerInterface $shopProductionPartnersTransformer,
+        ShopShippingProfileTransformerInterface $shopShippingProfileTransformer,
+        ShopTransformerInterface $shopTransformer,
+        UserTransformerInterface $userTransformer,
+    ): ListingWithAssociationsTransformer {
+        return new ListingWithAssociationsTransformer(
+            [
+                new ListingWithAssociationsTimestampsFieldsTransformer(),
+                new ListingWithAssociationsFlagsFieldsTransformer(),
+                new ListingWithAssociationsTextFieldsTransformer(),
+                new ListingWithAssociationsDimensionsFieldsTransformer(),
+                new ListingWithAssociationsEcgtFieldsTransformer(),
+                new ListingWithAssociationsListsFieldsTransformer(),
+                new ListingWithAssociationsIdentifiersFieldsTransformer(),
+                new ListingWithAssociationsPriceFieldsTransformer($listingBuyerPriceTransformer, $moneyTransformer),
+                new ListingWithAssociationsMediaFieldsTransformer($listingImagesTransformer, $listingVideosTransformer),
+                new ListingWithAssociationsCatalogFieldsTransformer($listingInventoryTransformer, $listingPersonalizationTransformer, $listingTranslationTransformer),
+                new ListingWithAssociationsSellerFieldsTransformer($shopProductionPartnersTransformer, $shopShippingProfileTransformer, $shopTransformer, $userTransformer),
+            ]
+        );
     }
 }
