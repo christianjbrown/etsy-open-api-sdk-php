@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\ReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -24,7 +24,7 @@ use function sprintf;
 
 final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinitionApiInterface
 {
-    private ApiRequestSenderInterface $apiRequestSender;
+    private ReadApiRequestSenderInterface $apiRequestSender;
     private ResponseCacheInterface $cache;
     private CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer;
     private CredentialsInterface $credentials;
@@ -35,7 +35,7 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
     private ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer;
     private UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer, ShopReadinessStateDefinitionsTransformerInterface $shopReadinessStateDefinitionsTransformer, CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer, UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer, ResponseCacheInterface $definitionCache, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonApiRequestSenderInterface $requestSender, ReadApiRequestSenderInterface $apiRequestSender, ShopReadinessStateDefinitionTransformerInterface $shopReadinessStateDefinitionTransformer, ShopReadinessStateDefinitionsTransformerInterface $shopReadinessStateDefinitionsTransformer, CreateShopReadinessStateDefinitionRequestSerializerInterface $createShopReadinessStateDefinitionRequestSerializer, UpdateShopReadinessStateDefinitionRequestSerializerInterface $updateShopReadinessStateDefinitionRequestSerializer, ResponseCacheInterface $definitionCache, ResponseCacheInterface $cache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;
@@ -162,6 +162,11 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
         return $shopReadinessStateDefinition;
     }
 
+    private static function buildPaginationCacheKey(?int $limit, ?int $offset): string
+    {
+        return sprintf('all:%s:%s', $limit ?? '', $offset ?? '');
+    }
+
     /**
      * @return array<string, string>
      */
@@ -188,10 +193,5 @@ final class ShopReadinessStateDefinitionApi implements ShopReadinessStateDefinit
         }
 
         return (string) $value;
-    }
-
-    private static function buildPaginationCacheKey(?int $limit, ?int $offset): string
-    {
-        return sprintf('all:%s:%s', $limit ?? '', $offset ?? '');
     }
 }

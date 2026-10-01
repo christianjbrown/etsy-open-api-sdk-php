@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -24,9 +24,9 @@ final class BuyerTaxonomyApi implements BuyerTaxonomyApiInterface
     private CredentialsInterface $credentials;
     private ResponseCacheInterface $nodesCache;
     private ResponseCacheInterface $propertiesCache;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, BuyerTaxonomyNodesTransformerInterface $buyerTaxonomyNodesTransformer, BuyerTaxonomyNodePropertiesTransformerInterface $buyerTaxonomyNodePropertiesTransformer, ResponseCacheInterface $propertiesCache, ResponseCacheInterface $nodesCache, CredentialsInterface $credentials)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, BuyerTaxonomyNodesTransformerInterface $buyerTaxonomyNodesTransformer, BuyerTaxonomyNodePropertiesTransformerInterface $buyerTaxonomyNodePropertiesTransformer, ResponseCacheInterface $propertiesCache, ResponseCacheInterface $nodesCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->buyerTaxonomyNodesTransformer = $buyerTaxonomyNodesTransformer;

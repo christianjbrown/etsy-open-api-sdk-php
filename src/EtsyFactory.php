@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy;
 
+use ChristianBrown\ApiClient\ApiClientFactory;
+use ChristianBrown\ApiClient\ClientOptions;
 use ChristianBrown\Etsy\DependencyInjection\ContainerFactory;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\ApiClientsRegistrar;
 use ChristianBrown\Etsy\DependencyInjection\Registrar\BuyerTaxonomyTransformersRegistrar;
@@ -31,17 +33,31 @@ use ChristianBrown\Etsy\Host\EtsyHost;
 use ChristianBrown\Etsy\Host\EtsyHostInterface;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
+use ChristianBrown\OAuth2Client\Authentication\PublicClientAuthentication;
+use ChristianBrown\OAuth2Client\Lock\NullLock;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerFactory;
+use Symfony\Component\Clock\NativeClock;
 
 /**
  * The composition root: the one place that builds the registrars, the container and the facade.
+ * Etsy refreshes with a public client (the keystring is the client id) and takes no lock, so
+ * token refreshes are not serialised across processes.
  */
 final class EtsyFactory implements EtsyFactoryInterface
 {
-    public function create(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host = new EtsyHost()): EtsyInterface
+    public function create(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore): EtsyInterface
     {
+        return $this->createForHost($shopId, $key, $sharedSecret, $accessTokenStore, $refreshTokenStore, new EtsyHost());
+    }
+
+    public function createForHost(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host): EtsyInterface
+    {
+        $apiClient = (new ApiClientFactory(new ClientOptions()))->create();
+        $refreshTokenManagerFactory = new RefreshTokenManagerFactory(new NativeClock());
+
         $containerFactory = new ContainerFactory(
             [
-                new CoreServiceRegistrar($key, $sharedSecret, $accessTokenStore, $refreshTokenStore, $host),
+                new CoreServiceRegistrar($key, $sharedSecret, $apiClient, $refreshTokenManagerFactory, new PublicClientAuthentication(), $accessTokenStore, $refreshTokenStore, new NullLock(), $host),
                 new RequestSerializersRegistrar(),
                 new ReceiptTransformersRegistrar(),
                 new ListingTransformersRegistrar(),

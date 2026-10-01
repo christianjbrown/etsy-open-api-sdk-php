@@ -6,7 +6,7 @@ namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
@@ -33,11 +33,11 @@ final class ListingVideoApi implements ListingVideoApiInterface
     private ListingVideoTransformerInterface $listingVideoTransformer;
     private MultipartFormDataBuilderInterface $multipartFormDataBuilder;
     private ResponseCacheInterface $oneCache;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private int $shopId;
     private UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingVideoTransformerInterface $listingVideoTransformer, ListingVideosTransformerInterface $listingVideosTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, ListingVideoTransformerInterface $listingVideoTransformer, ListingVideosTransformerInterface $listingVideosTransformer, MultipartFormDataBuilderInterface $multipartFormDataBuilder, JsonToArrayTransformerInterface $jsonToArrayTransformer, UploadListingVideoRequestSerializerInterface $uploadListingVideoRequestSerializer, ResponseCacheInterface $cache, ResponseCacheInterface $oneCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;

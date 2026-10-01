@@ -64,11 +64,14 @@ Layers under `src/`, mirrored 1:1 under `tests/`, plus the top-level `Etsy` faca
   `/** @var XApiInterface $service */` docblock, then return it.
 - **`EtsyFactory`** (`src/EtsyFactory.php`, behind `EtsyFactoryInterface`) - the composition root.
   `create(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore,
-  KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host = new EtsyHost())` builds the list of
+  KeyValueStoreInterface $refreshTokenStore)` uses the production `EtsyHost`; `createForHost(..., EtsyHostInterface $host)`
+  takes a custom one. Both build the api-client (`ApiClientFactory`), a `RefreshTokenManagerFactory` over a
+  `NativeClock`, a `PublicClientAuthentication` (Etsy's token endpoint takes only the client id) and a `NullLock`
+  (Etsy takes no lock), then build the list of
   `ServiceRegistrarInterface` registrars in dependency order (the access token store must be TTL-aware
   because that is what `RefreshTokenManager` takes), hands them to a `ContainerFactory` and returns an
   `Etsy` over the resulting container. It is the only place allowed to `new` a registrar or a default
-  `EtsyHost`; everywhere else takes its collaborators through the constructor.
+  `EtsyHost`, clock, lock and client; everywhere else takes its collaborators through the constructor.
 - **`DependencyInjection/`** — `ServiceRegistrarInterface` (`register(ContainerBuilder $container): void`)
   and `ContainerFactory` (`create(): ContainerBuilder`, runs every registrar it was given, in order,
   against one container). `DependencyInjection/Registrar/` holds one registrar per resource group or

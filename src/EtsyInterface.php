@@ -17,7 +17,6 @@ use ChristianBrown\Etsy\Role\EtsyUsersAwareInterface;
 interface EtsyInterface extends EtsyListingsAwareInterface, EtsyPaymentsAwareInterface, EtsyPingAwareInterface, EtsyReceiptsAwareInterface, EtsyReviewsAwareInterface, EtsyShippingAwareInterface, EtsyShopAwareInterface, EtsyTaxonomyAwareInterface, EtsyUsersAwareInterface
 {
     public const string OAUTH_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token';
-    public const string SERVICE_ACCESS_TOKEN_TRANSFORMER = 'etsy.oauth.access_token_transformer';
     public const string SERVICE_API_CLIENT = 'etsy.api_client';
     public const string SERVICE_API_REQUEST_SENDER = 'etsy.api_request_sender';
     public const string SERVICE_BUYER_TAXONOMY_API = 'etsy.api.buyer_taxonomy_api';

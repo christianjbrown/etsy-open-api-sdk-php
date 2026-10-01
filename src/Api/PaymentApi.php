@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -23,10 +23,10 @@ final class PaymentApi implements PaymentApiInterface
     private ResponseCacheInterface $byReceiptCache;
     private CredentialsInterface $credentials;
     private PaymentsTransformerInterface $paymentsTransformer;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, PaymentsTransformerInterface $paymentsTransformer, ResponseCacheInterface $byLedgerEntryIdsCache, ResponseCacheInterface $byPaymentIdsCache, ResponseCacheInterface $byReceiptCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, PaymentsTransformerInterface $paymentsTransformer, ResponseCacheInterface $byLedgerEntryIdsCache, ResponseCacheInterface $byPaymentIdsCache, ResponseCacheInterface $byReceiptCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->paymentsTransformer = $paymentsTransformer;

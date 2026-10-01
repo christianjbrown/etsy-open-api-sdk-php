@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -24,12 +24,12 @@ final class ShopReceiptTransactionApi implements ShopReceiptTransactionApiInterf
     private ResponseCacheInterface $byReceiptCache;
     private ResponseCacheInterface $byShopCache;
     private CredentialsInterface $credentials;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private int $shopId;
     private TransactionsTransformerInterface $transactionsTransformer;
     private TransactionTransformerInterface $transactionTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, TransactionTransformerInterface $transactionTransformer, TransactionsTransformerInterface $transactionsTransformer, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byShopCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, TransactionTransformerInterface $transactionTransformer, TransactionsTransformerInterface $transactionsTransformer, ResponseCacheInterface $byIdCache, ResponseCacheInterface $byListingCache, ResponseCacheInterface $byReceiptCache, ResponseCacheInterface $byShopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->transactionTransformer = $transactionTransformer;

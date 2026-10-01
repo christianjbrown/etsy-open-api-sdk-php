@@ -10,5 +10,7 @@ use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
 
 interface EtsyFactoryInterface
 {
-    public function create(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host): EtsyInterface;
+    public function create(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore): EtsyInterface;
+
+    public function createForHost(int $shopId, string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host): EtsyInterface;
 }

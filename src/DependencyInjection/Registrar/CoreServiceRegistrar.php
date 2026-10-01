@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\DependencyInjection\Registrar;
 
-use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiClientInterface;
 use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformer;
@@ -18,8 +18,10 @@ use ChristianBrown\Etsy\Http\HostRewritingJsonApiRequestSender;
 use ChristianBrown\Etsy\Http\MultipartFormDataBuilder;
 use ChristianBrown\KeyValueStore\KeyValueStoreInterface;
 use ChristianBrown\KeyValueStore\TtlAwareKeyValueStoreInterface;
-use ChristianBrown\OAuth2Client\RefreshTokenManager;
-use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
+use ChristianBrown\OAuth2Client\Authentication\ClientAuthenticationInterface;
+use ChristianBrown\OAuth2Client\Lock\LockInterface;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerFactoryInterface;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -33,23 +35,31 @@ final class CoreServiceRegistrar implements ServiceRegistrarInterface
     private const string SERVICE_API_REQUEST_SENDER_INNER = 'etsy.api_request_sender.inner';
     private const string SERVICE_JSON_API_REQUEST_SENDER_INNER = 'etsy.json_api_request_sender.inner';
     private TtlAwareKeyValueStoreInterface $accessTokenStore;
+    private ApiClientInterface $apiClient;
+    private ClientAuthenticationInterface $clientAuthentication;
     private EtsyHostInterface $host;
     private string $key;
+    private LockInterface $lock;
+    private RefreshTokenManagerFactoryInterface $refreshTokenManagerFactory;
     private KeyValueStoreInterface $refreshTokenStore;
     private string $sharedSecret;
 
-    public function __construct(string $key, string $sharedSecret, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, EtsyHostInterface $host)
+    public function __construct(string $key, string $sharedSecret, ApiClientInterface $apiClient, RefreshTokenManagerFactoryInterface $refreshTokenManagerFactory, ClientAuthenticationInterface $clientAuthentication, TtlAwareKeyValueStoreInterface $accessTokenStore, KeyValueStoreInterface $refreshTokenStore, LockInterface $lock, EtsyHostInterface $host)
     {
         $this->key = $key;
         $this->sharedSecret = $sharedSecret;
+        $this->apiClient = $apiClient;
+        $this->refreshTokenManagerFactory = $refreshTokenManagerFactory;
+        $this->clientAuthentication = $clientAuthentication;
         $this->accessTokenStore = $accessTokenStore;
         $this->refreshTokenStore = $refreshTokenStore;
+        $this->lock = $lock;
         $this->host = $host;
     }
 
     public function register(ContainerBuilder $container): void
     {
-        $container->register(EtsyInterface::SERVICE_API_CLIENT, ApiClient::class);
+        $container->set(EtsyInterface::SERVICE_API_CLIENT, $this->apiClient);
         $container->register(self::SERVICE_JSON_API_REQUEST_SENDER_INNER, JsonApiRequestSenderInterface::class)
             ->setFactory([new Reference(EtsyInterface::SERVICE_API_CLIENT), 'getJsonApiRequestSender']);
         $container->register(self::SERVICE_API_REQUEST_SENDER_INNER, ApiRequestSenderInterface::class)
@@ -74,16 +84,16 @@ final class CoreServiceRegistrar implements ServiceRegistrarInterface
         $container->register(EtsyInterface::SERVICE_FORM_VALUE_ENCODER, FormValueEncoder::class);
         $container->register(EtsyInterface::SERVICE_MULTIPART_FORM_DATA_BUILDER, MultipartFormDataBuilder::class);
 
-        $container->register(EtsyInterface::SERVICE_ACCESS_TOKEN_TRANSFORMER, AccessTokenTransformer::class);
-
-        $container->register(EtsyInterface::SERVICE_REFRESH_TOKEN_MANAGER, RefreshTokenManager::class)
+        $container->register(EtsyInterface::SERVICE_REFRESH_TOKEN_MANAGER, RefreshTokenManagerInterface::class)
+            ->setFactory([$this->refreshTokenManagerFactory, 'create'])
             ->setArguments(
                 [
-                    $container->getDefinition(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
+                    new Reference(EtsyInterface::SERVICE_JSON_API_REQUEST_SENDER),
                     $this->accessTokenStore,
                     $this->refreshTokenStore,
-                    $container->getDefinition(EtsyInterface::SERVICE_ACCESS_TOKEN_TRANSFORMER),
                     $this->host->getOAuthTokenUrl(),
+                    $this->clientAuthentication,
+                    $this->lock,
                 ]
             );
 

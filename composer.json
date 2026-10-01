@@ -17,11 +17,12 @@
     ],
     "require": {
         "php": "^8.5",
-        "christianjbrown/api-client": "^1.0",
-        "christianjbrown/key-value-store": "^1.0 || ^2.0",
-        "christianjbrown/oauth2-client": "^1.0",
+        "christianjbrown/api-client": "^3.0",
+        "christianjbrown/key-value-store": "^3.0",
+        "christianjbrown/oauth2-client": "^2.1",
         "psr/container": "^2.0",
-        "symfony/dependency-injection": "^8.0"
+        "symfony/dependency-injection": "^8.0",
+        "symfony/clock": "^8.0"
     },
     "require-dev": {
         "brianium/paratest": "^7.25",

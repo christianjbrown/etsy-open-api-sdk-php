@@ -127,13 +127,14 @@ You supply four things to `EtsyFactory::create()`:
 ```php
 use ChristianBrown\Etsy\EtsyFactory;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
+use Symfony\Component\Clock\NativeClock;
 
 // Access token: transient, an in-memory store is fine.
-$accessTokenStore = new MemoryKeyValueStore();
+$accessTokenStore = new MemoryKeyValueStore(new NativeClock());
 
 // Refresh token: must persist and already hold a valid refresh token.
 // Any KeyValueStoreInterface works (DatabaseKeyValueStore, FirestoreKeyValueStore, …).
-$refreshTokenStore = new MemoryKeyValueStore();
+$refreshTokenStore = new MemoryKeyValueStore(new NativeClock());
 $refreshTokenStore->setValue('your-seed-refresh-token');
 
 $etsy = (new EtsyFactory())->create(
@@ -216,8 +217,8 @@ See "Supported write endpoints" above for the full list of write calls and their
 
 ### Pointing at a different host
 
-`EtsyFactory::create()` takes an optional sixth argument, an `EtsyHostInterface`, which defaults to
-Etsy's production hosts. Pass a differently configured `EtsyHost` to point every request, and the
+`EtsyFactory::create()` uses Etsy's production hosts. `EtsyFactory::createForHost()` takes the same
+arguments plus an `EtsyHostInterface`. Pass a differently configured `EtsyHost` to point every request, and the
 OAuth token refresh, somewhere else — a test double, a proxy, or a sandbox once Etsy publishes one:
 
 ```php
@@ -228,7 +229,7 @@ $host = new EtsyHost(
     oAuthTokenUrl: 'https://api.etsy.com/v3/public/oauth/token',     // default OAuth2 token endpoint
 );
 
-$etsy = (new EtsyFactory())->create(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+$etsy = (new EtsyFactory())->createForHost(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
 ```
 
 Etsy's Open API v3 has no published sandbox at the time of writing (unlike, say, eBay's
@@ -243,15 +244,25 @@ stores. Build it with `EtsyFactory` instead:
 
 ```php
 // Before
+$etsy = new Etsy(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore);
 $etsy = new Etsy(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
 
 // After
-$etsy = (new EtsyFactory())->create(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
+$etsy = (new EtsyFactory())->create(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore);
+$etsy = (new EtsyFactory())->createForHost(12345678, 'your-app-keystring', 'your-app-shared-secret', $accessTokenStore, $refreshTokenStore, $host);
 ```
 
 `new Etsy($container)` now takes a PSR-11 container and is meant for code that wires its own graph.
 If you construct `ListingWithAssociationsTransformer` yourself, it now takes an array of
 `ListingWithAssociationsFieldsTransformerInterface` implementations.
+
+This release also moves to `christianjbrown/api-client` 3, `christianjbrown/oauth2-client` 2.1 and
+`christianjbrown/key-value-store` 3. The key-value stores now need a PSR-20 clock, so build the
+in-memory stores as `new MemoryKeyValueStore(new NativeClock())` (`symfony/clock`) and give
+`FirestoreKeyValueStore` a clock as its second argument. In-memory stores now enforce TTLs.
+If you wire clients by hand, `ApiClient` is built with `(new ApiClientFactory(new ClientOptions()))->create()`
+and `RefreshTokenManager` with `(new RefreshTokenManagerFactory(new NativeClock()))->create(...)`, which
+takes a client authentication (`PublicClientAuthentication` for Etsy) and a lock (`NullLock` for none).
 
 ## :rotating_light: Error handling
 
@@ -280,7 +291,8 @@ Under the hood, `Etsy` wires the clients, their transformer chains, and the OAut
 <summary><strong>Wiring the clients</strong></summary>
 
 ```php
-use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiClientFactory;
+use ChristianBrown\ApiClient\ClientOptions;
 use ChristianBrown\Etsy\Api\ShopReceiptApi;
 use ChristianBrown\Etsy\Auth\Credentials;
 use ChristianBrown\Etsy\Cache\ResponseCache;
@@ -304,27 +316,30 @@ use ChristianBrown\Etsy\Transformer\TransactionVariationsTransformer;
 use ChristianBrown\Etsy\Transformer\TransactionVariationTransformer;
 use ChristianBrown\Etsy\Http\FormValueEncoder;
 use ChristianBrown\KeyValueStore\MemoryKeyValueStore;
-use ChristianBrown\OAuth2Client\RefreshTokenManager;
-use ChristianBrown\OAuth2Client\Transformer\AccessTokenTransformer;
+use ChristianBrown\OAuth2Client\Authentication\PublicClientAuthentication;
+use ChristianBrown\OAuth2Client\Lock\NullLock;
+use ChristianBrown\OAuth2Client\RefreshTokenManagerFactory;
+use Symfony\Component\Clock\NativeClock;
 
 $shopId = 12345678;
 $keystring = 'your-app-keystring';
 $sharedSecret = 'your-app-shared-secret';
 
-$accessTokenStore = new MemoryKeyValueStore();
-$refreshTokenStore = new MemoryKeyValueStore();
+$accessTokenStore = new MemoryKeyValueStore(new NativeClock());
+$refreshTokenStore = new MemoryKeyValueStore(new NativeClock());
 $refreshTokenStore->setValue('your-seed-refresh-token');
 
 // Shared JSON request sender (wires Guzzle for you).
-$requestSender = (new ApiClient())->getJsonApiRequestSender();
+$requestSender = (new ApiClientFactory(new ClientOptions()))->create()->getJsonApiRequestSender();
 
 // OAuth2 refresh machinery → a two-header credential (x-api-key + Bearer token).
-$refreshTokenManager = new RefreshTokenManager(
+$refreshTokenManager = (new RefreshTokenManagerFactory(new NativeClock()))->create(
     $requestSender,
     $accessTokenStore,
     $refreshTokenStore,
-    new AccessTokenTransformer(),
-    'https://api.etsy.com/v3/public/oauth/token'
+    'https://api.etsy.com/v3/public/oauth/token',
+    new PublicClientAuthentication(),
+    new NullLock()
 );
 $credentials = new Credentials($refreshTokenManager, $keystring, $sharedSecret);
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ChristianBrown\Etsy\Api;
 
-use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
+use ChristianBrown\ApiClient\ReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -19,15 +19,15 @@ use function sprintf;
 
 final class UserAddressApi implements UserAddressApiInterface
 {
-    private ApiRequestSenderInterface $apiRequestSender;
+    private ReadApiRequestSenderInterface $apiRequestSender;
     private ResponseCacheInterface $cache;
     private CredentialsInterface $credentials;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private ResponseCacheInterface $userAddressCache;
     private UserAddressesTransformerInterface $userAddressesTransformer;
     private UserAddressTransformerInterface $userAddressTransformer;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ApiRequestSenderInterface $apiRequestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, ResponseCacheInterface $cache, ResponseCacheInterface $userAddressCache, CredentialsInterface $credentials)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, ReadApiRequestSenderInterface $apiRequestSender, UserAddressTransformerInterface $userAddressTransformer, UserAddressesTransformerInterface $userAddressesTransformer, ResponseCacheInterface $cache, ResponseCacheInterface $userAddressCache, CredentialsInterface $credentials)
     {
         $this->requestSender = $requestSender;
         $this->apiRequestSender = $apiRequestSender;

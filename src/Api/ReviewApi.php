@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChristianBrown\Etsy\Api;
 
 use ChristianBrown\ApiClient\Exception\Request\RequestExceptionInterface;
-use ChristianBrown\ApiClient\JsonApiRequestSenderInterface;
+use ChristianBrown\ApiClient\JsonReadApiRequestSenderInterface;
 use ChristianBrown\Etsy\Auth\CredentialsInterface;
 use ChristianBrown\Etsy\Cache\ResponseCacheInterface;
 use ChristianBrown\Etsy\Exception\UnexpectedResponseException;
@@ -19,12 +19,12 @@ final class ReviewApi implements ReviewApiInterface
 {
     private CredentialsInterface $credentials;
     private ResponseCacheInterface $listingCache;
-    private JsonApiRequestSenderInterface $requestSender;
+    private JsonReadApiRequestSenderInterface $requestSender;
     private ReviewsTransformerInterface $reviewsTransformer;
     private ResponseCacheInterface $shopCache;
     private int $shopId;
 
-    public function __construct(JsonApiRequestSenderInterface $requestSender, ReviewsTransformerInterface $reviewsTransformer, ResponseCacheInterface $listingCache, ResponseCacheInterface $shopCache, CredentialsInterface $credentials, int $shopId)
+    public function __construct(JsonReadApiRequestSenderInterface $requestSender, ReviewsTransformerInterface $reviewsTransformer, ResponseCacheInterface $listingCache, ResponseCacheInterface $shopCache, CredentialsInterface $credentials, int $shopId)
     {
         $this->requestSender = $requestSender;
         $this->reviewsTransformer = $reviewsTransformer;

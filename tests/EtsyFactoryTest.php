@@ -65,16 +65,16 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UserTransformersRegistrar::class)]
 final class EtsyFactoryTest extends TestCase
 {
-    public function testCreateAcceptsACustomHost(): void
+    public function testCreateBuildsTheFacadeWithTheDefaultHost(): void
     {
-        $etsy = (new EtsyFactory())->create(42, 'key', 'secret', self::createStub(TtlAwareKeyValueStoreInterface::class), self::createStub(KeyValueStoreInterface::class), new EtsyHost('https://example.test'));
+        $etsy = (new EtsyFactory())->create(42, 'key', 'secret', self::createStub(TtlAwareKeyValueStoreInterface::class), self::createStub(KeyValueStoreInterface::class));
 
         self::assertInstanceOf(EtsyInterface::class, $etsy);
     }
 
-    public function testCreateBuildsTheFacadeWithTheDefaultHost(): void
+    public function testCreateForHostAcceptsACustomHost(): void
     {
-        $etsy = (new EtsyFactory())->create(42, 'key', 'secret', self::createStub(TtlAwareKeyValueStoreInterface::class), self::createStub(KeyValueStoreInterface::class));
+        $etsy = (new EtsyFactory())->createForHost(42, 'key', 'secret', self::createStub(TtlAwareKeyValueStoreInterface::class), self::createStub(KeyValueStoreInterface::class), new EtsyHost('https://example.test'));
 
         self::assertInstanceOf(EtsyInterface::class, $etsy);
     }
